@@ -221,7 +221,6 @@ public partial class RotationConfigWindow
             }
         },
         { UiString.ConfigWindow_Auto_HealingCondition.Local, DrawHealingActionCondition },
-        { UiString.ConfigWindow_Auto_ActionCondition.Local, DrawAutoActionCondition },
         { UiString.ConfigWindow_Auto_StateCondition.Local, () => _autoState?.Draw() },
     });
 

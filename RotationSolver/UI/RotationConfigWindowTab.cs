@@ -20,30 +20,31 @@ internal enum RotationConfigWindowTab : byte
     [TabSkip] About,
     [TabSkip] Rotation,
 
-    [Description("The abilities and custom conditions that your selected job has.")]
+    [Description("The abilities and custom conditions for your current Job.")]
     [TabIcon(Icon = 4)] Actions,
 
-    [Description("All rotations that RS has loaded.")]
+    [Description("All rotations that RSR has loaded")]
     [TabIcon(Icon = 47)] Rotations,
 
-    [Description("Some things that have to be lists.")]
+    [Description("Reactive action and statuses lists")]
     [TabIcon(Icon = 21)] List,
 
     [Description("Basic settings")]
     [TabIcon(Icon = 14)] Basic,
 
-    [Description("Settings about the user interface.")]
+    [Description("User interface settings")]
     [TabIcon(Icon = 42)] UI,
 
-    [Description("About some general actions usage and conditions.")]
+    [Description("General Action usage and control")]
     [TabIcon(Icon = 29)] Auto,
 
-    [Description("The way to find the targets, hostiles or friends.")]
+    [Description("Targetting settings")]
     [TabIcon(Icon = 16)] Target,
 
-    [Description("Some features that shouldn't be included in RS but help you.")]
+    [Description("Features that are not core to RSR but are helpful")]
     [TabIcon(Icon = 51)] Extra,
 
+    [Description("Debug stuff for developers and rotation writers. Please do not leave this enabled.")]
     [TabIcon(Icon = 5)] Debug,
 }
 

@@ -108,7 +108,7 @@ partial class CustomRotation
 
         IBaseAction.TargetOverride = TargetType.Death;
 
-        if (Service.Config.RaisePlayerByCasting && RaiseSpell(out act, true)) return act;
+        if (Service.Config.RaisePlayerByCasting && SwiftcastPvE.Cooldown.IsCoolingDown && RaiseSpell(out act, true)) return act;
 
         IBaseAction.TargetOverride = null;
 
@@ -148,22 +148,21 @@ partial class CustomRotation
             {
                 return true;
             }
-            else if (mustUse)
+            else if (Service.Config.RaisePlayerBySwift && !SwiftcastPvE.Cooldown.IsCoolingDown)
             {
-                var action = act;
                 if (SwiftcastPvE.CanUse(out act))
                 {
                     return true;
                 }
-                else if (!IsMoving)
+            }
+            else if (mustUse)
+            {
+                var action = act;
+                if (!IsMoving)
                 {
                     act = action;
                     return true;
                 }
-            }
-            else if (Service.Config.RaisePlayerBySwift && !SwiftcastPvE.Cooldown.IsCoolingDown)
-            {
-                return true;
             }
         }
 
@@ -177,6 +176,7 @@ partial class CustomRotation
             return false;
         }
     }
+
 
     /// <summary>
     /// The gcd for raising.

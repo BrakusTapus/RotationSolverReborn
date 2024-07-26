@@ -63,7 +63,7 @@ partial class DragoonRotation
     static partial void ModifyDisembowelPvE(ref ActionSetting setting)
     {
         setting.ComboIds = [ActionID.TrueThrustPvE, ActionID.RaidenThrustPvE];
-        setting.StatusProvide = [StatusID.PowerSurge];
+        setting.StatusProvide = [StatusID.PowerSurge_2720];
     }
 
     static partial void ModifyFullThrustPvE(ref ActionSetting setting)
@@ -161,7 +161,7 @@ partial class DragoonRotation
     static partial void ModifySonicThrustPvE(ref ActionSetting setting)
     {
         setting.ComboIds = [ActionID.DraconianFuryPvE, ActionID.DoomSpikePvE];
-        setting.StatusProvide = [StatusID.PowerSurge];
+        setting.StatusProvide = [StatusID.PowerSurge_2720];
         setting.CreateConfig = () => new()
         {
             AoeCount = 2,
@@ -266,7 +266,7 @@ partial class DragoonRotation
     static partial void ModifySpiralBlowPvE(ref ActionSetting setting)
     {
         setting.ComboIds = [ActionID.TrueThrustPvE, ActionID.RaidenThrustPvE];
-        setting.StatusProvide = [StatusID.PowerSurge];
+        setting.StatusProvide = [StatusID.PowerSurge_2720];
     }
 
     static partial void ModifyStarcrossPvE(ref ActionSetting setting)
@@ -287,7 +287,7 @@ partial class DragoonRotation
 
     /// <inheritdoc/>
     [RotationDesc(ActionID.FeintPvE)]
-    protected sealed override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
+    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
         if (FeintPvE.CanUse(out act)) return true;
         return false;

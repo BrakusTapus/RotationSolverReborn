@@ -396,22 +396,19 @@ internal enum UiString
     [Description("Change the way that RSR automatically uses actions.")]
     ConfigWindow_Auto_Description,
 
-    [Description("Action Usage")]
+    [Description("Action Usage and Control")]
     ConfigWindow_Auto_ActionUsage,
 
     [Description("Which actions RSR can use.")]
     ConfigWindow_Auto_ActionUsage_Description,
 
-    [Description("Action Condition")]
-    ConfigWindow_Auto_ActionCondition,
-
-    [Description("Healing Condition")]
+    [Description("Healing Usage and Control")]
     ConfigWindow_Auto_HealingCondition,
 
     [Description("How RSR should use healing abilities")]
     ConfigWindow_Auto_HealingCondition_Description,
 
-    [Description("State Condition")]
+    [Description("Custom State Condition")]
     ConfigWindow_Auto_StateCondition,
 
     [Description("Heal Area Forced Condition")]

@@ -200,9 +200,18 @@ partial class NinjaRotation
         setting.StatusNeed = [StatusID.RaijuReady];
     }
 
+    static partial void ModifyKunaisBanePvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Hidden];
+    }
+
     static partial void ModifyDeathfrogMediumPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Higi];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 2,
+        };
     }
 
     static partial void ModifyZeshoMeppoPvE(ref ActionSetting setting)

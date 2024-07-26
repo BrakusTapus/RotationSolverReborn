@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Statuses;
 using ECommons.DalamudServices;
@@ -118,7 +119,8 @@ public static class ObjectHelper
         {
             TargetHostileType.AllTargetsCanAttack => true,
             TargetHostileType.TargetsHaveTarget => IBattleChara.TargetObject is IBattleChara,
-            TargetHostileType.AllTargetsWhenSolo => DataCenter.PartyMembers.Length < 2 
+            TargetHostileType.AllTargetsWhenSolo => DataCenter.PartyMembers.Length < 2 || IBattleChara.TargetObject is IBattleChara,
+            TargetHostileType.AllTargetsWhenSoloInDuty => (DataCenter.PartyMembers.Length < 2 && Svc.Condition[ConditionFlag.BoundByDuty])
                 || IBattleChara.TargetObject is IBattleChara,
             _ => true,
         };
@@ -321,7 +323,7 @@ public static class ObjectHelper
     {
         if (b == null) return false;
         if (b.IsDummy()) return false;
-        return b.GetTimeToKill() <= Service.Config.DyingTimeToKill || b.GetHealthRatio() < 0.02f;
+        return b.GetTimeToKill() <= Service.Config.DyingTimeToKill || b.GetHealthRatio() < Service.Config.IsDyingConfig;
     }
 
     internal static unsafe bool InCombat(this IBattleChara obj)
@@ -375,7 +377,7 @@ public static class ObjectHelper
 
     internal static unsafe bool CanSee(this IGameObject b)
     {
-        var point = Player.Object.Position + Vector3.UnitY * Player.IGameObject->Height;
+        var point = Player.Object.Position + Vector3.UnitY * Player.GameObject->Height;
         var tarPt = b.Position + Vector3.UnitY * b.Struct()->Height;
         var direction = tarPt - point;
 

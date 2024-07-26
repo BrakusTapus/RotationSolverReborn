@@ -23,7 +23,7 @@ internal class MoveTimelineItem : BaseTimelineItem
     {
         base.OnEnable();
 
-        if (!Service.Config.EnableTimelineMovement) return;
+        return;
 
         var ipc = Svc.PluginInterface.GetIpcSubscriber<List<Vector3>, bool, object>("vnavmesh.Path.MoveTo");
 
@@ -39,7 +39,7 @@ internal class MoveTimelineItem : BaseTimelineItem
     {
         base.OnDisable();
 
-        if (!Service.Config.EnableTimelineMovement) return;
+        return;
 
         var ipc = Svc.PluginInterface.GetIpcSubscriber<object>("vnavmesh.Path.Stop");
         ipc?.InvokeAction();
