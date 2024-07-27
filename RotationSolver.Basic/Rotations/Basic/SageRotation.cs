@@ -70,6 +70,10 @@ partial class SageRotation
     static partial void ModifyPrognosisPvE(ref ActionSetting setting)
     {
         setting.IsFriendly = true;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyEgeiroPvE(ref ActionSetting setting)
@@ -80,6 +84,10 @@ partial class SageRotation
     static partial void ModifyPhysisPvE(ref ActionSetting setting)
     {
         setting.IsFriendly = true;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyPhlegmaPvE(ref ActionSetting setting)
@@ -108,6 +116,10 @@ partial class SageRotation
     static partial void ModifyEukrasianPrognosisPvE(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.EukrasianPrognosis];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyEukrasianDosisPvE(ref ActionSetting setting)
@@ -141,7 +153,7 @@ partial class SageRotation
     {
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -149,11 +161,19 @@ partial class SageRotation
     {
         setting.ActionCheck = () => Addersgall >= 1;
         setting.StatusProvide = [StatusID.Kerachole, StatusID.Kerakeia];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyIxocholePvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => Addersgall >= 1;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyZoePvE(ref ActionSetting setting)
@@ -173,11 +193,19 @@ partial class SageRotation
 
             return false;
         };
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyPhysisIiPvE(ref ActionSetting setting)
     {
         setting.IsFriendly = true;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyTaurocholePvE(ref ActionSetting setting)
@@ -232,6 +260,10 @@ partial class SageRotation
     static partial void ModifyHolosPvE(ref ActionSetting setting)
     {
         setting.IsFriendly = true;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyPanhaimaPvE(ref ActionSetting setting)
@@ -239,6 +271,10 @@ partial class SageRotation
         setting.StatusProvide = [StatusID.Panhaima, StatusID.Panhaimatinon];
         setting.UnlockedByQuestID = 69608;
         setting.IsFriendly = true;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyDosisIiiPvE(ref ActionSetting setting)
@@ -269,7 +305,7 @@ partial class SageRotation
     {
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -278,7 +314,7 @@ partial class SageRotation
         setting.TargetStatusProvide = [StatusID.EukrasianDyskrasia];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -298,7 +334,10 @@ partial class SageRotation
 
     static partial void ModifyPneumaPvE(ref ActionSetting setting)
     {
-        //Pneuma is damage neutral to dosis in single-target situations and still rolls GCD. So for raids you can just use it for the big aoe heal. In dungeons it's a damage gain to use it on a big pack.
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyPsychePvE(ref ActionSetting setting)
@@ -312,12 +351,20 @@ partial class SageRotation
     static partial void ModifyEukrasianPrognosisIiPvE(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.EukrasianPrognosis];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyPhilosophiaPvE(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.Philosophia];
         setting.TargetStatusProvide = [StatusID.Eudaimonia];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     // PvP

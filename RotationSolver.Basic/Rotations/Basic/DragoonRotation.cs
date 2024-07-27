@@ -135,12 +135,16 @@ partial class DragoonRotation
 
     static partial void ModifyBattleLitanyPvE(ref ActionSetting setting)
     {
+        setting.StatusProvide = [StatusID.BattleLitany];
+        setting.UnlockedByQuestID = 67226;
         setting.CreateConfig = () => new()
         {
             TimeToKill = 10,
         };
-        setting.UnlockedByQuestID = 67226;
-        setting.StatusProvide = [StatusID.BattleLitany];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyFangAndClawPvE(ref ActionSetting setting)

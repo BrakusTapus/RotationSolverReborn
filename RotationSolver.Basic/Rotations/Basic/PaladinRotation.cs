@@ -25,6 +25,18 @@ partial class PaladinRotation
     /// </summary>
     public static bool HasFightOrFlight => !Player.WillStatusEndGCD(0, 0, true, StatusID.FightOrFlight);
 
+    /// <summary>
+    /// Holds the remaining amount of Requiescat stacks
+    /// </summary>
+    public static byte RequiescatStacks
+    {
+        get
+        {
+            byte stacks = Player.StatusStack(true, StatusID.Requiescat);
+            return stacks == byte.MaxValue ? (byte)5 : stacks;
+        }
+    }
+
     #region Job Gauge
     /// <summary>
     /// Gets the current level of the Oath gauge.

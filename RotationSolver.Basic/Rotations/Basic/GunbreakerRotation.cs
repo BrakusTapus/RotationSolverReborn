@@ -61,7 +61,7 @@ partial class GunbreakerRotation
     {
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -153,7 +153,10 @@ partial class GunbreakerRotation
     static partial void ModifyHeartOfLightPvE(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.HeartOfLight];
-        setting.ActionCheck = () => Player.IsTargetOnSelf();
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyHeartOfStonePvE(ref ActionSetting setting)
@@ -192,6 +195,10 @@ partial class GunbreakerRotation
     {
         setting.StatusProvide = [StatusID.ReadyToRaze];
         setting.ActionCheck = () => Ammo > 0;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifyBloodfestPvE(ref ActionSetting setting)
@@ -239,7 +246,7 @@ partial class GunbreakerRotation
         setting.StatusNeed = [StatusID.ReadyToRaze];
         setting.CreateConfig = () => new ActionConfig()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 

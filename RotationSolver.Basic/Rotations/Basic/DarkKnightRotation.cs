@@ -1,11 +1,10 @@
-﻿using static Dalamud.Interface.Utility.Raii.ImRaii;
-
-namespace RotationSolver.Basic.Rotations.Basic;
+﻿namespace RotationSolver.Basic.Rotations.Basic;
 
 partial class DarkKnightRotation
 {
     /// <inheritdoc/>
     public override MedicineType MedicineType => MedicineType.Strength;
+    private protected sealed override IBaseAction TankStance => GritPvE;
 
     #region Job Gauge
 
@@ -66,46 +65,64 @@ partial class DarkKnightRotation
         => ShadowTimeEndAfter(GCDTime(gctCount, offset));
     #endregion
 
-    static partial void ModifyBloodspillerPvE(ref ActionSetting setting)
+    static partial void ModifyHardSlashPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => Blood >= 50 || !Player.WillStatusEnd(0, true, StatusID.Delirium_1972);
+
+    }
+
+    static partial void ModifySyphonStrikePvE(ref ActionSetting setting)
+    {
+        setting.ComboIds = [ActionID.HardSlashPvE];
+    }
+
+    static partial void ModifyUnleashPvE(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyGritPvE(ref ActionSetting setting)
+    {
+ 
+    }
+
+    static partial void ModifyReleaseGritPvE(ref ActionSetting setting)
+    {
+
     }
 
     static partial void ModifyUnmendPvE(ref ActionSetting setting)
     {
-        setting.SpecialType =  SpecialActionType.MeleeRange;
+        setting.SpecialType = SpecialActionType.MeleeRange;
     }
 
-    static partial void ModifyLivingShadowPvE(ref ActionSetting setting)
+    static partial void ModifySouleaterPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => Blood >= 50;
+        setting.ComboIds = [ActionID.SyphonStrikePvE];
     }
 
-    static partial void ModifyQuietusPvE(ref ActionSetting setting)
+    static partial void ModifyFloodOfDarknessPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => Blood >= 50 || !Player.WillStatusEnd(0, true, StatusID.Delirium_1972);
-    }
-
-    static partial void ModifyStalwartSoulPvE(ref ActionSetting setting)
-    {
-        setting.ComboIds = [ActionID.UnleashPvE];
+        setting.StatusProvide = [StatusID.Darkside];
+        setting.UnlockedByQuestID = 67590;
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
-    static partial void ModifySaltAndDarknessPvE(ref ActionSetting setting)
+    static partial void ModifyBloodWeaponPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => Service.GetAdjustedActionId(ActionID.SaltedEarthPvE) == ActionID.SaltAndDarknessPvE;
+        setting.ActionCheck = () => Blood <= 70;
+        setting.StatusProvide = [StatusID.BloodWeapon];
+        setting.CreateConfig = () => new()
+        {
+            TimeToKill = 10,
+        };
+        setting.UnlockedByQuestID = 67591;
     }
-
-    static partial void ModifyShadowbringerPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => !DarkSideEndAfterGCD();
-    }
-
-    private protected sealed override IBaseAction TankStance => GritPvE;
 
     static partial void ModifyShadowWallPvE(ref ActionSetting setting)
     {
@@ -113,64 +130,31 @@ partial class DarkKnightRotation
         setting.ActionCheck = Player.IsTargetOnSelf;
     }
 
-    static partial void ModifyDarkMindPvE(ref ActionSetting setting)
+    static partial void ModifyStalwartSoulPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = Player.IsTargetOnSelf;
-    }
-
-    static partial void ModifyOblationPvE(ref ActionSetting setting)
-    {
-        setting.TargetStatusProvide = [StatusID.Oblation];
-    }
-
-    static partial void ModifyBloodWeaponPvE(ref ActionSetting setting)
-    {
-        setting.CreateConfig = () => new ()
-        {
-            TimeToKill = 10,
-        };
-        setting.UnlockedByQuestID = 67591;
-    }
-
-    static partial void ModifyDeliriumPvE(ref ActionSetting setting)
-    {
+        setting.ActionCheck = () => Blood <= 80;
+        setting.ComboIds = [ActionID.UnleashPvE];
         setting.CreateConfig = () => new()
         {
-            TimeToKill = 10,
+            AoeCount = 3,
         };
-    }
-
-    static partial void ModifyUnleashPvE(ref ActionSetting setting)
-    {
-        setting.CreateConfig = () => new()
-        {
-            AoeCount = 2,
-        };
-    }
-
-    // static partial void ModifyPlungePvE(ref ActionSetting setting)
-    // {
-    //     setting.SpecialType = SpecialActionType.MovingForward;
-    //     setting.UnlockedByQuestID = 67597;
-    // }
-
-    static partial void ModifyPlungePvP(ref ActionSetting setting)
-    {
-        setting.SpecialType = SpecialActionType.MovingForward;
-    }
-
-    static partial void ModifyFloodOfDarknessPvE(ref ActionSetting setting)
-    {
-        setting.UnlockedByQuestID = 67590;
     }
 
     static partial void ModifyEdgeOfDarknessPvE(ref ActionSetting setting)
     {
+        setting.StatusProvide = [StatusID.Darkside];
         setting.UnlockedByQuestID = 67592;
+    }
+
+    static partial void ModifyDarkMindPvE(ref ActionSetting setting)
+    {
+
     }
 
     static partial void ModifyLivingDeadPvE(ref ActionSetting setting)
     {
+        setting.StatusProvide = [StatusID.LivingDead, StatusID.WalkingDead, StatusID.UndeadRebirth];
+        setting.ActionCheck = Player.IsTargetOnSelf;
         setting.UnlockedByQuestID = 67594;
     }
 
@@ -179,9 +163,19 @@ partial class DarkKnightRotation
         setting.UnlockedByQuestID = 67596;
     }
 
+    static partial void ModifyShadowstridePvE(ref ActionSetting setting)
+    {
+        setting.UnlockedByQuestID = 67597;
+        setting.SpecialType = SpecialActionType.MovingForward;
+    }
+
     static partial void ModifyAbyssalDrainPvE(ref ActionSetting setting)
     {
         setting.UnlockedByQuestID = 67598;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifyCarveAndSpitPvE(ref ActionSetting setting)
@@ -189,9 +183,125 @@ partial class DarkKnightRotation
         setting.UnlockedByQuestID = 67600;
     }
 
+    static partial void ModifyBloodspillerPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Blood >= 50 || !Player.WillStatusEnd(0, true, StatusID.Delirium_1972);
+    }
+
+    static partial void ModifyQuietusPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Blood >= 50 || !Player.WillStatusEnd(0, true, StatusID.Delirium_1972);
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyDeliriumPvE(ref ActionSetting setting)
+    {
+        setting.StatusProvide = [StatusID.Delirium_1972, StatusID.BloodWeapon];
+        setting.CreateConfig = () => new()
+        {
+            TimeToKill = 10,
+        };
+    }
+
     static partial void ModifyTheBlackestNightPvE(ref ActionSetting setting)
     {
+        setting.StatusProvide = [StatusID.BlackestNight];
+        setting.ActionCheck = Player.IsTargetOnSelf;
         setting.UnlockedByQuestID = 68455;
+    }
+
+    static partial void ModifyFloodOfShadowPvE(ref ActionSetting setting)
+    {
+        setting.MPOverride = () => HasDarkArts ? 0 : null;
+        setting.StatusProvide = [StatusID.Darkside];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyEdgeOfShadowPvE(ref ActionSetting setting)
+    {
+        setting.MPOverride = () => HasDarkArts ? 0 : null;
+        setting.StatusProvide = [StatusID.Darkside];
+    }
+
+    static partial void ModifyDarkMissionaryPvE(ref ActionSetting setting)
+    {
+        setting.StatusProvide = [StatusID.DarkMissionary];
+        setting.ActionCheck = Player.IsTargetOnSelf;
+    }
+
+    static partial void ModifyLivingShadowPvE(ref ActionSetting setting)
+    {
+        setting.StatusProvide = [StatusID.Scorn];
+    }
+
+    static partial void ModifyOblationPvE(ref ActionSetting setting)
+    {
+        setting.StatusProvide = [StatusID.Oblation];
+        setting.ActionCheck = Player.IsTargetOnSelf;
+    }
+
+    static partial void ModifySaltAndDarknessPvE(ref ActionSetting setting)
+    {
+        setting.UnlockedByQuestID = 67596;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyShadowbringerPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => !DarkSideEndAfterGCD();
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyShadowedVigilPvE(ref ActionSetting setting)
+    {
+        setting.StatusProvide = StatusHelper.RampartStatus;
+    }
+
+    static partial void ModifyScarletDeliriumPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Delirium_1972];
+    }
+
+    static partial void ModifyComeuppancePvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Delirium_1972];
+        setting.ComboIds = [ActionID.ScarletDeliriumPvE];
+    }
+
+    static partial void ModifyTorcleaverPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Delirium_1972];
+        setting.ComboIds = [ActionID.ComeuppancePvE];
+    }
+
+    static partial void ModifyImpalementPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Delirium_1972];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyDisesteemPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Scorn];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     /// <inheritdoc/>
@@ -202,11 +312,9 @@ partial class DarkKnightRotation
         return base.EmergencyAbility(nextGCD, out act);
     }
 
-    // /// <inheritdoc/>
-    // [RotationDesc(ActionID)]
-    // protected sealed override bool MoveForwardAbility(IAction nextGCD, out IAction? act)
-    // {
-    //     if (PlungePvE.CanUse(out act)) return true;
-    //     return false;
-    // }
+    // PvP
+    static partial void ModifyPlungePvP(ref ActionSetting setting)
+    {
+        setting.SpecialType = SpecialActionType.MovingForward;
+    }
 }

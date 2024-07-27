@@ -7,9 +7,14 @@ partial class NinjaRotation
 
     #region Job Gauge
     /// <summary>
-    /// Current Ninki
+    /// Gets the amount of Ninki available.
     /// </summary>
     public static byte Ninki => (byte)JobGauge.Ninki;
+
+    /// <summary>
+    /// Gets the current charges for Kazematoi.
+    /// </summary>
+    public static byte Kazematoi => (byte)JobGauge.Kazematoi;
     #endregion
 
     static partial void ModifyArmorCrushPvE(ref ActionSetting setting)

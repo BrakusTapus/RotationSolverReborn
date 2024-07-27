@@ -7,6 +7,7 @@ partial class BlackMageRotation
 
     // Umbral Soul level 35 now
     #region Job Gauge
+
     /// <summary>
     /// 
     /// </summary>
@@ -16,6 +17,11 @@ partial class BlackMageRotation
     /// 
     /// </summary>
     public static byte AstralFireStacks => JobGauge.AstralFireStacks;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static int AstralSoulStacks => JobGauge.AstralSoulStacks;
 
     /// <summary>
     /// 
@@ -50,8 +56,6 @@ partial class BlackMageRotation
     /// <summary>
     /// 
     /// </summary>
-    //public static bool IsPolyglotStacksMaxed => EnhancedPolyglotTrait.EnoughLevel ? PolyglotStacks == 2 : PolyglotStacks == 1;
-
     static float EnochianTimeRaw => JobGauge.EnochianTimer / 1000f;
 
     /// <summary>
@@ -64,7 +68,7 @@ partial class BlackMageRotation
     /// </summary>
     /// <param name="time"></param>
     /// <returns></returns>
-    protected static bool EnchinaEndAfter(float time) => EnochianTime <= time;
+    protected static bool EnochianEndAfter(float time) => EnochianTime <= time;
 
     /// <summary>
     /// 
@@ -72,8 +76,8 @@ partial class BlackMageRotation
     /// <param name="gcdCount"></param>
     /// <param name="offset"></param>
     /// <returns></returns>
-    protected static bool EnchinaEndAfterGCD(uint gcdCount = 0, float offset = 0)
-        => EnchinaEndAfter(GCDTime(gcdCount, offset));
+    protected static bool EnochianEndAfterGCD(uint gcdCount = 0, float offset = 0)
+        => EnochianEndAfter(GCDTime(gcdCount, offset));
 
     static float ElementTimeRaw => JobGauge.ElementTimeRemaining / 1000f;
 
@@ -110,121 +114,37 @@ partial class BlackMageRotation
     /// </summary>
     protected static bool HasThunder => Player.HasStatus(true, StatusID.Thunderhead);
 
-    static partial void ModifyThunderPvE(ref ActionSetting setting)
-    {
-        setting.StatusNeed = [StatusID.Thunderhead];
-    }
 
-    static partial void ModifyThunderIiPvE(ref ActionSetting setting)
+    /// <summary>
+    /// A check with variable max stacks of Polyglot based on the trait level.
+    /// </summary>
+    public static bool IsPolyglotStacksMaxed
     {
-        setting.StatusNeed = [StatusID.Thunderhead];
-    }
-
-    static partial void ModifyThunderIiiPvE(ref ActionSetting setting)
-    {
-        setting.StatusNeed = [StatusID.Thunderhead];
-        setting.UnlockedByQuestID = 66612;
-    }
-
-    static partial void ModifyThunderIvPvE(ref ActionSetting setting)
-    {
-        setting.StatusNeed = [StatusID.Thunderhead];
-    }
-
-    static partial void ModifyFireIiiPvE(ref ActionSetting setting)
-    {
-        setting.MPOverride = () => HasFire ? 0 : null;
-        setting.ActionCheck = () => !IsLastGCD(ActionID.FireIiiPvE);
-    }
-
-    static partial void ModifyFireIvPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => InAstralFire && !ElementTimeEndAfter(ActionID.FireIvPvE.GetCastTime() - 0.1f);
-        setting.UnlockedByQuestID = 67219;
-    }
-
-    static partial void ModifyDespairPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => InAstralFire && !ElementTimeEndAfter(ActionID.DespairPvE.GetCastTime() - 0.1f);
-    }
-
-    static partial void ModifyBlizzardIiiPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => !IsLastGCD(ActionID.BlizzardIvPvE);
-        setting.UnlockedByQuestID = 66610;
-    }
-
-    static partial void ModifyBlizzardIvPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => InUmbralIce && !ElementTimeEndAfter(ActionID.BlizzardIvPvE.GetCastTime() - 0.1f);
-        setting.UnlockedByQuestID = 67218;
-    }
-
-    static partial void ModifyXenoglossyPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => PolyglotStacks > 0;
-    }
-
-    static partial void ModifyParadoxPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => IsParadoxActive;
-    }
-
-    static partial void ModifyFlarePvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => InAstralFire && !ElementTimeEndAfter(ActionID.FlarePvE.GetCastTime() - 0.1f);
-        setting.UnlockedByQuestID = 66614;
-    }
-
-    static partial void ModifyFreezePvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => InUmbralIce && !ElementTimeEndAfter(ActionID.FreezePvE.GetCastTime() - 0.1f);
-        setting.UnlockedByQuestID = 66611;
-    }
-
-    static partial void ModifyFoulPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => PolyglotStacks > 0;
-        setting.UnlockedByQuestID = 68128;
-    }
-
-    static partial void ModifyAmplifierPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => !EnchinaEndAfter(10) && PolyglotStacks < 2;
-    }
-
-
-    static partial void ModifyManafontPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => DataCenter.CurrentMp <= 7000;
-        setting.UnlockedByQuestID = 66609;
-    }
-
-    static partial void ModifyLeyLinesPvE(ref ActionSetting setting)
-    {
-        setting.StatusProvide = [StatusID.LeyLines];
-        setting.CreateConfig = () => new()
+        get
         {
-            TimeToKill = 15,
-        };
-        setting.UnlockedByQuestID = 67215;
+            if (EnhancedPolyglotIiTrait.EnoughLevel)
+            {
+                return PolyglotStacks == 3;
+            }
+            else if (EnhancedPolyglotTrait.EnoughLevel)
+            {
+                return PolyglotStacks == 2;
+            }
+            else
+            {
+                return PolyglotStacks == 1;
+            }
+        }
     }
 
-    static partial void ModifyBetweenTheLinesPvE(ref ActionSetting setting)
+    static partial void ModifyBlizzardPvE(ref ActionSetting setting)
     {
-        setting.StatusNeed = [StatusID.LeyLines];
+
     }
 
-    // static partial void ModifySharpcastPvE(ref ActionSetting setting)
-    // {
-    //     setting.ActionCheck = () => HasHostilesInRange;
-    //     setting.StatusProvide = [StatusID.Sharpcast];
-    //     setting.UnlockedByQuestID = 67216;
-    // }
-
-    static partial void ModifyTriplecastPvE(ref ActionSetting setting)
+    static partial void ModifyFirePvE(ref ActionSetting setting)
     {
-        setting.StatusProvide = StatusHelper.SwiftcastStatus;
+        setting.StatusProvide = [StatusID.Firestarter];
     }
 
     static partial void ModifyTransposePvE(ref ActionSetting setting)
@@ -232,9 +152,19 @@ partial class BlackMageRotation
         setting.ActionCheck = () => DataCenter.DefaultGCDRemain <= ElementTimeRaw;
     }
 
-    static partial void ModifyUmbralSoulPvE(ref ActionSetting setting)
+    static partial void ModifyThunderPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => JobGauge.InUmbralIce && DataCenter.DefaultGCDRemain <= ElementTimeRaw;
+        setting.StatusNeed = [StatusID.Thunderhead];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+    }
+
+    static partial void ModifyBlizzardIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InAstralFire;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifyScathePvE(ref ActionSetting setting)
@@ -242,9 +172,207 @@ partial class BlackMageRotation
         setting.UnlockedByQuestID = 65886;
     }
 
+    static partial void ModifyFireIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InUmbralIce;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyThunderIiPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Thunderhead];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872];
+    }
+
     static partial void ModifyManawardPvE(ref ActionSetting setting)
     {
-        setting.UnlockedByQuestID = 65889;
+        setting.StatusProvide = [StatusID.Manaward];
+        setting.UnlockedByQuestID = 66612;
+    }
+
+    static partial void ModifyManafontPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InAstralFire && DataCenter.CurrentMp == 0 && UmbralHearts == 0 && !IsParadoxActive;
+        setting.StatusProvide = [StatusID.Thunderhead];
+        setting.UnlockedByQuestID = 66609;
+    }
+
+    static partial void ModifyFireIiiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => !IsLastGCD(ActionID.FireIiiPvE);
+        setting.MPOverride = () => HasFire ? 0 : null;
+    }
+
+    static partial void ModifyBlizzardIiiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => !IsLastGCD(ActionID.BlizzardIvPvE, ActionID.BlizzardIiiPvE);
+        setting.UnlockedByQuestID = 66610;
+    }
+
+    static partial void ModifyUmbralSoulPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InUmbralIce && UmbralHearts <= 2 && DataCenter.DefaultGCDRemain <= ElementTimeRaw &&
+        ((UmbralIceStacks == 1 && DataCenter.CurrentMp <= 7500) || (UmbralIceStacks == 2 && DataCenter.CurrentMp <= 5000) || (UmbralIceStacks == 3 && DataCenter.CurrentMp == 0));
+        setting.StatusProvide = [StatusID.Thunderhead];
+        setting.UnlockedByQuestID = 66609;
+    }
+
+    static partial void ModifyFreezePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InUmbralIce && !ElementTimeEndAfter(ActionID.FreezePvE.GetCastTime() - 0.1f) && UmbralHearts == 0;
+        setting.UnlockedByQuestID = 66611;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyThunderIiiPvE(ref ActionSetting setting)
+    {
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.StatusNeed = [StatusID.Thunderhead];
+        setting.UnlockedByQuestID = 66612;
+    }
+
+    static partial void ModifyAetherialManipulationPvE(ref ActionSetting setting)
+    {
+        setting.SpecialType = SpecialActionType.MovingForward;
+    }
+
+    static partial void ModifyFlarePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InAstralFire && AstralSoulStacks <= 3 && !ElementTimeEndAfter(ActionID.FlarePvE.GetCastTime() - 0.1f);
+        setting.UnlockedByQuestID = 66614;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyLeyLinesPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => !IsMoving;
+        setting.StatusProvide = [StatusID.LeyLines];
+        setting.UnlockedByQuestID = 67215;
+        setting.CreateConfig = () => new()
+        {
+            TimeToKill = 15,
+        };
+    }
+
+    static partial void ModifyBlizzardIvPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InUmbralIce && UmbralHearts == 0 && !ElementTimeEndAfter(ActionID.BlizzardIvPvE.GetCastTime() - 0.1f);
+        setting.UnlockedByQuestID = 67218;
+    }
+
+    static partial void ModifyFireIvPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InAstralFire && AstralSoulStacks <= 5 && !ElementTimeEndAfter(ActionID.FireIvPvE.GetCastTime() - 0.1f);
+        setting.UnlockedByQuestID = 67219;
+    }
+
+    static partial void ModifyBetweenTheLinesPvE(ref ActionSetting setting)
+    {
+        setting.SpecialType = SpecialActionType.MovingBackward;
+    }
+
+    static partial void ModifyThunderIvPvE(ref ActionSetting setting)
+    {
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.StatusNeed = [StatusID.Thunderhead];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyTriplecastPvE(ref ActionSetting setting)
+    {
+        setting.StatusProvide = StatusHelper.SwiftcastStatus;
+    }
+
+    static partial void ModifyFoulPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => PolyglotStacks > 0;
+        setting.UnlockedByQuestID = 68128;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyDespairPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InAstralFire && !ElementTimeEndAfter(ActionID.DespairPvE.GetCastTime() - 0.1f);
+    }
+
+    static partial void ModifyXenoglossyPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => PolyglotStacks > 0;
+    }
+
+    static partial void ModifyHighFireIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InUmbralIce;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyHighBlizzardIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InAstralFire;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyAmplifierPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => !EnochianEndAfter(10) && !IsPolyglotStacksMaxed;
+    }
+
+    static partial void ModifyParadoxPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => IsParadoxActive;
+        setting.StatusProvide = [StatusID.Firestarter];
+    }
+
+    static partial void ModifyHighThunderPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Thunderhead];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+    }
+
+    static partial void ModifyHighThunderIiPvE(ref ActionSetting setting)
+    {
+        setting.StatusNeed = [StatusID.Thunderhead];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyRetracePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => !IsMoving;
+        setting.StatusNeed = [StatusID.LeyLines];
+    }
+
+    static partial void ModifyFlareStarPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => AstralSoulStacks == 6;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     /// <summary>
@@ -287,6 +415,8 @@ partial class BlackMageRotation
         if (AetherialManipulationPvE.CanUse(out act)) return true;
         return base.MoveForwardGCD(out act);
     }
+
+    // PvP
     static partial void ModifyAetherialManipulationPvP(ref ActionSetting setting)
     {
         setting.SpecialType = SpecialActionType.MovingForward;

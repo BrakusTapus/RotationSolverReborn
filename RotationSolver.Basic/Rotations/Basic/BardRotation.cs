@@ -94,7 +94,7 @@ partial class BardRotation
         setting.StatusProvide = [StatusID.HawksEye_3861];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -103,7 +103,7 @@ partial class BardRotation
         setting.StatusNeed = [StatusID.HawksEye_3861];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -147,7 +147,7 @@ partial class BardRotation
         setting.UnlockedByQuestID = 66624;
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -158,6 +158,10 @@ partial class BardRotation
         setting.CreateConfig = () => new()
         {
             TimeToKill = 10,
+        };
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
         };
     }
 
@@ -205,6 +209,10 @@ partial class BardRotation
     {
         setting.StatusFromSelf = false;
         setting.StatusProvide = StatusHelper.RangePhysicalDefense;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyCausticBitePvE(ref ActionSetting setting)
@@ -222,6 +230,10 @@ partial class BardRotation
     static partial void ModifyNaturesMinnePvE(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.NaturesMinne];
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyRefulgentArrowPvE(ref ActionSetting setting)
@@ -235,7 +247,7 @@ partial class BardRotation
         setting.StatusNeed = [StatusID.HawksEye_3861];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -248,6 +260,10 @@ partial class BardRotation
     {
         setting.StatusProvide = [StatusID.BlastArrowReady];
         setting.ActionCheck = () => SoulVoice >= 20;
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
+        };
     }
 
     static partial void ModifyLadonsbitePvE(ref ActionSetting setting)
@@ -255,7 +271,7 @@ partial class BardRotation
         setting.StatusProvide = [StatusID.HawksEye_3861];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -275,6 +291,10 @@ partial class BardRotation
         setting.CreateConfig = () => new()
         {
             TimeToKill = 10,
+        };
+        setting.CreateConfig = () => new()
+        {
+            AoeCount = 1,
         };
     }
 
