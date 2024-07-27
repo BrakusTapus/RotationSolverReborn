@@ -1,6 +1,5 @@
 <Project>
     <PropertyGroup>
-        <AssemblyVersion>7.0.1.33</AssemblyVersion>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Authors>The CombatReborn Team</Authors>
