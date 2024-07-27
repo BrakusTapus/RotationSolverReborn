@@ -64,6 +64,10 @@ partial class DragoonRotation
     {
         setting.ComboIds = [ActionID.TrueThrustPvE, ActionID.RaidenThrustPvE];
         setting.StatusProvide = [StatusID.PowerSurge_2720];
+        setting.CreateConfig = () => new()
+        {
+            StatusGcdCount = 3,
+        };
     }
 
     static partial void ModifyFullThrustPvE(ref ActionSetting setting)
@@ -97,7 +101,7 @@ partial class DragoonRotation
         setting.UnlockedByQuestID = 66605;
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -111,6 +115,10 @@ partial class DragoonRotation
     {
         setting.ComboIds = [ActionID.DisembowelPvE];
         setting.TargetStatusProvide = [StatusID.ChaoticSpring];
+        setting.CreateConfig = () => new()
+        {
+            StatusGcdCount = 3,
+        };
     }
 
     //Class
@@ -164,7 +172,7 @@ partial class DragoonRotation
         setting.StatusProvide = [StatusID.PowerSurge_2720];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -195,7 +203,7 @@ partial class DragoonRotation
         setting.ComboIds = [ActionID.SonicThrustPvE];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -224,7 +232,7 @@ partial class DragoonRotation
         setting.StatusNeed = [StatusID.DraconianFire];
         setting.CreateConfig = () => new()
         {
-            AoeCount = 2,
+            AoeCount = 3,
         };
     }
 
@@ -237,6 +245,10 @@ partial class DragoonRotation
     {
         setting.ComboIds = [ActionID.SpiralBlowPvE];
         setting.TargetStatusProvide = [StatusID.ChaoticSpring];
+        setting.CreateConfig = () => new()
+        {
+            StatusGcdCount = 3,
+        };
     }
 
     static partial void ModifyWyrmwindThrustPvE(ref ActionSetting setting)
@@ -267,6 +279,10 @@ partial class DragoonRotation
     {
         setting.ComboIds = [ActionID.TrueThrustPvE, ActionID.RaidenThrustPvE];
         setting.StatusProvide = [StatusID.PowerSurge_2720];
+        setting.CreateConfig = () => new()
+        {
+            StatusGcdCount = 3,
+        };
     }
 
     static partial void ModifyStarcrossPvE(ref ActionSetting setting)
