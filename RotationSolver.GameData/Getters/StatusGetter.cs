@@ -16,15 +16,19 @@ internal class StatusGetter(Lumina.GameData gameData)
     {
         if (item.ClassJobCategory.Row == 0) return false;
         var name = item.Name.RawString;
-        if (string.IsNullOrEmpty(name)) return false;
+        //if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
-        if (item.Icon == 0) return false;
+        //if (item.Icon == 0) return false;
         return true;
     }
 
     protected override string ToCode(Status item)
     {
         var name = item.Name.RawString.ToPascalCase();
+        if (string.IsNullOrEmpty(name))
+        {
+            name += "NoName_" + item.RowId.ToString();
+        }
         if (_addedNames.Contains(name))
         {
             name += "_" + item.RowId.ToString();
