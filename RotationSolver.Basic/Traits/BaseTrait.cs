@@ -1,5 +1,5 @@
 ﻿using ECommons.GameHelpers;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Traits;
 

@@ -2,7 +2,7 @@
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Svg;
 using System.Collections.Concurrent;
 using System.Drawing.Imaging;
@@ -174,7 +174,7 @@ public static class IconSet
 
         if (!_actionIcons.TryGetValue(actionID, out var iconId))
         {
-            iconId = Service.GetSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow((uint)actionID)?.Icon ?? 0;
+            iconId = Service.GetSheet<Lumina.Excel.Sheets.Action>().GetRow((uint)actionID)?.Icon ?? 0;
             _actionIcons[actionID] = iconId;
         }
         return GetTexture(iconId, out texture);

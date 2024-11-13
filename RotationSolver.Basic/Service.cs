@@ -3,8 +3,8 @@ using System.Text;
 using Dalamud.Utility.Signatures;
 using ECommons.DalamudServices;
 using ECommons.EzHookManager;
-using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Component.Excel;
 using Lumina.Excel;
 using RotationSolver.Basic.Configuration;
 

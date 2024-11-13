@@ -1,7 +1,7 @@
 ﻿using Dalamud.Plugin;
 using ECommons.DalamudServices;
 using Lumina.Excel;
-using Lumina.Excel.CustomSheets;
+using Lumina.Excel.Sheets;
 using System.Runtime.Loader;
 
 namespace RotationSolver.Helpers;

@@ -1,7 +1,7 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Configuration.Conditions;
 
@@ -100,7 +100,7 @@ internal class TargetCondition : DelayCondition
             return false;
         }
 
-        var castName = Service.GetSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow(tar.CastActionId)?.Name.ToString();
+        var castName = Service.GetSheet<Lumina.Excel.Sheets.Action>().GetRow(tar.CastActionId)?.Name.ToString();
         return CastingActionName == castName;
     }
 

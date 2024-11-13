@@ -1,7 +1,7 @@
 ﻿using Dalamud.Interface.Utility;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using RotationSolver.Data;
 
 using RotationSolver.UI.SearchableSettings;

@@ -1,6 +1,6 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.ExcelServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Rotations;
 

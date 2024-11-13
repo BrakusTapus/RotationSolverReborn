@@ -1,5 +1,5 @@
 ﻿namespace RotationSolver.Basic.Data;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Action = Lumina.Excel.Sheets.Action;
 
 /// <summary>
 /// Represents an action record.

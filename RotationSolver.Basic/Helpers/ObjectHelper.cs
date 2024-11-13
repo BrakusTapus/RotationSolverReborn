@@ -30,9 +30,9 @@ public static class ObjectHelper
         EventHandlerType.Quest,
     };
 
-    internal static Lumina.Excel.GeneratedSheets.BNpcBase? GetObjectNPC(this IGameObject obj)
+    internal static Lumina.Excel.Sheets.BNpcBase? GetObjectNPC(this IGameObject obj)
     {
-        return obj == null ? null : Service.GetSheet<Lumina.Excel.GeneratedSheets.BNpcBase>().GetRow(obj.DataId);
+        return obj == null ? null : Service.GetSheet<Lumina.Excel.Sheets.BNpcBase>().GetRow(obj.DataId);
     }
 
     internal static bool CanProvoke(this IGameObject target)
@@ -377,7 +377,7 @@ public static class ObjectHelper
         var id = b.CastActionId;
         if (_effectRangeCheck.TryGetValue(id, out var check)) return check;
 
-        var act = Service.GetSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow(b.CastActionId);
+        var act = Service.GetSheet<Lumina.Excel.Sheets.Action>().GetRow(b.CastActionId);
         if (act == null) return _effectRangeCheck[id] = false;
         if (act.CastType is 3 or 4 || (act.EffectRange is > 0 and < 8)) return _effectRangeCheck[id] = false;
 
