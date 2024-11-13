@@ -1,27 +1,35 @@
 ﻿using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
-namespace RotationSolver.GameData.Getters;
-internal abstract class ExcelRowGetter<T>(Lumina.GameData gameData) where T : ExcelRow
+namespace RotationSolver.GameData.Getters
 {
-    protected Lumina.GameData _gameData = gameData;
-    public int Count { get; private set; } = 0;
-
-    protected abstract bool AddToList(T item);
-    protected abstract string ToCode(T item);
-
-    protected virtual void BeforeCreating() { }
-
-
-    public string GetCode()
+    internal abstract class ExcelRowGetter<T> where T : ExcelRow
     {
-        var items = _gameData.GetExcelSheet<T>();
+        protected Lumina.GameData _gameData;
 
-        if (items == null) return string.Empty;
-        BeforeCreating();
+        protected ExcelRowGetter(Lumina.GameData gameData)
+        {
+            _gameData = gameData;
+        }
 
-        var filteredItems = items.Where(AddToList);
-        Count = filteredItems.Count();
+        public int Count { get; private set; } = 0;
 
-        return string.Join("\n", filteredItems.Select(ToCode));
+        protected abstract bool AddToList(T item);
+        protected abstract string ToCode(T item);
+
+        protected virtual void BeforeCreating() { }
+
+        public string GetCode()
+        {
+            var items = _gameData.GetExcelSheet<T>();
+
+            if (items == null) return string.Empty;
+            BeforeCreating();
+
+            var filteredItems = items.Where(AddToList);
+            Count = filteredItems.Count();
+
+            return string.Join("\n", filteredItems.Select(ToCode));
+        }
     }
 }

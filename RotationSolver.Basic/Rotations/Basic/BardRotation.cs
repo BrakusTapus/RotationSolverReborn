@@ -365,11 +365,6 @@ partial class BardRotation
         setting.TargetStatusProvide = [StatusID.Silenced];
     }
 
-    static partial void ModifyEmpyrealArrowPvP(ref ActionSetting setting)
-    {
-
-    }
-
     static partial void ModifyRepellingShotPvP(ref ActionSetting setting)
     {
 

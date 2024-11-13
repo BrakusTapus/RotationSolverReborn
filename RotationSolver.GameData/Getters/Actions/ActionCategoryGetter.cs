@@ -1,4 +1,4 @@
-﻿using Lumina.Excel.GeneratedSheets;
+﻿using Lumina.Excel.Sheets;
 
 namespace RotationSolver.GameData.Getters.Actions;
 internal class ActionCategoryGetter(Lumina.GameData gameData)
@@ -14,7 +14,7 @@ internal class ActionCategoryGetter(Lumina.GameData gameData)
 
     protected override bool AddToList(ActionCategory item)
     {
-        var name = item.Name.RawString;
+        var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         return true;
@@ -22,7 +22,7 @@ internal class ActionCategoryGetter(Lumina.GameData gameData)
 
     protected override string ToCode(ActionCategory item)
     {
-        var name = item.Name.RawString.ToPascalCase();
+        var name = item.Name.ToString().ToPascalCase();
 
         if (_addedNames.Contains(name))
         {

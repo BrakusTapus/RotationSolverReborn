@@ -1,6 +1,6 @@
 using Dalamud.Game.ClientState.Keys;
 using ECommons.ExcelServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Helpers;
 

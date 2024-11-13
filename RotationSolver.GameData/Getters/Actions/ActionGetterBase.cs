@@ -1,5 +1,5 @@
-﻿using Lumina.Excel.GeneratedSheets;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+﻿using Lumina.Excel.Sheets;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace RotationSolver.GameData.Getters.Actions;
 
@@ -13,21 +13,21 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
         AddedNames.Clear();
         _notCombatJobs = [.. _gameData.GetExcelSheet<ClassJob>()!.Where(c =>
         {
-            return c.ClassJobCategory.Row is 32 or 33;
-        }).Select(c => c.Abbreviation.RawString)];
+            return c.ClassJobCategory.RowId is 32 or 33;
+        }).Select(c => c.Abbreviation.ToString())];
         base.BeforeCreating();
     }
 
     protected override bool AddToList(Action item)
     {
         if (item.RowId is 3 or 120) return true; //Sprint and cure.
-        if (item.ClassJobCategory.Row == 0) return false;
-        var name = item.Name.RawString;
+        if (item.ClassJobCategory.RowId == 0) return false;
+        var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         if (item.Icon is 0 or 405) return false;
 
-        if (item.ActionCategory.Row
+        if (item.ActionCategory.RowId
             is 6 or 7 // No DoL or DoH Action
             or 8 //No Event.
             or 12 // No Mount,
@@ -37,7 +37,6 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
 
         //No crafting or gathering.
         var category = item.ClassJobCategory.Value;
-        if (category == null) return false;
 
         if (category.RowId == 1) return true;
 
@@ -54,7 +53,7 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
 
     protected string GetName(Action item)
     {
-        var name = item.Name.RawString.ToPascalCase()
+        var name = item.Name.ToString().ToPascalCase()
             + (item.IsPvP ? "PvP" : "PvE");
 
         if (AddedNames.Contains(name))
@@ -70,7 +69,7 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
 
     protected string GetDesc(Action item)
     {
-        var desc = _gameData.GetExcelSheet<ActionTransient>()?.GetRow(item.RowId)?.Description.RawString ?? string.Empty;
+        var desc = _gameData.GetExcelSheet<ActionTransient>()?.GetRowOrDefault(item.RowId)?.Description.ToString() ?? string.Empty;
 
         return $"<para>{desc.Replace("\n", "</para>\n/// <para>")}</para>";
     }

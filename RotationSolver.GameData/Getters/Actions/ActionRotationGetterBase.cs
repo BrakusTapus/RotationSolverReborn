@@ -2,7 +2,7 @@
 internal abstract class ActionRotationGetterBase(Lumina.GameData gameData)
     : ActionGetterBase(gameData)
 {
-    protected override string ToCode(Lumina.Excel.GeneratedSheets.Action item)
+    protected override string ToCode(Lumina.Excel.Sheets.Action item)
     {
         var name = GetName(item);
         var descName = item.GetDescName();

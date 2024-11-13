@@ -304,7 +304,7 @@ public static class StatusHelper
     /// <returns>The name of the status.</returns>
     internal static string GetStatusName(StatusID id)
     {
-        var statusRow = Service.GetSheet<Lumina.Excel.GeneratedSheets.Status>().GetRow((uint)id);
+        var statusRow = Service.GetSheet<Lumina.Excel.Sheets.Status>().GetRowOrDefault((uint)id);
         if (statusRow == null)
         {
             PluginLog.Error($"Status with ID {id} not found.");

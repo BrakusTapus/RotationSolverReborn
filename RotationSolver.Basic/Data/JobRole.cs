@@ -1,5 +1,5 @@
 ﻿using ECommons.ExcelServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Data;
 
@@ -71,7 +71,7 @@ public static class JobRoleExtension
 
         if (role is (JobRole)3 or JobRole.None)
         {
-            role = job.ClassJobCategory.Row switch
+            role = job.ClassJobCategory.RowId switch
             {
                 30 => JobRole.RangedPhysical,
                 31 => JobRole.RangedMagical,

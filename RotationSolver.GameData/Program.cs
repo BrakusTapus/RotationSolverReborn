@@ -1,6 +1,6 @@
 ﻿using Lumina;
 using Lumina.Data;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json.Linq;
 using RotationSolver.GameData;
 using RotationSolver.GameData.Getters;

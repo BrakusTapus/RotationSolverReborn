@@ -2,7 +2,7 @@
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Svg;
 using System.Collections.Concurrent;
 using System.Drawing.Imaging;
@@ -174,7 +174,7 @@ public static class IconSet
 
         if (!_actionIcons.TryGetValue(actionID, out var iconId))
         {
-            iconId = Service.GetSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow((uint)actionID)?.Icon ?? 0;
+            iconId = Service.GetSheet<Lumina.Excel.Sheets.Action>().GetRowOrDefault((uint)actionID)?.Icon ?? 0;
             _actionIcons[actionID] = iconId;
         }
         return GetTexture(iconId, out texture);
@@ -344,7 +344,7 @@ public static class IconSet
             throw new InvalidOperationException("ClassJob sheet not found.");
         }
 
-        var classJobRow = classJobSheet.GetRow((uint)job);
+        var classJobRow = classJobSheet.GetRowOrDefault((uint)job);
         if (classJobRow == null)
         {
             throw new InvalidOperationException($"ClassJob row for job {job} not found.");

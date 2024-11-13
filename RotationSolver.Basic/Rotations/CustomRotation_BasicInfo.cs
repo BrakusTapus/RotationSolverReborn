@@ -1,6 +1,6 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.ExcelServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Rotations;
 
@@ -27,7 +27,7 @@ partial class CustomRotation : ICustomRotation
     public Job Job => _job ??= this.GetType().GetCustomAttribute<JobsAttribute>()?.Jobs[0] ?? Job.ADV;
 
     /// <inheritdoc/>
-    public JobRole Role => _role ??= Svc.Data.GetExcelSheet<ClassJob>()!.GetRow((uint)Job)!.GetJobRole();
+    public JobRole Role => _role ??= Svc.Data.GetExcelSheet<ClassJob>()!.GetRowOrDefault((uint)Job)!.GetJobRole();
 
     /// <inheritdoc/>
     public string Name
@@ -36,7 +36,7 @@ partial class CustomRotation : ICustomRotation
         {
             if (_name != null) return _name;
 
-            var classJob = Svc.Data.GetExcelSheet<ClassJob>()?.GetRow((uint)Job)!;
+            var classJob = Svc.Data.GetExcelSheet<ClassJob>()?.GetRowOrDefault((uint)Job)!;
             return _name = $"{classJob.Abbreviation} - {classJob.Name}";
         }
     }

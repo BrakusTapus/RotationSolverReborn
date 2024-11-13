@@ -1,7 +1,7 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace RotationSolver.Basic.Actions;
 
@@ -112,7 +112,7 @@ public class BaseAction : IBaseAction
     /// <param name="isDutyAction">is this action a duty action</param>
     public BaseAction(ActionID actionID, bool isDutyAction = false)
     {
-        Action = Service.GetSheet<Action>().GetRow((uint)actionID)!;
+        Action = Service.GetSheet<Action>().GetRowOrDefault((uint)actionID)!;
         TargetInfo = new(this);
         Info = new(this, isDutyAction);
         Cooldown = new(this);

@@ -6,7 +6,7 @@ using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using RotationSolver.Basic.Configuration;
 using RotationSolver.Basic.IPC;
 using RotationSolver.Commands;

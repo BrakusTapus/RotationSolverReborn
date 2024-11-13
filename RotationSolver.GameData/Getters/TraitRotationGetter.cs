@@ -1,4 +1,4 @@
-﻿using Lumina.Excel.GeneratedSheets;
+﻿using Lumina.Excel.Sheets;
 
 namespace RotationSolver.GameData.Getters;
 internal class TraitRotationGetter(Lumina.GameData gameData, ClassJob job)
@@ -14,21 +14,21 @@ internal class TraitRotationGetter(Lumina.GameData gameData, ClassJob job)
 
     protected override bool AddToList(Trait item)
     {
-        if (item.ClassJob.Row == 0) return false;
-        var name = item.Name.RawString;
+        if (item.ClassJob.RowId == 0) return false;
+        var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         if (item.Icon == 0) return false;
 
         var category = item.ClassJob.Value;
         if (category == null) return false;
-        var jobName = job.Abbreviation.RawString;
+        var jobName = job.Abbreviation.ToString();
         return category.Abbreviation == jobName;
     }
 
     protected override string ToCode(Trait item)
     {
-        var name = item.Name.RawString.ToPascalCase() + "Trait";
+        var name = item.Name.ToString().ToPascalCase() + "Trait";
 
         if (AddedNames.Contains(name))
         {
@@ -50,15 +50,15 @@ internal class TraitRotationGetter(Lumina.GameData gameData, ClassJob job)
 
     private static string GetDescName(Trait item)
     {
-        var jobs = item.ClassJobCategory.Value?.Name.RawString;
+        var jobs = item.ClassJobCategory.Value?.Name.ToString();
         jobs = string.IsNullOrEmpty(jobs) ? string.Empty : $" ({jobs})";
 
-        return $"<see href=\"https://garlandtools.org/db/#action/{50000 + item.RowId}\"><strong>{item.Name.RawString}</strong></see>{jobs} [{item.RowId}]";
+        return $"<see href=\"https://garlandtools.org/db/#action/{50000 + item.RowId}\"><strong>{item.Name.ToString()}</strong></see>{jobs} [{item.RowId}]";
     }
 
     private string GetDesc(Trait item)
     {
-        var desc = _gameData.GetExcelSheet<TraitTransient>()?.GetRow(item.RowId)?.Description.RawString ?? string.Empty;
+        var desc = _gameData.GetExcelSheet<TraitTransient>()?.GetRowOrDefault(item.RowId)?.Description.ToString() ?? string.Empty;
 
         return $"<para>{desc.Replace("\n", "</para>\n/// <para>")}</para>";
     }

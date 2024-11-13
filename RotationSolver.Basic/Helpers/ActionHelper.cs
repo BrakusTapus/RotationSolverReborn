@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace RotationSolver.Basic.Helpers;
 

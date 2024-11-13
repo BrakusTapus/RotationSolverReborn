@@ -1,6 +1,6 @@
 ﻿using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace RotationSolver.Basic.Helpers;
 
@@ -54,7 +54,7 @@ public static class ActionIdHelper
     /// <returns>The action associated with the action ID.</returns>
     private static Action? GetAction(this ActionID actionID)
     {
-        return Svc.Data.GetExcelSheet<Action>()?.GetRow((uint)actionID);
+        return Svc.Data.GetExcelSheet<Action>()?.GetRowOrDefault((uint)actionID);
     }
 
     /// <summary>

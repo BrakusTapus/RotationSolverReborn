@@ -1,4 +1,4 @@
-﻿using Lumina.Excel.GeneratedSheets;
+﻿using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Rotations;
 
@@ -18,7 +18,7 @@ partial class CustomRotation
     /// Gets the collection of available medicines.
     /// </summary>
     internal static MedicineItem[] Medicines { get; } = Service.GetSheet<Item>()
-        .Where(i => i.FilterGroup == 6 && i.ItemSearchCategory.Row == 43)
+        .Where(i => i.FilterGroup == 6 && i.ItemSearchCategory.RowId == 43)
         .Select(i => new MedicineItem(i))
         .Where(i => i.Type != MedicineType.None).Reverse().ToArray();
 
@@ -59,7 +59,7 @@ partial class CustomRotation
     /// Gets the collection of available MP potions.
     /// </summary>
     internal static MpPotionItem[] MpPotions { get; } = Service.GetSheet<Item>()
-        .Where(i => i.FilterGroup == 9 && i.ItemSearchCategory.Row == 43)
+        .Where(i => i.FilterGroup == 9 && i.ItemSearchCategory.RowId == 43)
         .Select(i => new MpPotionItem(i)).Reverse().ToArray();
 
     /// <summary>
@@ -86,7 +86,7 @@ partial class CustomRotation
     /// Gets the collection of available HP potions.
     /// </summary>
     internal static HpPotionItem[] HpPotions { get; } = Service.GetSheet<Item>()
-        .Where(i => i.FilterGroup == 8 && i.ItemSearchCategory.Row == 43)
+        .Where(i => i.FilterGroup == 8 && i.ItemSearchCategory.RowId == 43)
         .Select(i => new HpPotionItem(i)).Reverse().ToArray();
 
     /// <summary>

@@ -7,12 +7,12 @@ using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using RotationSolver.Basic.Configuration;
 using RotationSolver.Basic.Configuration.Conditions;
 using RotationSolver.Basic.Rotations.Duties;
 using Svg.FilterEffects;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Action = Lumina.Excel.Sheets.Action;
 using CharacterManager = FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterManager;
 
 namespace RotationSolver.Basic;
@@ -151,7 +151,7 @@ internal static class DataCenter
 
     public static Job Job => Player.Job;
 
-    public static JobRole Role => Service.GetSheet<ClassJob>().GetRow((uint)Job)?.GetJobRole() ?? JobRole.None;
+    public static JobRole Role => Service.GetSheet<ClassJob>().GetRowOrDefault((uint)Job)?.GetJobRole() ?? JobRole.None;
 
     internal static void AddCommandAction(IAction act, double time)
     {
@@ -859,7 +859,7 @@ internal static class DataCenter
         if (actionSheet == null) return false; // Check if actionSheet is null
 
         // Get the action being cast
-        var action = actionSheet.GetRow(h.CastActionId);
+        var action = actionSheet.GetRowOrDefault(h.CastActionId);
         if (action == null) return false; // Check if action is null
 
         // Invoke the check function on the action and return the result
