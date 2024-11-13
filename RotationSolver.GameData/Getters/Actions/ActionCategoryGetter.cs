@@ -14,7 +14,7 @@ internal class ActionCategoryGetter(Lumina.GameData gameData)
 
     protected override bool AddToList(ActionCategory item)
     {
-        var name = item.Name.ToString();
+        var name = item.Name.ExtractText();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         return true;
@@ -22,7 +22,7 @@ internal class ActionCategoryGetter(Lumina.GameData gameData)
 
     protected override string ToCode(ActionCategory item)
     {
-        var name = item.Name.ToString().ToPascalCase();
+        var name = item.Name.ExtractText().ToPascalCase();
 
         if (_addedNames.Contains(name))
         {

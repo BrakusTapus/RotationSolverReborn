@@ -14,7 +14,7 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
         _notCombatJobs = [.. _gameData.GetExcelSheet<ClassJob>()!.Where(c =>
         {
             return c.ClassJobCategory.RowId is 32 or 33;
-        }).Select(c => c.Abbreviation.ToString())];
+        }).Select(c => c.Abbreviation.ExtractText())];
         base.BeforeCreating();
     }
 
@@ -22,7 +22,7 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
     {
         if (item.RowId is 3 or 120) return true; //Sprint and cure.
         if (item.ClassJobCategory.RowId == 0) return false;
-        var name = item.Name.ToString();
+        var name = item.Name.ExtractText();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         if (item.Icon is 0 or 405) return false;
@@ -53,7 +53,7 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
 
     protected string GetName(Action item)
     {
-        var name = item.Name.ToString().ToPascalCase()
+        var name = item.Name.ExtractText().ToPascalCase()
             + (item.IsPvP ? "PvP" : "PvE");
 
         if (AddedNames.Contains(name))
@@ -69,7 +69,7 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData)
 
     protected string GetDesc(Action item)
     {
-        var desc = _gameData.GetExcelSheet<ActionTransient>()?.GetRowOrDefault(item.RowId)?.Description.ToString() ?? string.Empty;
+        var desc = _gameData.GetExcelSheet<ActionTransient>()?.GetRowOrDefault(item.RowId)?.Description.ExtractText() ?? string.Empty;
 
         return $"<para>{desc.Replace("\n", "</para>\n/// <para>")}</para>";
     }

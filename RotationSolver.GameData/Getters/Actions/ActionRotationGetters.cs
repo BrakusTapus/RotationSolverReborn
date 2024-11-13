@@ -12,11 +12,10 @@ internal class ActionSingleRotationGetter(Lumina.GameData gameData, ClassJob job
         if (!base.AddToList(item)) return false;
 
         var category = item.ClassJobCategory.Value;
-        if (category == null) return false;
 
         if (!category.IsSingleJobForCombat()) return false;
 
-        var jobName = job.Abbreviation.ToString();
+        var jobName = job.Abbreviation.ExtractText();
         return (bool?)category.GetType().GetRuntimeProperty(jobName)?.GetValue(category) ?? false;
     }
 }

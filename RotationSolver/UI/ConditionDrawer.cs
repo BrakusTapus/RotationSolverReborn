@@ -5,7 +5,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using RotationSolver.Basic.Configuration.Conditions;
 using RotationSolver.Data;
 using RotationSolver.Updaters;

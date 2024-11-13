@@ -1,7 +1,7 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using RotationSolver.Basic.Configuration;
 using RotationSolver.Basic.Rotations.Duties;
 using RotationSolver.Data;
@@ -427,7 +427,7 @@ internal static class RotationUpdater
 
                string result;
 
-               if (act.Action.ActionCategory.Row is 10 or 11)
+               if (act.Action.ActionCategory.RowId is 10 or 11)
                {
                    return "System Action";
                }
@@ -508,7 +508,7 @@ internal static class RotationUpdater
 
     private static void UpdateCustomRotation()
     {
-        var nowJob = (Job)Player.Object.ClassJob.Id;
+        var nowJob = (Job)Player.Object.ClassJob.RowId; //Changed from Id to RowId with Lumina5
         foreach (var group in CustomRotations)
         {
             if (!group.ClassJobIds.Contains(nowJob)) continue;

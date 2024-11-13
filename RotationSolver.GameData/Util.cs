@@ -7,7 +7,7 @@ internal static partial class Util
     public static bool IsSingleJobForCombat(this ClassJobCategory jobCategory)
     {
         if (jobCategory.RowId == 68) return true; // ACN SMN SCH 
-        var str = jobCategory.Name.ToString().Replace(" ", "");
+        var str = jobCategory.Name.ExtractText().Replace(" ", "");
         if (!str.All(char.IsUpper)) return false;
         if (str.Length is not 3 and not 6) return false;
         return true;
@@ -120,11 +120,11 @@ internal static partial class Util
 
     public static string GetDescName(this Lumina.Excel.Sheets.Action action)
     {
-        var jobs = action.ClassJobCategory.Value?.Name.RawString;
+        var jobs = action.ClassJobCategory.Value.Name.ExtractText();
         jobs = string.IsNullOrEmpty(jobs) ? string.Empty : $" ({jobs})";
 
         var cate = action.IsPvP ? " <i>PvP</i>" : " <i>PvE</i>";
 
-        return $"<see href=\"https://garlandtools.org/db/#action/{action.RowId}\"><strong>{action.Name.RawString}</strong></see>{cate}{jobs} [{action.RowId}] [{action.ActionCategory.Value?.Name.RawString ?? string.Empty}]";
+        return $"<see href=\"https://garlandtools.org/db/#action/{action.RowId}\"><strong>{action.Name.ExtractText}</strong></see>{cate}{jobs} [{action.RowId}] [{action.ActionCategory.Value.Name.ExtractText() ?? string.Empty}]";
     }
 }

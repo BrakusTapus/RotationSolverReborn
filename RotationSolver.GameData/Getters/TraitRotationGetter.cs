@@ -15,20 +15,19 @@ internal class TraitRotationGetter(Lumina.GameData gameData, ClassJob job)
     protected override bool AddToList(Trait item)
     {
         if (item.ClassJob.RowId == 0) return false;
-        var name = item.Name.ToString();
+        var name = item.Name.ExtractText();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         if (item.Icon == 0) return false;
 
         var category = item.ClassJob.Value;
-        if (category == null) return false;
-        var jobName = job.Abbreviation.ToString();
+        var jobName = job.Abbreviation.ExtractText();
         return category.Abbreviation == jobName;
     }
 
     protected override string ToCode(Trait item)
     {
-        var name = item.Name.ToString().ToPascalCase() + "Trait";
+        var name = item.Name.ExtractText().ToPascalCase() + "Trait";
 
         if (AddedNames.Contains(name))
         {
@@ -50,15 +49,15 @@ internal class TraitRotationGetter(Lumina.GameData gameData, ClassJob job)
 
     private static string GetDescName(Trait item)
     {
-        var jobs = item.ClassJobCategory.Value?.Name.ToString();
+        var jobs = item.ClassJobCategory.Value.Name.ExtractText();
         jobs = string.IsNullOrEmpty(jobs) ? string.Empty : $" ({jobs})";
 
-        return $"<see href=\"https://garlandtools.org/db/#action/{50000 + item.RowId}\"><strong>{item.Name.ToString()}</strong></see>{jobs} [{item.RowId}]";
+        return $"<see href=\"https://garlandtools.org/db/#action/{50000 + item.RowId}\"><strong>{item.Name.ExtractText()}</strong></see>{jobs} [{item.RowId}]";
     }
 
     private string GetDesc(Trait item)
     {
-        var desc = _gameData.GetExcelSheet<TraitTransient>()?.GetRowOrDefault(item.RowId)?.Description.ToString() ?? string.Empty;
+        var desc = _gameData.GetExcelSheet<TraitTransient>()?.GetRowOrDefault(item.RowId)?.Description.ExtractText() ?? string.Empty;
 
         return $"<para>{desc.Replace("\n", "</para>\n/// <para>")}</para>";
     }

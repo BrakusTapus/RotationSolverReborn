@@ -23,7 +23,7 @@ internal class ItemGetter(Lumina.GameData gameData)
 
     protected override string ToCode(Item item)
     {
-        var name = item.Singular.ToString().ToPascalCase();
+        var name = item.Singular.ExtractText().ToPascalCase();
         if (AddedNames.Contains(name))
         {
             name += "_" + item.RowId.ToString();
@@ -33,11 +33,11 @@ internal class ItemGetter(Lumina.GameData gameData)
             AddedNames.Add(name);
         }
 
-        var desc = item.Description.ToString() ?? string.Empty;
+        var desc = item.Description.ExtractText() ?? string.Empty;
 
         desc = $"<para>{desc.Replace("\n", "</para>\n/// <para>")}</para>";
 
-        var descName = $"<see href=\"https://garlandtools.org/db/#item/{item.RowId}\"><strong>{item.Name.ToString()}</strong></see> [{item.RowId}]";
+        var descName = $"<see href=\"https://garlandtools.org/db/#item/{item.RowId}\"><strong>{item.Name.ExtractText()}</strong></see> [{item.RowId}]";
 
         return $$"""
         private readonly Lazy<IBaseItem> _{{name}}Creator = new(() => new BaseItem({{item.RowId}}));

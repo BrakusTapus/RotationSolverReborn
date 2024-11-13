@@ -1,4 +1,5 @@
 ﻿namespace RotationSolver.GameData.Getters.Actions;
+
 internal abstract class ActionRotationGetterBase(Lumina.GameData gameData)
     : ActionGetterBase(gameData)
 {

@@ -1,6 +1,7 @@
 ﻿using Lumina.Excel.Sheets;
 
 namespace RotationSolver.GameData.Getters;
+
 internal class StatusGetter(Lumina.GameData gameData)
     : ExcelRowGetter<Status>(gameData)
 {
@@ -15,7 +16,7 @@ internal class StatusGetter(Lumina.GameData gameData)
     protected override bool AddToList(Status item)
     {
         if (item.ClassJobCategory.RowId == 0) return false;
-        var name = item.Name.ToString();
+        var name = item.Name.ExtractText();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
         if (item.Icon == 0) return false;
@@ -24,7 +25,7 @@ internal class StatusGetter(Lumina.GameData gameData)
 
     protected override string ToCode(Status item)
     {
-        var name = item.Name.ToString().ToPascalCase();
+        var name = item.Name.ExtractText().ToPascalCase();
         if (_addedNames.Contains(name))
         {
             name += "_" + item.RowId.ToString();
@@ -34,9 +35,9 @@ internal class StatusGetter(Lumina.GameData gameData)
             _addedNames.Add(name);
         }
 
-        var desc = item.Description.ToString();
+        var desc = item.Description.ExtractText();
 
-        var jobs = item.ClassJobCategory.Value?.Name.ToString();
+        var jobs = item.ClassJobCategory.Value.Name.ExtractText();
         jobs = string.IsNullOrEmpty(jobs) ? string.Empty : $" ({jobs})";
 
         var cate = item.StatusCategory switch
@@ -48,7 +49,7 @@ internal class StatusGetter(Lumina.GameData gameData)
 
         return $"""
         /// <summary>
-        /// <see href="https://garlandtools.org/db/#status/{item.RowId}"><strong>{item.Name.ToString().Replace("&", "and")}</strong></see>{cate}{jobs}
+        /// <see href="https://garlandtools.org/db/#status/{item.RowId}"><strong>{item.Name.ExtractText().Replace("&", "and")}</strong></see>{cate}{jobs}
         /// <para>{desc.Replace("\n", "</para>\n/// <para>")}</para>
         /// </summary>
         {name} = {item.RowId},

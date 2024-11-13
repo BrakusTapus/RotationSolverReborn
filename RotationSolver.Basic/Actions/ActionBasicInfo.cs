@@ -5,7 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 namespace RotationSolver.Basic.Actions;
 
 /// <summary>
-/// The action info for the <see cref="Lumina.Excel.GeneratedSheets.Action"/>.
+/// The action info for the <see cref="Lumina.Excel.Sheets.Action"/>.
 /// </summary>
 public readonly struct ActionBasicInfo
 {
