@@ -287,6 +287,11 @@ public static class ObjectHelper
         return gameObj?.GetBattleNPCSubKind() == BattleNpcSubKind.NpcPartyMember;
     }
 
+    internal static bool IsEnemyNpc(this IGameObject gameObj)
+    {
+        return gameObj?.GetObjectKind() == ObjectKind.BattleNpc;
+    }
+
     internal static bool IsPlayerCharacterChocobo(this IGameObject gameObj)
     {
         return gameObj?.GetBattleNPCSubKind() == BattleNpcSubKind.Chocobo;
@@ -381,7 +386,7 @@ public static class ObjectHelper
             if (Player.Object == null) return false;
             // Check IBattleChara against the priority target list of OIDs
             if (PriorityTargetHelper.IsPriorityTarget(b.DataId)) return true;
-            
+
             if (Player.Job == Job.MCH && obj.HasStatus(true, StatusID.Wildfire)) return true;
 
             // Ensure StatusList is not null before calling Any
@@ -580,6 +585,20 @@ public static class ObjectHelper
         return false;
     }
 
+    private static readonly HashSet<string> _bossNames = new HashSet<string>
+    {
+        "Zelenia",
+    };
+
+    public static bool IsBossFromName(this IBattleChara obj)
+    {
+        if (obj == null) return false;
+
+        if (obj.IsDummy()) return true;
+
+        return _bossNames.Contains(obj.Name.ToString());
+    }
+
     /// <summary>
     /// Is target a boss depends on the ttk.
     /// </summary>
@@ -608,7 +627,7 @@ public static class ObjectHelper
 
         //Icon
         var npc = obj.GetObjectNPC();
-        return npc?.Rank is 1 or 2 or 6;
+        return npc?.Rank is /*1 or*/ 2 or 6;
     }
 
     /// <summary>

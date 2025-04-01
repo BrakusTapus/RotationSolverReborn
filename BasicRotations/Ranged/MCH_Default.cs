@@ -102,14 +102,18 @@ public sealed class MCH_Default : MachinistRotation
         {
             if (WildfirePvE.Cooldown.WillHaveOneChargeGCD(1) && (IsLastAbility(false, HyperchargePvE) || Heat >= 50 || Player.HasStatus(true, StatusID.Hypercharged)) && ToolChargeSoon(out _) && !LowLevelHyperCheck)
             {
-                if (WeaponRemain < 1.25f && WildfirePvE.CanUse(out act)) return true;
+                bool isTargetBossTTK = CurrentTarget?.IsBossFromTTK() ?? false;
+                bool isTargetBossIcon = CurrentTarget?.IsBossFromIcon() ?? false;
+                bool isBoss = isTargetBossTTK || isTargetBossIcon;
+                bool isTargetDying = CurrentTarget?.IsDying() ?? false;
+                if (WeaponRemain < 1.25f && isBoss && WildfirePvE.CanUse(out act)) return true;
                 act = null;
                 return false;
             }
 
         }
         // Use Hypercharge if wildfire will not be up in 30 seconds or if you hit 100 heat
-        if (!LowLevelHyperCheck && !Player.HasStatus(true, StatusID.Reassembled) && (!WildfirePvE.Cooldown.WillHaveOneCharge(30) || (Heat == 100)))
+        if (!LowLevelHyperCheck && !Player.HasStatus(true, StatusID.Reassembled) && (!WildfirePvE.Cooldown.WillHaveOneCharge(30) || (Heat == 100) || Player.HasStatus(true, StatusID.Hypercharged)))
         {
             if ((!HoldHCForCombo || !(LiveComboTime <= 8f && LiveComboTime > 0f)) && ToolChargeSoon(out act)) return true;
         }

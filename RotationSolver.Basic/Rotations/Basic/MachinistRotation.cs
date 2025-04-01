@@ -151,7 +151,7 @@ partial class MachinistRotation
         setting.ComboIds = [ActionID.SlugShotPvE, ActionID.HeatedSlugShotPvE];
         setting.CreateConfig = () => new ActionConfig()
         {
-            AoeCount = 3,
+            AoeCount = 1,
         };
     }
 
