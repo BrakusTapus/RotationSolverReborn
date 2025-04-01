@@ -498,9 +498,9 @@ public sealed class BLM_Beta : BlackMageRotation
     {
         act = null;
 
-        if (gcdCount == 0 || IsPolyglotStacksMaxed && EnochianEndAfterGCD(gcdCount))
+        if (gcdCount == 0 || IsPolyglotStacksMaxed && (EnochianEndAfterGCD(gcdCount) || AmplifierPvE.Cooldown.WillHaveOneChargeGCD(gcdCount)))
         {
-            if (FoulPvE.CanUse(out act)) return true;
+            if (FoulPvE.CanUse(out act, skipAoeCheck: !XenoglossyPvE.EnoughLevel)) return true;
             if (XenoglossyPvE.CanUse(out act)) return true;
         }
         return false;

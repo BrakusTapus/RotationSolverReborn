@@ -1,6 +1,6 @@
 namespace RebornRotations.Tank;
 
-[Rotation("Default", CombatType.PvE, GameVersion = "7.15")]
+[Rotation("Default", CombatType.PvE, GameVersion = "7.2")]
 [SourceCode(Path = "main/BasicRotations/Tank/DRK_Default.cs")]
 [Api(4)]
 public sealed class DRK_Default : DarkKnightRotation
@@ -98,7 +98,7 @@ public sealed class DRK_Default : DarkKnightRotation
             {
                 if (BloodWeaponPvE.CanUse(out act)) return true;
             }
-            if (LivingShadowPvE.CanUse(out act, skipAoeCheck: true)) return true;
+            if (InCombat && LivingShadowPvE.CanUse(out act, skipAoeCheck: true)) return true;
         }
 
         if (CombatElapsedLess(3))

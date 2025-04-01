@@ -57,7 +57,7 @@ public sealed class DRG_Default : DragoonRotation
             if (Player.HasStatus(true, StatusID.LanceCharge) && BattleLitanyPvE.CanUse(out act)) return true;
 
             if ((Player.HasStatus(true, StatusID.BattleLitany) || Player.HasStatus(true, StatusID.LanceCharge) || LOTDEndAfter(1000)) && nextGCD.IsTheSameTo(true, HeavensThrustPvE, DrakesbanePvE)
-            || Player.HasStatus(true, StatusID.BattleLitany) && Player.HasStatus(true, StatusID.LanceCharge) && LOTDEndAfter(1000) && nextGCD.IsTheSameTo(true, ChaoticSpringPvE, LanceBarragePvE, WheelingThrustPvE, FangAndClawPvE)
+            || Player.HasStatus(true, StatusID.BattleLitany) && Player.HasStatus(true, StatusID.LanceCharge) && LOTDEndAfter(1000) && !HeavensThrustPvE.EnoughLevel && !DrakesbanePvE.EnoughLevel && nextGCD.IsTheSameTo(true, ChaoticSpringPvE, LanceBarragePvE, WheelingThrustPvE, FangAndClawPvE)
             || nextGCD.IsTheSameTo(true, HeavensThrustPvE, DrakesbanePvE) && (LanceChargePvE.IsInCooldown || BattleLitanyPvE.IsInCooldown))
             {
                 if (LifeSurgePvE.CanUse(out act, usedUp: true)) return true;

@@ -19,6 +19,11 @@ partial class DarkKnightRotation
     public static bool HasDarkArts => JobGauge.HasDarkArts;
 
     /// <summary>
+    /// New with Dalamud 12 but likely unneeded as we use GetAdjustedActionId
+    /// </summary>
+    public static DeliriumStep DeliriumComboStep => JobGauge.DeliriumComboStep;
+
+    /// <summary>
     /// 
     /// </summary>
     public static bool HasDelirium => !Player.WillStatusEnd(0, true, StatusID.Delirium_3836);
@@ -148,6 +153,7 @@ partial class DarkKnightRotation
         ImGui.Text("ComeuppanceReady: " + ComeuppanceReady.ToString());
         ImGui.Text("TorcleaverReady: " + TorcleaverReady.ToString());
         ImGui.Text("ImpalementReady: " + ImpalementReady.ToString());
+        ImGui.Text("DeliriumComboStep: " + DeliriumComboStep.ToString());
     }
     #endregion
 

@@ -52,12 +52,10 @@ public sealed class AST_Default : AstrologianRotation
     #region Countdown Logic
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (remainTime < MaleficPvE.Info.CastTime + CountDownAhead
-            && MaleficPvE.CanUse(out var act)) return act;
+        if (remainTime < MaleficPvE.Info.CastTime + CountDownAhead && MaleficPvE.CanUse(out var act)) return act;
         if (remainTime < 3 && UseBurstMedicine(out act)) return act;
         if (remainTime is < 4 and > 3 && AspectedBeneficPvE.CanUse(out act)) return act;
-        if (remainTime < UseEarthlyStarTime
-            && EarthlyStarPvE.CanUse(out act, skipTTKCheck: true)) return act;
+        if (remainTime < UseEarthlyStarTime && EarthlyStarPvE.CanUse(out act, skipTTKCheck: true)) return act;
         if (remainTime < 30 && AstralDrawPvE.CanUse(out act)) return act;
 
         return base.CountDownAction(remainTime);
@@ -70,7 +68,6 @@ public sealed class AST_Default : AstrologianRotation
         act = null;
         if (BubbleProtec && Player.HasStatus(true, StatusID.CollectiveUnconscious_848)) return false;
         if (MicroPrio && Player.HasStatus(true, StatusID.Macrocosmos)) return false;
-
         if (!InCombat) return false;
 
         if (OraclePvE.CanUse(out act)) return true;
@@ -85,9 +82,7 @@ public sealed class AST_Default : AstrologianRotation
             if (SynastryPvE.CanUse(out act)) return true;
         }
 
-        if (DivinationPvE.CanUse(out _)
-            && UseBurstMedicine(out act)) return true;
-
+        if (DivinationPvE.CanUse(out _) && UseBurstMedicine(out act)) return true;
         if (StellarNow && Player.HasStatus(true, StatusID.GiantDominance) && StellarDetonationPvE.CanUse(out act)) return true;
 
         return base.EmergencyAbility(nextGCD, out act);
@@ -101,8 +96,8 @@ public sealed class AST_Default : AstrologianRotation
 
         if (InCombat && TheSpirePvE.CanUse(out act)) return true;
         if (InCombat && TheBolePvE.CanUse(out act)) return true;
-
         if (ExaltationPvE.CanUse(out act)) return true;
+
         return base.DefenseSingleAbility(nextGCD, out act);
     }
 
@@ -111,9 +106,7 @@ public sealed class AST_Default : AstrologianRotation
     {
         act = null;
         if (BubbleProtec && Player.HasStatus(true, StatusID.CollectiveUnconscious_848)) return false;
-
-        if (MacrocosmosPvE.Cooldown.IsCoolingDown && !MacrocosmosPvE.Cooldown.WillHaveOneCharge(150)
-            || CollectiveUnconsciousPvE.Cooldown.IsCoolingDown && !CollectiveUnconsciousPvE.Cooldown.WillHaveOneCharge(40)) return false;
+        if (MacrocosmosPvE.Cooldown.IsCoolingDown && !MacrocosmosPvE.Cooldown.WillHaveOneCharge(150) || CollectiveUnconsciousPvE.Cooldown.IsCoolingDown && !CollectiveUnconsciousPvE.Cooldown.WillHaveOneCharge(40)) return false;
 
         if (MacrocosmosPvE.CanUse(out act)) return true;
         return base.DefenseAreaGCD(out act);
@@ -126,16 +119,13 @@ public sealed class AST_Default : AstrologianRotation
 
         act = null;
         if (BubbleProtec && Player.HasStatus(true, StatusID.CollectiveUnconscious_848)) return false;
-
-        if (MacrocosmosPvE.Cooldown.IsCoolingDown && !MacrocosmosPvE.Cooldown.WillHaveOneCharge(150)
-            || CollectiveUnconsciousPvE.Cooldown.IsCoolingDown && !CollectiveUnconsciousPvE.Cooldown.WillHaveOneCharge(40)) return false;
+        if (MacrocosmosPvE.Cooldown.IsCoolingDown && !MacrocosmosPvE.Cooldown.WillHaveOneCharge(150) || CollectiveUnconsciousPvE.Cooldown.IsCoolingDown && !CollectiveUnconsciousPvE.Cooldown.WillHaveOneCharge(40)) return false;
 
         if (CollectiveUnconsciousPvE.CanUse(out act)) return true;
         return base.DefenseAreaAbility(nextGCD, out act);
     }
 
-    [RotationDesc(ActionID.TheArrowPvE, ActionID.TheEwerPvE, ActionID.EssentialDignityPvE,
-        ActionID.CelestialIntersectionPvE)]
+    [RotationDesc(ActionID.TheArrowPvE, ActionID.TheEwerPvE, ActionID.EssentialDignityPvE, ActionID.CelestialIntersectionPvE)]
     protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
     {
         act = null;
@@ -144,16 +134,13 @@ public sealed class AST_Default : AstrologianRotation
 
         if (InCombat && TheArrowPvE.CanUse(out act)) return true;
         if (InCombat && TheEwerPvE.CanUse(out act)) return true;
-
-        if (EssentialDignityPvE.CanUse(out act, usedUp: true)
-            && EssentialDignityPvE.Target.Target?.GetHealthRatio() < EssentialDignityHeal) return true;
-
+        if (EssentialDignityPvE.CanUse(out act, usedUp: true) && EssentialDignityPvE.Target.Target?.GetHealthRatio() < EssentialDignityHeal) return true;
         if (CelestialIntersectionPvE.CanUse(out act, usedUp: true)) return true;
 
         return base.HealSingleAbility(nextGCD, out act);
     }
 
-    [RotationDesc(ActionID.CelestialOppositionPvE, ActionID.StellarDetonationPvE, ActionID.HoroscopePvE, ActionID.HoroscopePvE_16558, ActionID.LadyOfCrownsPvE, ActionID.HeliosConjunctionPvE)]
+    [RotationDesc(ActionID.CelestialOppositionPvE, ActionID.StellarDetonationPvE, ActionID.HoroscopePvE, ActionID.HoroscopePvE_16558, ActionID.LadyOfCrownsPvE)]
     protected override bool HealAreaAbility(IAction nextGCD, out IAction? act)
     {
         act = null;
@@ -161,18 +148,12 @@ public sealed class AST_Default : AstrologianRotation
 
         if (MicrocosmosPvE.CanUse(out act)) return true;
         if (MicroPrio && Player.HasStatus(true, StatusID.Macrocosmos)) return false;
-
         if (CelestialOppositionPvE.CanUse(out act)) return true;
-
         if (StellarDetonationPvE.CanUse(out act)) return true;
-
         if (HoroscopePvE.CanUse(out act)) return true;
-
         if (HoroscopePvE_16558.CanUse(out act)) return true;
-
         if (LadyOfCrownsPvE.CanUse(out act)) return true;
 
-        if (HeliosConjunctionPvE.CanUse(out act)) return true;
         return base.HealAreaAbility(nextGCD, out act);
     }
 
@@ -181,11 +162,9 @@ public sealed class AST_Default : AstrologianRotation
         act = null;
         if (BubbleProtec && Player.HasStatus(true, StatusID.CollectiveUnconscious_848)) return false;
 
-        // Use LadyOfCrownsPvE if your party is needs to be topped up or you are about to use Astral Draw (to prevent overwriting)
         if (PartyMembersAverHP < .8 && LadyOfCrownsPvE.CanUse(out act)) return true;
         if (AstralDrawPvE.Cooldown.WillHaveOneCharge(3) && LadyOfCrownsPvE.CanUse(out act)) return true;
 
-        // Use cards if you are about to use Umbral or Astral Draw (to prevent overwriting)
         if (AstralDrawPvE.Cooldown.WillHaveOneCharge(3) && InCombat && TheEwerPvE.CanUse(out act)) return true;
         if (AstralDrawPvE.Cooldown.WillHaveOneCharge(3) && InCombat && TheBolePvE.CanUse(out act)) return true;
         if (UmbralDrawPvE.Cooldown.WillHaveOneCharge(3) && InCombat && TheArrowPvE.CanUse(out act)) return true;
@@ -195,6 +174,7 @@ public sealed class AST_Default : AstrologianRotation
         if (UmbralDrawPvE.CanUse(out act)) return true;
         if ((Player.HasStatus(true, StatusID.Divination) || !DivinationPvE.Cooldown.WillHaveOneCharge(66) || !DivinationPvE.EnoughLevel) && InCombat && TheBalancePvE.CanUse(out act)) return true;
         if ((Player.HasStatus(true, StatusID.Divination) || !DivinationPvE.Cooldown.WillHaveOneCharge(66) || !DivinationPvE.EnoughLevel) && InCombat && TheSpearPvE.CanUse(out act)) return true;
+
         return base.GeneralAbility(nextGCD, out act);
     }
 
@@ -203,35 +183,21 @@ public sealed class AST_Default : AstrologianRotation
         act = null;
         if (BubbleProtec && Player.HasStatus(true, StatusID.CollectiveUnconscious_848)) return false;
 
-        // Use LordOfCrownsPvE if you have SimpleLord enabled and  Divination is active
         if (SimpleLord && InCombat && Player.HasStatus(true, StatusID.Divination) && LordOfCrownsPvE.CanUse(out act)) return true;
-
-        if (IsBurst && !IsMoving
-            && DivinationPvE.CanUse(out act)) return true;
-
+        if (IsBurst && !IsMoving && InCombat && DivinationPvE.CanUse(out act)) return true;
         if (AstralDrawPvE.CanUse(out act, usedUp: IsBurst)) return true;
 
-        if (!Player.HasStatus(true, StatusID.Lightspeed)
-            && InCombat
-            && (InBurstStatus || DivinationPvE.Cooldown.ElapsedAfter(115) || DivinationPvE.Cooldown.WillHaveOneCharge(5) || Player.HasStatus(true, StatusID.Divination))
-            && LightspeedPvE.CanUse(out act, usedUp: true)) return true;
+        if (!Player.HasStatus(true, StatusID.Lightspeed) && InCombat && (InBurstStatus || DivinationPvE.Cooldown.ElapsedAfter(115) || DivinationPvE.Cooldown.WillHaveOneCharge(5) || Player.HasStatus(true, StatusID.Divination)) && LightspeedPvE.CanUse(out act, usedUp: true)) return true;
 
         if (InCombat)
         {
             if (!Player.HasStatus(true, StatusID.Lightspeed) && IsMoving && LightspeedPvE.CanUse(out act, usedUp: LightspeedMove)) return true;
 
-            if (!IsMoving)
-            {
-                if (!Player.HasStatus(true, StatusID.EarthlyDominance, StatusID.GiantDominance))
-                {
-                    if (EarthlyStarPvE.CanUse(out act)) return true;
-                }
-            }
+            if (!IsMoving && !Player.HasStatus(true, StatusID.EarthlyDominance, StatusID.GiantDominance) && EarthlyStarPvE.CanUse(out act)) return true;
 
-            {
-                if (!SimpleLord && (Player.HasStatus(true, StatusID.Divination) || !DivinationPvE.Cooldown.WillHaveOneCharge(45) || !DivinationPvE.EnoughLevel || UmbralDrawPvE.Cooldown.WillHaveOneCharge(3)) && LordOfCrownsPvE.CanUse(out act)) return true;
-            }
+            if (!SimpleLord && (Player.HasStatus(true, StatusID.Divination) || !DivinationPvE.Cooldown.WillHaveOneCharge(45) || !DivinationPvE.EnoughLevel || UmbralDrawPvE.Cooldown.WillHaveOneCharge(3)) && LordOfCrownsPvE.CanUse(out act)) return true;
         }
+
         return base.AttackAbility(nextGCD, out act);
     }
     #endregion
@@ -245,17 +211,14 @@ public sealed class AST_Default : AstrologianRotation
         if (HasSwift && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise)) return false;
         if (MicroPrio && Player.HasStatus(true, StatusID.Macrocosmos)) return false;
 
-        if (AspectedBeneficPvE.CanUse(out act)
-            && (IsMoving
-            || AspectedBeneficPvE.Target.Target?.GetHealthRatio() < AspectedBeneficHeal)) return true;
-
+        if (AspectedBeneficPvE.CanUse(out act) && (IsMoving || AspectedBeneficPvE.Target.Target?.GetHealthRatio() < AspectedBeneficHeal)) return true;
         if (BeneficIiPvE.CanUse(out act)) return true;
         if (BeneficPvE.CanUse(out act)) return true;
 
         return base.HealSingleGCD(out act);
     }
 
-    [RotationDesc(ActionID.AspectedHeliosPvE, ActionID.HeliosPvE)]
+    [RotationDesc(ActionID.AspectedHeliosPvE, ActionID.HeliosPvE, ActionID.HeliosConjunctionPvE)]
     protected override bool HealAreaGCD(out IAction? act)
     {
         act = null;
@@ -263,8 +226,11 @@ public sealed class AST_Default : AstrologianRotation
         if (HasSwift && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise)) return false;
         if (MicroPrio && Player.HasStatus(true, StatusID.Macrocosmos)) return false;
 
+        if (HeliosConjunctionPvE.CanUse(out act)) return true;
         if (AspectedHeliosPvE.CanUse(out act)) return true;
+
         if (HeliosPvE.CanUse(out act)) return true;
+
         return base.HealAreaGCD(out act);
     }
 
@@ -275,7 +241,6 @@ public sealed class AST_Default : AstrologianRotation
         if (HasSwift && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise)) return false;
 
         if (GravityPvE.CanUse(out act)) return true;
-
         if (CombustIiiPvE.CanUse(out act)) return true;
         if (CombustIiPvE.CanUse(out act)) return true;
         if (CombustPvE.CanUse(out act)) return true;
@@ -291,6 +256,5 @@ public sealed class AST_Default : AstrologianRotation
     #region Extra Methods
     public override bool CanHealSingleSpell => base.CanHealSingleSpell && (GCDHeal || PartyMembers.GetJobCategory(JobRole.Healer).Count() < 2);
     public override bool CanHealAreaSpell => base.CanHealAreaSpell && (GCDHeal || PartyMembers.GetJobCategory(JobRole.Healer).Count() < 2);
-
     #endregion
 }
