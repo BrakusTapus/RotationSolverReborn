@@ -327,9 +327,6 @@ partial class SageRotation
     {
         setting.TargetStatusProvide =
         [
-            StatusID.EukrasianDosis,
-            StatusID.EukrasianDosisIi,
-            StatusID.EukrasianDosisIii,
             StatusID.EukrasianDyskrasia
         ];
         setting.CreateConfig = () => new ActionConfig()

@@ -138,7 +138,7 @@ partial class PaladinRotation
         {
             TimeToKill = 0,
         };
-        setting.IsFriendly = true;
+        setting.IsFriendly = false;
     }
 
     static partial void ModifyRiotBladePvE(ref ActionSetting setting)

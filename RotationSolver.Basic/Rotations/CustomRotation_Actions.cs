@@ -148,6 +148,99 @@ partial class CustomRotation
         setting.IsFriendly = true;
     }
 
+    static partial void ModifyDervishPvP(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyBraveryPvP(ref ActionSetting setting)
+    {
+        
+    }
+
+    static partial void ModifyEagleEyeShotPvP(ref ActionSetting setting)
+    {
+        
+    }
+
+    static partial void ModifyCometPvP(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyRustPvP(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyPhantomDartPvP(ref ActionSetting setting)
+    {
+
+    }
+
+    static partial void ModifyRampagePvP(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyRampartPvP(ref ActionSetting setting)
+    {
+
+    }
+
+    static partial void ModifyFullSwingPvP(ref ActionSetting setting)
+    {
+
+    }
+
+    static partial void ModifyHaelanPvP(ref ActionSetting setting)
+    {
+
+    }
+
+    static partial void ModifyStoneskinIiPvP(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyDiabrosisPvP(ref ActionSetting setting)
+    {
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 1,
+        };
+    }
+
+    static partial void ModifyBloodbathPvP(ref ActionSetting setting)
+    {
+
+    }
+
+    static partial void ModifySwiftPvP(ref ActionSetting setting)
+    {
+
+    }
+
+    static partial void ModifySmitePvP(ref ActionSetting setting)
+    {
+
+    }
+
     #endregion
     private protected virtual IBaseAction? Raise => null;
     private protected virtual IBaseAction? TankStance => null;

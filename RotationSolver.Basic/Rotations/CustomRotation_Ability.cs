@@ -1,5 +1,3 @@
-using RotationSolver.Basic.Helpers;
-
 namespace RotationSolver.Basic.Rotations;
 
 partial class CustomRotation

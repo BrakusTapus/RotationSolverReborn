@@ -910,7 +910,7 @@ public struct ActionTargetInfo(IBaseAction action)
         IBattleChara? FindTheSpear()
         {
             // The Spear priority based on the info from The Balance Discord for Level 100 Dance Partner
-            Job[] TheSpearpriority = { Job.PCT, Job.SAM, Job.BLM, Job.RDM, Job.SMN, Job.MCH, Job.BRD, Job.DNC, Job.RPR, Job.VPR, Job.MNK, Job.NIN, Job.DRG };
+            Job[] TheSpearpriority = { Job.PCT, Job.MCH, Job.SMN, Job.RDM, Job.BRD, Job.DNC, Job.BLM, Job.SAM, Job.NIN, Job.VPR, Job.DRG, Job.MNK, Job.DRK, Job.RPR };
 
             if (IGameObjects == null) return null;
 
@@ -944,7 +944,7 @@ public struct ActionTargetInfo(IBaseAction action)
         IBattleChara? FindTheBalance()
         {
             // The Balance priority based on the info from The Balance Discord for Level 100 Dance Partner
-            Job[] TheBalancepriority = { Job.RPR, Job.VPR, Job.MNK, Job.NIN, Job.DRG, Job.PCT, Job.SAM, Job.BLM, Job.RDM, Job.SMN, Job.MCH, Job.BRD, Job.DNC };
+            Job[] TheBalancepriority = { Job.SAM, Job.NIN, Job.VPR, Job.DRG, Job.MNK, Job.RPR, Job.DRK, Job.PCT, Job.MCH, Job.SMN, Job.RDM, Job.BRD, Job.DNC, Job.BLM };
 
             if (IGameObjects == null) return null;
 
