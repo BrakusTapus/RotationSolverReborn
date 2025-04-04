@@ -1,6 +1,6 @@
 namespace RebornRotations.Ranged;
 
-[Rotation("Default", CombatType.PvE, GameVersion = "7.15")]
+[Rotation("Default", CombatType.PvE, GameVersion = "7.2")]
 [SourceCode(Path = "main/BasicRotations/Ranged/MCH_Default.cs")]
 [Api(4)]
 public sealed class MCH_Default : MachinistRotation
@@ -38,6 +38,7 @@ public sealed class MCH_Default : MachinistRotation
         // ReassemblePvE's duration is 5s, need to fire the first GCD before it ends
         if (remainTime < 5 && ReassemblePvE.CanUse(out var act)) return act;
         if (IsBurst && OpenerBurstMeds && remainTime <= 1f && UseBurstMedicine(out act)) return act;
+        if (remainTime < 0.4 && AirAnchorPvE.CanUse(out var act2))  return act2;
         return base.CountDownAction(remainTime);
     }
     #endregion
