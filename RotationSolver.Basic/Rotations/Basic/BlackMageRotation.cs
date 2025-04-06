@@ -198,7 +198,7 @@ partial class BlackMageRotation
     static partial void ModifyThunderPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
     }
 
     static partial void ModifyBlizzardIiPvE(ref ActionSetting setting)
@@ -225,7 +225,7 @@ partial class BlackMageRotation
     static partial void ModifyThunderIiPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
     }
 
     static partial void ModifyManawardPvE(ref ActionSetting setting)
@@ -272,7 +272,7 @@ partial class BlackMageRotation
 
     static partial void ModifyThunderIiiPvE(ref ActionSetting setting)
     {
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
         setting.StatusNeed = [StatusID.Thunderhead];
         setting.UnlockedByQuestID = 66612;
     }
@@ -329,7 +329,7 @@ partial class BlackMageRotation
 
     static partial void ModifyThunderIvPvE(ref ActionSetting setting)
     {
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
         setting.StatusNeed = [StatusID.Thunderhead];
         setting.CreateConfig = () => new ActionConfig()
         {
@@ -394,13 +394,13 @@ partial class BlackMageRotation
     static partial void ModifyHighThunderPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
     }
 
     static partial void ModifyHighThunderIiPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 3,

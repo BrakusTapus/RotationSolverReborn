@@ -793,7 +793,7 @@ public struct ActionTargetInfo(IBaseAction action)
                 return dis <= EffectRange && dis >= 8;
 
             default:
-                Svc.Log.Debug($"{action.Action.Name.ExtractText}'s CastType is not valid! The value is {action.Action.CastType}");
+                Svc.Log.Debug($"{action.Action.Name.ExtractText().ToString()}'s CastType is not valid! The value is {action.Action.CastType}");
                 return false;
         }
     }
@@ -1168,13 +1168,13 @@ public struct ActionTargetInfo(IBaseAction action)
                     TargetingType.LowMaxHP => IGameObjects.OrderBy<IGameObject, uint>(p => p is IBattleChara b ? b.MaxHp : 0),
                     TargetingType.Nearest => IGameObjects.OrderBy<IGameObject, float>(p => p.DistanceToPlayer()),
                     TargetingType.Farthest => IGameObjects.OrderByDescending<IGameObject, float>(p => p.DistanceToPlayer()),
-                    TargetingType.HunterKillerHealers => IGameObjects.Where(p => p.IsJobs(JobRole.Healer.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer()).Any() 
+                    TargetingType.PvPHealers => IGameObjects.Where(p => p.IsJobs(JobRole.Healer.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer()).Any() 
                         ? IGameObjects.Where(p => p.IsJobs(JobRole.Healer.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer())
                         : IGameObjects.OrderBy<IGameObject, float>(p => p.DistanceToPlayer()),
-                    TargetingType.HunterKillerTanks => IGameObjects.Where(p => p.IsJobs(JobRole.Tank.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer()).Any()
+                    TargetingType.PvPTanks => IGameObjects.Where(p => p.IsJobs(JobRole.Tank.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer()).Any()
                         ? IGameObjects.Where(p => p.IsJobs(JobRole.Tank.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer())
                         : IGameObjects.OrderBy<IGameObject, float>(p => p.DistanceToPlayer()),
-                    TargetingType.HunterKillerDPS => IGameObjects.Where(p => p.IsJobs(JobRole.AllDPS.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer()).Any()
+                    TargetingType.PvPDPS => IGameObjects.Where(p => p.IsJobs(JobRole.AllDPS.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer()).Any()
                         ? IGameObjects.Where(p => p.IsJobs(JobRole.AllDPS.ToJobs())).OrderBy<IGameObject, float>(p => p.DistanceToPlayer())
                         : IGameObjects.OrderBy<IGameObject, float>(p => p.DistanceToPlayer()),
                     _ => IGameObjects.OrderByDescending<IGameObject, float>(p => p.HitboxRadius),

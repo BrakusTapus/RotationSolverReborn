@@ -172,7 +172,7 @@ partial class AstrologianRotation
     static partial void ModifyTheArrowPvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => HasArrow;
-        setting.TargetStatusProvide = [StatusID.TheArrow_3888, StatusID.BrinkOfDeath];
+        setting.TargetStatusProvide = [StatusID.TheArrow_3888];
         setting.TargetType = TargetType.BeAttacked;
         setting.IsFriendly = true;
     }
@@ -180,7 +180,7 @@ partial class AstrologianRotation
     static partial void ModifyTheSpirePvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => HasSpire;
-        setting.TargetStatusProvide = [StatusID.TheSpire_3892, StatusID.BrinkOfDeath];
+        setting.TargetStatusProvide = [StatusID.TheSpire_3892];
         setting.TargetType = TargetType.BeAttacked;
         setting.IsFriendly = true;
     }
@@ -197,7 +197,7 @@ partial class AstrologianRotation
     static partial void ModifyTheBolePvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => HasBole;
-        setting.TargetStatusProvide = [StatusID.TheBole_3890, StatusID.BrinkOfDeath];
+        setting.TargetStatusProvide = [StatusID.TheBole_3890];
         setting.TargetType = TargetType.BeAttacked;
         setting.IsFriendly = true;
     }
@@ -205,7 +205,7 @@ partial class AstrologianRotation
     static partial void ModifyTheEwerPvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => HasEwer;
-        setting.TargetStatusProvide = [StatusID.TheEwer_3891, StatusID.BrinkOfDeath];
+        setting.TargetStatusProvide = [StatusID.TheEwer_3891];
         setting.TargetType = TargetType.BeAttacked;
         setting.IsFriendly = true;
     }

@@ -68,12 +68,5 @@
     "Url": "https://github.com/Taurenkey/ReActionEX",
     "Features": "May have issues with skill queueing settings",
     "Type": 1
-  },
-  {
-    "Name": "Simple Tweaks Plugin",
-    "Icon": "https://raw.githubusercontent.com/Caraxi/SimpleTweaksPlugin/main/images/icon.png",
-    "Url": "https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/TreasureHuntTargets.cs",
-    "Features": "Blocks targeting treasure hunt enemies (Likely no longer an issue, needs further testing)",
-    "Type": 4
   }
 ]

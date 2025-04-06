@@ -10,6 +10,7 @@ using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
+using ECommons.Reflection;
 using ExCSS;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
@@ -23,6 +24,8 @@ using RotationSolver.UI.SearchableConfigs;
 using RotationSolver.UI.SearchableSettings;
 using RotationSolver.Updaters;
 using System.Diagnostics;
+using System.Text;
+using static FFXIVClientStructs.FFXIV.Client.Game.Character.VfxContainer;
 using GAction = Lumina.Excel.Sheets.Action;
 using Status = Lumina.Excel.Sheets.Status;
 using Task = System.Threading.Tasks.Task;
@@ -142,7 +145,8 @@ public partial class RotationConfigWindow : Window
         }
     }
 
-    private bool CheckErrors(){
+    private bool CheckErrors()
+    {
         var incompatiblePlugins = DownloadHelper.IncompatiblePlugins ?? Array.Empty<IncompatiblePlugin>();
         var installedIncompatiblePlugin = incompatiblePlugins.FirstOrDefault(p => p.IsInstalled && (int)p.Type == 5);
 
@@ -166,17 +170,104 @@ public partial class RotationConfigWindow : Window
         return false;
     }
 
+    public static string DalamudBranch()
+    {
+        const string stg = "stg";
+        const string release = "release";
+        const string other = "other";
+
+        if (DalamudReflector.TryGetDalamudStartInfo(out var startinfo, Svc.PluginInterface))
+        {
+            if (File.Exists(startinfo.ConfigurationPath))
+            {
+                try
+                {
+                    var file = File.ReadAllText(startinfo.ConfigurationPath);
+                    var ob = JsonConvert.DeserializeObject<dynamic>(file);
+                    string? type = ob?.DalamudBetaKind;
+                    if (type is not null && !string.IsNullOrEmpty(type))
+                    {
+                        return type switch
+                        {
+                            "stg" => stg,
+                            "release" => release,
+                            _ => other,
+                        };
+                    }
+                    else
+                    {
+                        Svc.Log.Information("Dalamud release is not a string or null.");
+                        return other;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Svc.Log.Information($"Failed to read or deserialize configuration file: {ex.Message}");
+                    return other;
+                }
+            }
+            else
+            {
+                Svc.Log.Information("Configuration file does not exist.");
+                return other;
+            }
+        }
+        Svc.Log.Information("Failed to get Dalamud start info.");
+        return other;
+    }
+
+    private void DrawDiagnosticInfoCube()
+    {
+        var diagInfo = new StringBuilder();
+        Vector4 diagColor = new Vector4(1f, 1f, 1f, .3f);
+
+        diagInfo.AppendLine($"Rotation Solver Reborn v{typeof(RotationConfigWindow).Assembly.GetName().Version?.ToString() ?? "?.?.?"}");
+        if (DalamudReflector.TryGetDalamudStartInfo(out var startinfo, Svc.PluginInterface))
+        {
+            diagInfo.AppendLine($"FFXIV Version: {startinfo.GameVersion}");
+            diagInfo.AppendLine($"OS Type: {startinfo.Platform.ToString()}");
+            diagInfo.AppendLine($"Dalamud Branch: {DalamudBranch()}");
+            diagInfo.AppendLine($"Game Language: {startinfo.Language}");
+        }
+        else
+        {
+            diagInfo.AppendLine("Failed to get Dalamud start info.");
+        }
+
+        var incompatiblePlugins = DownloadHelper.IncompatiblePlugins ?? Array.Empty<IncompatiblePlugin>();
+        var installedIncompatiblePlugin = incompatiblePlugins.FirstOrDefault(p => p.IsEnabled);
+        if (installedIncompatiblePlugin.Name != null)
+        {
+            diagInfo.AppendLine("\nPlugins:");
+        }
+
+        foreach (var plugin in incompatiblePlugins)
+        {
+            if (plugin.IsEnabled)
+            {
+                diagInfo.AppendLine(plugin.Name);
+                diagColor = (int)plugin.Type == 5 ? new Vector4(1f, 0f, 0f, .3f) : new Vector4(1f, 1f, .4f, .3f);
+            }
+        }
+
+        ImGui.SetCursorPosY(ImGui.GetWindowSize().Y - 20);
+        ImGui.SetCursorPosX(0);
+        ImGuiEx.InfoMarker(diagInfo.ToString(), diagColor, FontAwesomeIcon.Cube.ToIconString(), false);
+    }
+
     private void DrawErrorZone()
     {
         var errorText = "No internal errors.";
+        //string cautionText;
         float availableWidth = ImGui.GetContentRegionAvail().X; // Get the available width dynamically
 
         var incompatiblePlugins = DownloadHelper.IncompatiblePlugins ?? Array.Empty<IncompatiblePlugin>();
-        var installedIncompatiblePlugin = incompatiblePlugins.FirstOrDefault(p => p.IsInstalled && (int)p.Type == 5);
+        var enabledIncompatiblePlugin = incompatiblePlugins.FirstOrDefault(p => p.IsEnabled && (int)p.Type == 5);
+        //var installedCautionaryPlugin = incompatiblePlugins.FirstOrDefault(p => p.IsInstalled && (int)p.Type != 5);
 
-        if (installedIncompatiblePlugin.Name != null)
+        if (enabledIncompatiblePlugin.Name != null)
         {
-            errorText = $"Disable {installedIncompatiblePlugin.Name}, causes targetting issues.";
+            errorText = $"Disable {enabledIncompatiblePlugin.Name}, can cause conflicts.";
         }
 
         if (Player.Object != null && (Player.Job == Job.CRP || Player.Job == Job.BSM || Player.Job == Job.ARM || Player.Job == Job.GSM ||
@@ -216,12 +307,12 @@ public partial class RotationConfigWindow : Window
             {
                 DataCenter.SystemWarnings.Remove(warning);
             }
-        } 
-        
-        if (errorText != "No internal errors.") 
+        }
+
+        if (errorText != "No internal errors.")
         {
             ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + availableWidth); // Set text wrapping position dynamically
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange); // Set text color to DalamudOrange
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed); // Set text color to DalamudOrange
             ImGui.Text(errorText);
             ImGui.PopStyleColor(); // Reset text color
             ImGui.PopTextWrapPos(); // Reset text wrapping position
@@ -246,7 +337,8 @@ public partial class RotationConfigWindow : Window
             if (wholeWidth > JOB_ICON_WIDTH * Scale)
             {
                 DrawDutyRotation();
-                if (CheckErrors()) {
+                if (CheckErrors())
+                {
                     DrawErrorZone();
 
                     ImGui.Separator();
@@ -265,20 +357,6 @@ public partial class RotationConfigWindow : Window
 
                 // Skip the tab if it has the TabSkipAttribute
                 if (item.GetAttribute<TabSkipAttribute>() != null) continue;
-
-                // Check if the "AutoDuty" plugin is installed
-                bool isAutoDutyInstalled = false;
-                foreach (var plugin in incompatiblePlugins)
-                {
-                    if (plugin.IsInstalled && plugin.Name == "AutoDuty")
-                    {
-                        isAutoDutyInstalled = true;
-                        break;
-                    }
-                }
-
-                // Skip the "AutoDuty" tab if the plugin is not installed
-                if (item == RotationConfigWindowTab.AutoDuty && !isAutoDutyInstalled) continue;
 
                 if (IconSet.GetTexture(item.GetAttribute<TabIconAttribute>()?.Icon ?? 0, out var icon) && wholeWidth <= JOB_ICON_WIDTH * Scale)
                 {
@@ -319,6 +397,8 @@ public partial class RotationConfigWindow : Window
                     ImGui.Separator();
                 }
             }
+            DrawDiagnosticInfoCube();
+            ImGui.Spacing();
         }
     }
 
@@ -862,7 +942,7 @@ public partial class RotationConfigWindow : Window
             ImGui.TableHeader("Type");
 
             ImGui.TableNextColumn();
-            ImGui.TableHeader("Installed");
+            ImGui.TableHeader("Enabled");
 
             // Ensure that IncompatiblePlugins is not null
             var incompatiblePlugins = DownloadHelper.IncompatiblePlugins ?? Array.Empty<IncompatiblePlugin>();
@@ -896,7 +976,7 @@ public partial class RotationConfigWindow : Window
                 DisplayPluginType(item.Type);
 
                 ImGui.TableNextColumn();
-                ImGui.Text(item.IsInstalled ? "Yes" : "No");
+                ImGui.Text(item.IsEnabled ? "Yes" : "No");
             }
         }
     }
@@ -971,9 +1051,9 @@ public partial class RotationConfigWindow : Window
 
     private void DrawAutoduty()
     {
-        ImGui.TextWrapped("While the RSR Team has made effort to make RSRcompatible with Autoduty, please keep in mind that RSR is not a botting tool.");
+        ImGui.TextWrapped("While the RSR Team has made effort to make RSR compatible with Autoduty, please keep in mind that RSR is not designed with botting in mind.");
         ImGui.Spacing();
-        ImGui.TextWrapped("This menu is mostly for troubleshooting purposes and is a good first step to share to get assistance.");
+        ImGui.TextWrapped("This menu is for troubleshooting and initial setup purposes and is a good first step to share to get assistance.");
         ImGui.Spacing();
         ImGui.TextWrapped("Below are relevant settings and their current states for RSR to work well with AutoDuty mode.");
         ImGui.Spacing();
@@ -1036,57 +1116,82 @@ public partial class RotationConfigWindow : Window
         ImGui.Spacing();
 
         // Create a new list of AutoDutyPlugin objects
-        var pluginsToCheck = new List<IncompatiblePlugin>
+        var pluginsToCheck = new List<AutoDutyPlugin>
     {
-        new IncompatiblePlugin { Name = "AutoDuty", Url = "https://puni.sh/api/repository/herc" },
-        new IncompatiblePlugin { Name = "vnavmesh", Url = "https://puni.sh/api/repository/veyn" },
-        new IncompatiblePlugin { Name = "BossMod Reborn", Url = "https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json" },
-        new IncompatiblePlugin { Name = "Boss Mod", Url = "" },
-        new IncompatiblePlugin { Name = "Avarice", Url = "https://love.puni.sh/ment.json" },
-        new IncompatiblePlugin { Name = "Deliveroo", Url = "https://plugins.carvel.li/" },
-        new IncompatiblePlugin { Name = "AutoRetainer", Url = "https://love.puni.sh/ment.json" },
-        new IncompatiblePlugin { Name = "SkipCutscene", Url = "https://raw.githubusercontent.com/KangasZ/DalamudPluginRepository/main/plugin_repository.json" },
-        new IncompatiblePlugin { Name = "AntiAfkKick", Url = "https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json" },
+        new AutoDutyPlugin { Name = "AutoDuty", Url = "https://puni.sh/api/repository/herc" },
+        new AutoDutyPlugin { Name = "vnavmesh", Url = "https://puni.sh/api/repository/veyn" },
+        new AutoDutyPlugin { Name = "BossModReborn", Url = "https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json" },
+        new AutoDutyPlugin { Name = "Boss Mod", Url = "https://puni.sh/api/repository/veyn" },
+        new AutoDutyPlugin { Name = "Avarice", Url = "https://love.puni.sh/ment.json" },
+        new AutoDutyPlugin { Name = "Deliveroo", Url = "https://plugins.carvel.li/" },
+        new AutoDutyPlugin { Name = "AutoRetainer", Url = "https://love.puni.sh/ment.json" },
+        new AutoDutyPlugin { Name = "SkipCutscene", Url = "https://raw.githubusercontent.com/KangasZ/DalamudPluginRepository/main/plugin_repository.json" },
+        new AutoDutyPlugin { Name = "AntiAfkKick", Url = "https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json" },
         // Add more plugins as needed
     };
 
-        // Check if "Boss Mod" and "BossMod Reborn" are installed
-        bool isBossModInstalled = pluginsToCheck.Any(plugin => plugin.Name == "Boss Mod" && plugin.IsInstalled);
-        bool isBossModRebornInstalled = pluginsToCheck.Any(plugin => plugin.Name == "BossMod Reborn" && plugin.IsInstalled);
+        // Check if "Boss Mod" and "BossMod Reborn" are enabled
+        bool isBossModEnabled = pluginsToCheck.Any(plugin => plugin.Name == "Boss Mod" && plugin.IsEnabled);
+        bool isBossModRebornEnabled = pluginsToCheck.Any(plugin => plugin.Name == "BossModReborn" && plugin.IsEnabled);
 
-        // Iterate through the list and check if each plugin is installed
+        // Iterate through the list and check if each plugin is installed and enabled
         foreach (var plugin in pluginsToCheck)
         {
-            // Only display information about "Boss Mod" if it is installed
-            if (plugin.Name == "Boss Mod" && !isBossModInstalled)
+            // Only display information about "Boss Mod" if it is installed and enabled
+            if (plugin.Name == "Boss Mod" && !isBossModEnabled)
             {
                 continue;
             }
 
+            bool isEnabled = plugin.IsEnabled;
             bool isInstalled = plugin.IsInstalled;
 
             // Add a button to copy the URL to the clipboard if the plugin is not installed
-            if (!isInstalled)
+            if (!isEnabled)
             {
-                if (ImGui.Button($"Copy Repo URL##{plugin.Name}"))
+                if (DalamudReflector.HasRepo(plugin.Url) && !isInstalled)
                 {
-                    ImGui.SetClipboardText(plugin.Url);
+                    if (ImGui.Button($"Add Plugin##{plugin.Name}"))
+                    {
+                        Svc.Log.Information($"Attempting to add plugin: {plugin.Name} from URL: {plugin.Url}");
+                        var success = DalamudReflector.AddPlugin(plugin.Url, plugin.Name);
+                        if (success.Result)
+                        {
+                            Svc.Log.Information($"Successfully added plugin: {plugin.Name} from URL: {plugin.Url}");
+                        }
+                        else
+                        {
+                            Svc.Log.Error($"Failed to add plugin: {plugin.Name} from URL: {plugin.Url}");
+                        }
+                        DalamudReflector.ReloadPluginMasters();
+                    }
+                    ImGui.SameLine();
                 }
-                ImGui.SameLine();
+                else if (!DalamudReflector.HasRepo(plugin.Url))
+                {
+                    if (ImGui.Button($"Add Repo##{plugin.Name}"))
+                    {
+                        Svc.Log.Information($"Attempting to add repository: {plugin.Url}");
+                        DalamudReflector.AddRepo(plugin.Url, true);
+                        DalamudReflector.ReloadPluginMasters();
+                        Svc.Log.Information($"Successfully added repository: {plugin.Url}");
+                    }
+                    ImGui.SameLine();
+                }
             }
 
             // Determine the color and text for "Boss Mod"
             Vector4 color;
             string text;
-            if (plugin.Name == "Boss Mod" && isBossModInstalled && isBossModRebornInstalled)
+            if (plugin.Name == "Boss Mod" && isBossModEnabled && isBossModRebornEnabled)
             {
                 color = ImGuiColors.DalamudYellow; // Display "Boss Mod" in yellow if both are installed
-                text = $"{plugin.Name} is {(isInstalled ? "installed and enabled" : "not enabled")}. Both Boss Mods cannot be installed and enabled at the same time. Please disable Boss Mod.";
+                text = $"{plugin.Name} is {(isEnabled ? "installed and enabled" : "not enabled")}. Both Boss Mods cannot be installed and enabled at the same time. Please disable Boss Mod.";
             }
             else
             {
-                color = isInstalled ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudRed;
-                text = $"{plugin.Name} is {(isInstalled ? "installed and enabled" : "not enabled")}";
+                color = isEnabled ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudRed;
+                text = $"{plugin.Name} is {(isEnabled ? "installed and enabled" : "not enabled")}";
             }
 
             // Display the result using ImGui with text wrapping
@@ -1654,7 +1759,7 @@ public partial class RotationConfigWindow : Window
 
         static void DrawActionDebug()
         {
-            if (!Service.Config.InDebug) return;
+            if (!Service.Config.InDebug || !Player.AvailableThreadSafe) return;
 
             if (_activeAction is IBaseAction action)
             {
@@ -1667,14 +1772,13 @@ public partial class RotationConfigWindow : Window
                     ImGui.Text("ShouldCheckStatus: " + action.Config.ShouldCheckStatus);
 #if DEBUG
                     ImGui.Text("Is Real GCD: " + action.Info.IsRealGCD);
-                    
-                    // Ensure ActionManager.Instance() is not null
-                    if (ActionManager.Instance() != null)
+
+                    // Ensure ActionManager.Instance() is not null and action.AdjustedID is valid
+                    if (ActionManager.Instance() != null && action.AdjustedID != 0)
                     {
                         ImGui.Text("Resources: " + ActionManager.Instance()->CheckActionResources(ActionType.Action, action.AdjustedID));
                         ImGui.Text("Status: " + ActionManager.Instance()->GetActionStatus(ActionType.Action, action.AdjustedID));
                     }
-            
                     ImGui.Text("Cast Time: " + action.Info.CastTime);
                     ImGui.Text("MP: " + action.Info.MPNeed);
 #endif

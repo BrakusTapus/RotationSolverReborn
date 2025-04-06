@@ -62,7 +62,7 @@ public sealed class DRK_Default : DarkKnightRotation
         if (Player.HasStatus(true, StatusID.BlackestNight)) return false;
 
         //10
-        if (OblationPvE.CanUse(out act, usedUp: true)) return true;
+        if (OblationPvE.CanUse(out act, usedUp: true, skipStatusProvideCheck: false)) return true;
 
         if (TheBlackestNightPvE.CanUse(out act)) return true;
         //20

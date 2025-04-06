@@ -387,7 +387,7 @@ public static class StatusHelper
         {
             if (b.StatusList == null)
             {
-                PluginLog.Error("StatusList is null. Cannot get statuses.");
+                Svc.Log.Information("StatusList is null. Cannot get statuses.");
                 return Enumerable.Empty<Status>();
             }
 
@@ -398,14 +398,13 @@ public static class StatusHelper
                     result.Add(status);
                 }
             }
-
-            return result;
         }
         catch (Exception ex)
         {
             Svc.Log.Error($"Failed to get statuses: {ex.Message}");
-            return Enumerable.Empty<Status>();
         }
+
+        return result;
     }
 
     /// <summary>

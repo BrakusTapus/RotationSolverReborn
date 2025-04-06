@@ -70,10 +70,10 @@ public struct IncompatiblePlugin
     public string Features { get; init; }
 
     /// <summary>
-    /// Checks if the plugin is installed.
+    /// Checks if the plugin is enabled.
     /// </summary>
     [JsonIgnore]
-    public readonly bool IsInstalled
+    public readonly bool IsEnabled
     {
         get
         {
@@ -84,7 +84,63 @@ public struct IncompatiblePlugin
         }
     }
 
+    /// <summary>
+    /// Checks if the plugin is installed.
+    /// </summary>
+    [JsonIgnore]
+    public readonly bool IsInstalled
+    {
+        get
+        {
+            var name = this.Name;
+            var installedPlugins = Svc.PluginInterface.InstalledPlugins;
+            return installedPlugins.Any(x =>
+                x.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || x.InternalName.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
     public CompatibleType Type { get; init; }
+}
+
+/// <summary>
+/// Struct representing an incompatible plugin.
+/// </summary>
+public struct AutoDutyPlugin
+{
+    public string Name { get; init; }
+    public string Icon { get; init; }
+    public string Url { get; init; }
+    public string Features { get; init; }
+
+    /// <summary>
+    /// Checks if the plugin is enabled.
+    /// </summary>
+    [JsonIgnore]
+    public readonly bool IsEnabled
+    {
+        get
+        {
+            var name = this.Name;
+            var installedPlugins = Svc.PluginInterface.InstalledPlugins;
+            return installedPlugins.Any(x =>
+                (x.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || x.InternalName.Equals(name, StringComparison.OrdinalIgnoreCase)) && x.IsLoaded);
+        }
+    }
+
+    /// <summary>
+    /// Checks if the plugin is installed.
+    /// </summary>
+    [JsonIgnore]
+    public readonly bool IsInstalled
+    {
+        get
+        {
+            var name = this.Name;
+            var installedPlugins = Svc.PluginInterface.InstalledPlugins;
+            return installedPlugins.Any(x =>
+                x.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || x.InternalName.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+    }
 }
 
 /// <summary>

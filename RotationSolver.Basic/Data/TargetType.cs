@@ -68,18 +68,18 @@ public enum TargetingType
     /// <summary>
     /// PVP: Find the nearest Healer.
     /// </summary>
-    [Description("Hunter Killer: Healers")]
-    HunterKillerHealers,
+    [Description("Focus Healers in PvP")]
+    PvPHealers,
     
     /// <summary>
     /// PVP: Find the nearest Tank.
     /// </summary>
-    [Description("Hunter Killer: Tanks")]
-    HunterKillerTanks,
+    [Description("Focus Tanks in PvP")]
+    PvPTanks,
     
     /// <summary>
     /// PVP: Find the nearest DPS.
     /// </summary>
-    [Description("Hunter Killer: DPS")]
-    HunterKillerDPS
+    [Description("Focus DPS in PvP")]
+    PvPDPS
 }
