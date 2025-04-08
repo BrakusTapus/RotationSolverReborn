@@ -55,7 +55,7 @@ public readonly struct ActionBasicInfo
     /// The attack type of this action.
     /// </summary>
     public readonly AttackType AttackType => (AttackType)(_action.Action.AttackType.RowId != 0 ? _action.Action.AttackType.RowId : byte.MaxValue);
-    
+
     /// <summary>
     /// The aspect of this action.
     /// </summary>
@@ -95,13 +95,13 @@ public readonly struct ActionBasicInfo
         get
         {
             if (IsPvP && ID != 29711) return 0;
-            
+
             var mpOver = _action.Setting.MPOverride?.Invoke();
             if (mpOver.HasValue) return mpOver.Value;
 
             var mp = (uint)ActionManager.GetActionCost(ActionType.Action, AdjustedID, 0, 0, 0, 0);
             if (mp < 100) return 0;
-            
+
             return mp;
         }
     }
@@ -172,7 +172,16 @@ public readonly struct ActionBasicInfo
         if (IsSelfStatusNeeded()) return false;
         if (IsStatusProvided(skipSelfStatusProvideCheck)) return false;
         //if (IsTargetStatusNeeded()) return false;
-        if (IsTargetStatusProvided(skipTargetStatusProvideCheck)) return false;
+        //if (IsTargetStatusProvided(skipTargetStatusProvideCheck)) return false;
+        try
+        {
+            if (IsTargetStatusProvided(skipTargetStatusProvideCheck))
+                return false;
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"BasicCheck: Exception thrown in IsTargetStatusProvided - {ex}");
+        }
         if (IsLimitBreakLevelLow() || !IsComboValid(skipComboCheck) || !IsRoleActionValid()) return false;
         if (NeedsCasting(skipCastingCheck)) return false;
         if (IsGeneralGCD && (IsSelfStatusProvidedDuringGCD() || IsTargetStatusProvidedDuringGCD())) return false;
@@ -222,24 +231,137 @@ public readonly struct ActionBasicInfo
         return !skipSelfStatusProvideCheck && _action.Setting.StatusProvide != null && !player.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusProvide);
     }
 
+    //private bool IsTargetStatusProvided(bool skipTargetStatusProvideCheck)
+    //{
+    //    if (skipTargetStatusProvideCheck || _action?.Setting?.TargetStatusProvide == null)
+    //        return false;
+
+    //    Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter player = Player.Object;
+    //    IBaseAction? act = _action;
+    //    IBattleChara? tar = act?.Target.Target == player
+    //        ? act?.Target.AffectedTargets?.FirstOrDefault()
+    //        : act?.Target.Target;
+
+    //    if (tar == null)
+    //        return false;
+
+    //    Svc.Log.Error($"");
+    //    // Only allow Player or BattleNpc ObjectKind
+    //    if (tar.ObjectKind is not (Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc))
+    //        return false;
+
+    //    return !skipTargetStatusProvideCheck &&
+    //           _action.Setting.TargetStatusProvide != null &&
+    //           !tar.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.TargetStatusProvide);
+    //}
+
+    //private bool IsTargetStatusProvided(bool skipTargetStatusProvideCheck)
+    //{
+    //    if (skipTargetStatusProvideCheck)
+    //    {
+    //        Svc.Log.Error($"IsTargetStatusProvided: Skipping check because skipTargetStatusProvideCheck = true.");
+    //        return false;
+    //    }
+
+    //    if (_action?.Setting?.TargetStatusProvide == null)
+    //    {
+    //        Svc.Log.Error($"IsTargetStatusProvided: Skipping check because TargetStatusProvide is null.");
+    //        return false;
+    //    }
+
+    //    Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter player = Player.Object;
+    //    IBaseAction? act = _action;
+
+    //    if (act == null)
+    //    {
+    //        Svc.Log.Error($"IsTargetStatusProvided: _action is null.");
+    //        return false;
+    //    }
+
+    //    IBattleChara? tar = act.Target.Target == player
+    //    ? act.Target.AffectedTargets?.FirstOrDefault()
+    //    : act.Target.Target;
+
+    //    if (tar == null)
+    //    {
+    //        Svc.Log.Error($"IsTargetStatusProvided: Target is null.");
+    //        return false;
+    //    }
+
+    //    if (!tar.IsTargetable)
+    //    {
+    //        Svc.Log.Error("IsTargetStatusProvided: Target is NOT Targetable");
+    //        return false;
+    //    }
+
+    //    Svc.Log.Error($"IsTargetStatusProvided: Target resolved. Name = {tar.Name}, ObjectKind = {tar.ObjectKind}");
+
+    //    // Only allow Player or BattleNpc ObjectKind
+    //    if (tar.ObjectKind is not (Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc))
+    //    {
+    //        Svc.Log.Error($"IsTargetStatusProvided: Target ObjectKind {tar.ObjectKind} is not Player or BattleNpc.");
+    //        return false;
+    //    }
+
+    //    bool result = !tar.WillStatusEndGCD(
+    //    _action.Config.StatusGcdCount,
+    //    0,
+    //    _action.Setting.StatusFromSelf,
+    //    _action.Setting.TargetStatusProvide);
+
+    //    Svc.Log.Error($"IsTargetStatusProvided: WillStatusEndGCD result = {result}");
+
+    //    return result;
+    //}
+
     private bool IsTargetStatusProvided(bool skipTargetStatusProvideCheck)
     {
-        if (skipTargetStatusProvideCheck || _action?.Setting?.TargetStatusProvide == null)
+        if (skipTargetStatusProvideCheck)
+        {
+            Svc.Log.Error($"[RotationSolver] IsTargetStatusProvided: Skipping check because skipTargetStatusProvideCheck is true.");
             return false;
+        }
 
-        var player = Player.Object;
-        var act = _action;
-        var tar = act?.Target.Target == player
-            ? act?.Target.AffectedTargets?.FirstOrDefault()
-            : act?.Target.Target;
+        if (_action?.Setting?.TargetStatusProvide == null)
+        {
+            Svc.Log.Debug($"[RotationSolver] IsTargetStatusProvided: Skipping check because TargetStatusProvide is null.");
+            return false;
+        }
+
+        Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter player = Player.Object;
+        IBaseAction? act = _action;
+        IBattleChara? tar = act?.Target.Target == player
+        ? act?.Target.AffectedTargets?.FirstOrDefault()
+        : act?.Target.Target;
 
         if (tar == null)
+        {
+            Svc.Log.Error($"[RotationSolver] IsTargetStatusProvided: Target is null.");
             return false;
+        }
 
-        return !skipTargetStatusProvideCheck &&
-               _action.Setting.TargetStatusProvide != null &&
-               !tar.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.TargetStatusProvide);
+        if (!tar.IsTargetable)
+        {
+            Svc.Log.Error("IsTargetStatusProvided: Target is NOT Targetable");
+            return false;
+        }
+
+        // Only allow Player or BattleNpc ObjectKind
+        if (tar.ObjectKind is not (Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc))
+        {
+            Svc.Log.Error($"[RotationSolver] IsTargetStatusProvided: Invalid target ObjectKind = {tar.ObjectKind}");
+            return false;
+        }
+
+        Svc.Log.Debug($"[RotationSolver] IsTargetStatusProvided: Target resolved. Name = {tar.Name}, ObjectKind = {tar.ObjectKind}");
+
+        bool willStatusEnd = !tar.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.TargetStatusProvide);
+
+        Svc.Log.Debug($"[RotationSolver] IsTargetStatusProvided: WillStatusEndGCD result = {willStatusEnd}");
+
+        return willStatusEnd;
     }
+
 
     private bool IsLimitBreakLevelLow() => _action.Action.ActionCategory.RowId == 15 && CustomRotation.LimitBreakLevel <= 1;
 
