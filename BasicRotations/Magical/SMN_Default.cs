@@ -165,6 +165,13 @@ public sealed class SMN_Default : SummonerRotation
         return base.EmergencyAbility(nextGCD, out act);
     }
 
+    //[RotationDesc(ActionID.AddlePvE)]
+    //protected sealed override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
+    //{
+    //    if (AddlePvE.CanUse(out act)) return true;
+    //    return base.DefenseAreaAbility(nextGCD, out act);
+    //}
+
     #endregion
 
     #region GCD Logic

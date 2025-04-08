@@ -518,6 +518,10 @@ partial class CustomRotation
     [RotationDesc(DescType.DefenseAreaAbility)]
     protected virtual bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
+        var role = DataCenter.Role;
+
+        if (role is JobRole.RangedMagical && AddlePvE.CanUse(out act)) return true;
+
         if (DataCenter.CurrentDutyRotation?.DefenseAreaAbility(nextGCD, out act) ?? false) return true;
         act = null;
         return false;
