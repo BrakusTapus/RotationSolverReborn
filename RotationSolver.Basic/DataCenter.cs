@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Objects.Enums;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -12,6 +13,7 @@ using RotationSolver.Basic.Configuration.Conditions;
 using RotationSolver.Basic.Rotations.Duties;
 using Action = Lumina.Excel.Sheets.Action;
 using CharacterManager = FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterManager;
+using CombatRole = RotationSolver.Basic.Data.CombatRole;
 
 namespace RotationSolver.Basic;
 
@@ -598,7 +600,20 @@ internal static class DataCenter
             var refinedHP = new Dictionary<ulong, float>();
             foreach (var member in PartyMembers)
             {
-                refinedHP[member.GameObjectId] = GetPartyMemberHPRatio(member);
+                try
+                {
+                    if (member == null || member.GameObjectId == 0)
+                    {
+                        continue; // Skip invalid or null members
+                    }
+
+                    refinedHP[member.GameObjectId] = GetPartyMemberHPRatio(member);
+                }
+                catch (AccessViolationException ex)
+                {
+                    Svc.Log.Error($"AccessViolationException in RefinedHP: {ex.Message}");
+                    continue; // Skip problematic members
+                }
             }
             return refinedHP;
         }
@@ -715,6 +730,8 @@ internal static class DataCenter
     const int QUEUECAPACITY = 32;
     private static readonly Queue<ActionRec> _actions = new(QUEUECAPACITY);
     private static readonly Queue<DamageRec> _damages = new(QUEUECAPACITY);
+
+    internal static CombatRole? BluRole => (CurrentRotation as BlueMageRotation)?.BlueId;
 
     public static float DPSTaken
     {

@@ -1,12 +1,15 @@
 ﻿namespace RebornRotations.Tank;
 
-[Rotation("Default", CombatType.PvE, GameVersion = "7.15")]
+[Rotation("Default", CombatType.PvE, GameVersion = "7.20")]
 [SourceCode(Path = "main/BasicRotations/Tank/PLD_Default.cs")]
 [Api(4)]
 
 public sealed class PLD_Default : PaladinRotation
 {
     #region Config Options
+
+    [RotationConfig(CombatType.PvE, Name = "Only use Fight or Flight while in melee range of an enemy")]
+    public bool MeleeFoF { get; set; } = true;
 
     [RotationConfig(CombatType.PvE, Name = "Prevent actions while you have Passage of Arms up")]
     public bool PassageProtec { get; set; } = false;
@@ -82,12 +85,15 @@ public sealed class PLD_Default : PaladinRotation
         if (CoverPvE.CanUse(out act) && CoverPvE.Target.Target?.DistanceToPlayer() < 10 &&
             CoverPvE.Target.Target?.GetHealthRatio() < CoverRatio) return true;
 
-        if (!RiotBladePvE.EnoughLevel && nextGCD.IsTheSameTo(true, FastBladePvE) && FightOrFlightPvE.CanUse(out act)) return true;
-        if (!RageOfHalonePvE.EnoughLevel && nextGCD.IsTheSameTo(true, RiotBladePvE, TotalEclipsePvE) && FightOrFlightPvE.CanUse(out act)) return true;
-        if (!ProminencePvE.EnoughLevel && nextGCD.IsTheSameTo(true, RageOfHalonePvE, TotalEclipsePvE) && FightOrFlightPvE.CanUse(out act)) return true;
-        if (!AtonementPvE.EnoughLevel && nextGCD.IsTheSameTo(true, RoyalAuthorityPvE, ProminencePvE) && FightOrFlightPvE.CanUse(out act)) return true;
-        if (AtonementPvE.EnoughLevel && (Player.HasStatus(true, StatusID.AtonementReady, StatusID.SepulchreReady, StatusID.SupplicationReady, StatusID.DivineMight) || IsLastAction(true, RoyalAuthorityPvE)) && FightOrFlightPvE.CanUse(out act)) return true;
+        if ((HasHostilesInRange && MeleeFoF) || !MeleeFoF)
+        {
+            if (!RiotBladePvE.EnoughLevel && nextGCD.IsTheSameTo(true, FastBladePvE) && FightOrFlightPvE.CanUse(out act)) return true;
+            if (!RageOfHalonePvE.EnoughLevel && nextGCD.IsTheSameTo(true, RiotBladePvE, TotalEclipsePvE) && FightOrFlightPvE.CanUse(out act)) return true;
+            if (!ProminencePvE.EnoughLevel && nextGCD.IsTheSameTo(true, RageOfHalonePvE, TotalEclipsePvE) && FightOrFlightPvE.CanUse(out act)) return true;
+            if (!AtonementPvE.EnoughLevel && nextGCD.IsTheSameTo(true, RoyalAuthorityPvE, ProminencePvE) && FightOrFlightPvE.CanUse(out act)) return true;
+            if (AtonementPvE.EnoughLevel && (Player.HasStatus(true, StatusID.AtonementReady, StatusID.SepulchreReady, StatusID.SupplicationReady, StatusID.DivineMight) || IsLastAction(true, RoyalAuthorityPvE)) && FightOrFlightPvE.CanUse(out act)) return true;
 
+        }
 
         // if requiscat is able to proc confiteor, use it immediately after Fight or Flight
         if (RequiescatMasteryTrait.EnoughLevel)

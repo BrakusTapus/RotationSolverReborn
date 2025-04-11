@@ -28,6 +28,32 @@ public enum CombatType : byte
 }
 
 /// <summary>
+/// Represents the role of a combat participant.
+/// </summary>
+public enum CombatRole
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// 
+    /// </summary>
+    Tank,
+
+    /// <summary>
+    /// 
+    /// </summary>
+    Healer,
+
+    /// <summary>
+    /// 
+    /// </summary>
+    DPS
+}
+
+/// <summary>
 /// Extension methods for the CombatType enum.
 /// </summary>
 internal static class CombatTypeExtension

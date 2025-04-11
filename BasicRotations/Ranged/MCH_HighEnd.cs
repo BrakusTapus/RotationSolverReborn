@@ -1,6 +1,6 @@
 namespace RebornRotations.Ranged;
 
-[Rotation("High End", CombatType.PvE, GameVersion = "7.15")]
+[Rotation("High End", CombatType.PvE, GameVersion = "7.20")]
 [SourceCode(Path = "main/BasicRotations/Ranged/MCH_HighEnd.cs")]
 [Api(4)]
 public sealed class MCH_HighEnd : MachinistRotation
@@ -17,6 +17,9 @@ public sealed class MCH_HighEnd : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "Use Bioblaster while moving")]
     private bool BioMove { get; set; } = true;
+
+    [RotationConfig(CombatType.PvE, Name = "Prevent the use of defense abilties during hypercharge burst")]
+    private bool BurstDefense { get; set; } = false;
     #endregion
 
     private const float HYPERCHARGE_DURATION = 8f;
@@ -75,11 +78,12 @@ public sealed class MCH_HighEnd : MachinistRotation
     }
 
     [RotationDesc(ActionID.TacticianPvE, ActionID.DismantlePvE)]
-    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction act)
+    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
-        if (TacticianPvE.CanUse(out act)) return true;
-        if (DismantlePvE.CanUse(out act)) return true;
-        return false;
+        if ((!BurstDefense || (BurstDefense && !IsOverheated)) && TacticianPvE.CanUse(out act)) return true;
+        if ((!BurstDefense || (BurstDefense && !IsOverheated)) && DismantlePvE.CanUse(out act)) return true;
+
+        return base.DefenseAreaAbility(nextGCD, out act);
     }
 
     // Logic for using attack abilities outside of GCD, focusing on burst windows and cooldown management.

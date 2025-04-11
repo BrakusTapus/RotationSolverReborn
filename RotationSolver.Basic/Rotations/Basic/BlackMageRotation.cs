@@ -141,6 +141,26 @@ partial class BlackMageRotation
     /// 
     /// </summary>
     protected static bool HasThunder => Player.HasStatus(true, StatusID.Thunderhead);
+
+    /// <summary>
+    /// Indicates whether the next GCD (Global Cooldown) action is instant.
+    /// </summary>
+    protected bool NextGCDisInstant => Player.HasStatus(true, StatusID.Triplecast, StatusID.Swiftcast);
+
+    /// <summary>
+    /// Determines if the player can make the next action instant by checking the availability of Triplecast or Swiftcast.
+    /// </summary>
+    protected bool CanMakeInstant => TriplecastPvE.Cooldown.CurrentCharges > 0 || !SwiftcastPvE.Cooldown.IsCoolingDown;
+
+    /// <summary>
+    /// Calculates the total number of instant casts available based on Triplecast charges, active Triplecast status, and Swiftcast charges.
+    /// </summary>
+    protected int ThisManyInstantCasts => (TriplecastPvE.Cooldown.CurrentCharges * 3) + Player.StatusStack(true, StatusID.Triplecast) + SwiftcastPvE.Cooldown.CurrentCharges;
+
+    /// <summary>
+    /// Calculates the deficit between the number of available instant casts and the current Astral Soul stacks.
+    /// </summary>
+    protected int AstralDefecit => ThisManyInstantCasts - AstralSoulStacks;
     #endregion
 
     #region PvE Actions Unassignable
@@ -154,6 +174,10 @@ partial class BlackMageRotation
     /// <inheritdoc/>
     public override void DisplayStatus()
     {
+        ImGui.Text("Is next GCD be instant " + NextGCDisInstant.ToString());
+        ImGui.Text("Can next GCD be instant " + CanMakeInstant.ToString());
+        ImGui.Text("Number of Instant Casts Available " + ThisManyInstantCasts.ToString());
+        ImGui.Text("AstralDefecit " + AstralDefecit.ToString());
         ImGui.Text("HasFire: " + HasFire.ToString());
         ImGui.Text("HasThunder: " + HasThunder.ToString());
         ImGui.Text("IsPolyglotStacksMaxed: " + IsPolyglotStacksMaxed.ToString());
@@ -198,7 +222,8 @@ partial class BlackMageRotation
     static partial void ModifyThunderPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
+        setting.TargetStatusProvide = [StatusID.Thunder];
+        setting.MPOverride = () => 0;
     }
 
     static partial void ModifyBlizzardIiPvE(ref ActionSetting setting)
@@ -225,7 +250,8 @@ partial class BlackMageRotation
     static partial void ModifyThunderIiPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
+        setting.TargetStatusProvide = [StatusID.ThunderIi];
+        setting.MPOverride = () => 0;
     }
 
     static partial void ModifyManawardPvE(ref ActionSetting setting)
@@ -272,9 +298,10 @@ partial class BlackMageRotation
 
     static partial void ModifyThunderIiiPvE(ref ActionSetting setting)
     {
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
+        setting.TargetStatusProvide = [StatusID.ThunderIii];
         setting.StatusNeed = [StatusID.Thunderhead];
         setting.UnlockedByQuestID = 66612;
+        setting.MPOverride = () => 0;
     }
 
     static partial void ModifyAetherialManipulationPvE(ref ActionSetting setting)
@@ -329,12 +356,13 @@ partial class BlackMageRotation
 
     static partial void ModifyThunderIvPvE(ref ActionSetting setting)
     {
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
+        setting.TargetStatusProvide = [StatusID.ThunderIv];
         setting.StatusNeed = [StatusID.Thunderhead];
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 3,
         };
+        setting.MPOverride = () => 0;
     }
 
     static partial void ModifyTriplecastPvE(ref ActionSetting setting)
@@ -394,17 +422,19 @@ partial class BlackMageRotation
     static partial void ModifyHighThunderPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder];
+        setting.MPOverride = () => 0;
     }
 
     static partial void ModifyHighThunderIiPvE(ref ActionSetting setting)
     {
         setting.StatusNeed = [StatusID.Thunderhead];
-        setting.TargetStatusProvide = [StatusID.HighThunder_3872, StatusID.Thunder, StatusID.HighThunder];
+        setting.TargetStatusProvide = [StatusID.HighThunder_3872];
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 3,
         };
+        setting.MPOverride = () => 0;
     }
 
     static partial void ModifyRetracePvE(ref ActionSetting setting)

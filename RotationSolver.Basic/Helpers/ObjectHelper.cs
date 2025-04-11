@@ -217,7 +217,7 @@ public static class ObjectHelper
                 if (node->Type == NodeType.Text)
                 {
                     var textNode = (AtkTextNode*)node;
-                    if (textNode->NodeText.StringPtr == null)
+                    if (string.IsNullOrEmpty(textNode->NodeText.StringPtr.ToString()))
                         continue;
 
                     // Read the enemy's name
@@ -834,6 +834,7 @@ public static class ObjectHelper
     {
         if (g is not IBattleChara b) return 0;
         if (DataCenter.RefinedHP.TryGetValue(b.GameObjectId, out var hp)) return hp;
+        if (b.MaxHp == 0) return 0; // Avoid division by zero
         return (float)b.CurrentHp / b.MaxHp;
     }
 

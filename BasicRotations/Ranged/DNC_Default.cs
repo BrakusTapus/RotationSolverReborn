@@ -1,6 +1,6 @@
 namespace RebornRotations.Ranged;
 
-[Rotation("Default", CombatType.PvE, GameVersion = "7.15", Description = "")]
+[Rotation("Default", CombatType.PvE, GameVersion = "7.20", Description = "")]
 [SourceCode(Path = "main/BasicRotations/Ranged/DNC_Default.cs")]
 [Api(4)]
 public sealed class DNC_Default : DancerRotation
@@ -14,8 +14,13 @@ public sealed class DNC_Default : DancerRotation
 
     [RotationConfig(CombatType.PvE, Name = "Dance Partner Name (If empty or not found uses default dance partner priority)")]
     public string DancePartnerName { get; set; } = "";
+
+    [RotationConfig(CombatType.PvE, Name = "Prevent the use of defense abilties during burst")]
+    private bool BurstDefense { get; set; } = true;
     #endregion
     bool shouldUseLastDance = true;
+
+    private static bool InBurstStatus => !Player.WillStatusEnd(0, true, StatusID.Devilment);
 
     #region Countdown Logic
     // Override the method for actions to be taken during countdown phase of combat
@@ -68,18 +73,18 @@ public sealed class DNC_Default : DancerRotation
     }
 
     [RotationDesc(ActionID.CuringWaltzPvE, ActionID.ImprovisationPvE)]
-    protected override bool HealAreaAbility(IAction nextGCD, out IAction act)
+    protected override bool HealAreaAbility(IAction nextGCD, out IAction? act)
     {
         if (CuringWaltzPvE.CanUse(out act, usedUp: true)) return true;
         if (ImprovisationPvE.CanUse(out act, usedUp: true)) return true;
-        return false;
+        return base.HealAreaAbility(nextGCD, out act);
     }
 
     [RotationDesc(ActionID.ShieldSambaPvE)]
-    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction act)
+    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
-        if (ShieldSambaPvE.CanUse(out act, usedUp: true)) return true;
-        return false;
+        if ((!BurstDefense || (BurstDefense && !InBurstStatus)) && ShieldSambaPvE.CanUse(out act)) return true;
+        return base.DefenseAreaAbility(nextGCD, out act);
     }
 
     [RotationDesc(ActionID.EnAvantPvE)]
@@ -227,7 +232,7 @@ public sealed class DNC_Default : DancerRotation
 
         if (HoldStepForTargets)
         {
-            if (HasHostilesInMaxRange && UseStandardStep(out act)) return true;
+            if (HasHostilesInRange && UseStandardStep(out act)) return true;
         }
         else
         {
@@ -235,6 +240,8 @@ public sealed class DNC_Default : DancerRotation
         }
 
         if (FinishingMovePvE.CanUse(out act, skipAoeCheck: true)) return true;
+
+        if (Player.WillStatusEndGCD(2, 0, true, StatusID.FlourishingStarfall) && StarfallDancePvE.CanUse(out act, skipAoeCheck: true)) return true;
 
         // Further prioritized GCD abilities
         if ((burst || (Esprit >= 70 && !TechnicalStepPvE.Cooldown.ElapsedAfter(115))) && SaberDancePvE.CanUse(out act, skipAoeCheck: true)) return true;

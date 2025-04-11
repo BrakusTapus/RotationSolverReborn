@@ -1,6 +1,6 @@
 namespace RebornRotations.Ranged;
 
-[Rotation("Default", CombatType.PvE, GameVersion = "7.15",
+[Rotation("Default", CombatType.PvE, GameVersion = "7.20",
     Description = "Please make sure that the three song times add up to 120 seconds, Wanderers default first song for now.")]
 [SourceCode(Path = "main/BasicRotations/Ranged/BRD_Default.cs")]
 [Api(4)]
@@ -32,6 +32,9 @@ public sealed class BRD_Default : BardRotation
 
     [RotationConfig(CombatType.PvE, Name = "Use Warden's Paean on other players")]
     public bool BRDEsuna { get; set; } = true;
+
+    [RotationConfig(CombatType.PvE, Name = "Prevent the use of defense abilties during burst")]
+    private bool BurstDefense { get; set; } = true;
 
     private float WANDRemainTime => 45 - WANDTime;
     private float MAGERemainTime => 45 - MAGETime;
@@ -91,10 +94,10 @@ public sealed class BRD_Default : BardRotation
     }
 
     [RotationDesc(ActionID.TroubadourPvE)]
-    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction act)
+    protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
-        if (TroubadourPvE.CanUse(out act)) return true;
-        return false;
+        if ((!BurstDefense || (BurstDefense && !InBurstStatus)) && TroubadourPvE.CanUse(out act)) return true;
+        return base.DefenseAreaAbility(nextGCD, out act);
     }
 
     protected override bool GeneralAbility(IAction nextGCD, out IAction? act)
@@ -234,8 +237,8 @@ public sealed class BRD_Default : BardRotation
         //aoe
         if (ShadowbitePvE.CanUse(out act)) return true;
         if (WideVolleyPvE.CanUse(out act)) return true;
-        if (LadonsbitePvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861)) return true;
-        if (QuickNockPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861)) return true;
+        if (LadonsbitePvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861) && !Player.HasStatus(true, StatusID.Barrage)) return true;
+        if (QuickNockPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861) && !Player.HasStatus(true, StatusID.Barrage)) return true;
 
         if (IronJawsPvE.EnoughLevel && HostileTarget?.HasStatus(true, StatusID.Windbite, StatusID.Stormbite) == true && HostileTarget?.HasStatus(true, StatusID.VenomousBite, StatusID.CausticBite) == true)
         {
@@ -250,8 +253,8 @@ public sealed class BRD_Default : BardRotation
 
         if (RefulgentArrowPvE.CanUse(out act, skipComboCheck: true)) return true;
         if (StraightShotPvE.CanUse(out act)) return true;
-        if (BurstShotPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861)) return true;
-        if (HeavyShotPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861)) return true;
+        if (BurstShotPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861) && !Player.HasStatus(true, StatusID.Barrage)) return true;
+        if (HeavyShotPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.HawksEye_3861) && !Player.HasStatus(true, StatusID.Barrage)) return true;
 
         return base.GeneralGCD(out act);
     }

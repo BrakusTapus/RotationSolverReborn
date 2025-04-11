@@ -262,7 +262,7 @@ public sealed class SGE_Default : SageRotation
         return base.GeneralAbility(nextGCD, out act);
     }
     #endregion
-
+    
     #region Eukrasia Logic
     private IBaseAction? _EukrasiaActionAim = null;
 
@@ -315,11 +315,11 @@ public sealed class SGE_Default : SageRotation
         {
             SetEukrasia(EukrasianDosisIiiPvE);
         }
-        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _)) && EukrasianDosisIiPvE.CanUse(out _) && EukrasianDosisIiPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) || !MergedStatus.HasFlag(AutoStatus.DefenseArea)))
+        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _)) && EukrasianDosisIiPvE.CanUse(out _) && !EukrasianDosisIiiPvE.EnoughLevel && EukrasianDosisIiPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) || !MergedStatus.HasFlag(AutoStatus.DefenseArea)))
         {
             SetEukrasia(EukrasianDosisIiPvE);
         }
-        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _)) && EukrasianDosisPvE.CanUse(out _) && EukrasianDosisPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) || !MergedStatus.HasFlag(AutoStatus.DefenseArea)))
+        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _)) && EukrasianDosisPvE.CanUse(out _) && !EukrasianDosisIiPvE.EnoughLevel && EukrasianDosisPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) || !MergedStatus.HasFlag(AutoStatus.DefenseArea)))
         {
             SetEukrasia(EukrasianDosisPvE);
         }
@@ -431,6 +431,9 @@ public sealed class SGE_Default : SageRotation
         act = null;
         if (IsLastAction(ActionID.SwiftcastPvE) && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise)) return false;
 
+        if (DoEukrasianPrognosis(out act)) return true;
+        if (DoEukrasianDiagnosis(out act)) return true;
+
         if (PhlegmaPvE.CanUse(out act, usedUp: IsMoving)) return true;
 
         foreach (var member in PartyMembers)
@@ -452,12 +455,7 @@ public sealed class SGE_Default : SageRotation
         if (IsMoving && ToxikonPvE.CanUse(out act)) return true;
 
         if (DoEukrasianDyskrasia(out act)) return true;
-
-        if ((_EukrasiaActionAim == null)
-            && DyskrasiaPvE.CanUse(out act)) return true;
-
-        if (DoEukrasianPrognosis(out act)) return true;
-        if (DoEukrasianDiagnosis(out act)) return true;
+        if (DyskrasiaPvE.CanUse(out act)) return true;
 
         if (DoEukrasianDosis(out act)) return true;
         if (DosisPvE.CanUse(out act)) return true;

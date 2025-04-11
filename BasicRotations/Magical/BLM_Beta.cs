@@ -23,14 +23,6 @@ public sealed class BLM_Beta : BlackMageRotation
     public bool UseMedicine { get; set; } = false;
     #endregion
 
-    public bool NextGCDisInstant => Player.HasStatus(true, StatusID.Triplecast, StatusID.Swiftcast);
-
-    public bool CanMakeInstant => TriplecastPvE.Cooldown.CurrentCharges > 0 || !SwiftcastPvE.Cooldown.IsCoolingDown;
-
-    public int ThisManyInstantCasts => (TriplecastPvE.Cooldown.CurrentCharges * 3) + Player.StatusStack(true, StatusID.Triplecast) + SwiftcastPvE.Cooldown.CurrentCharges;
-
-    public int AstralDefecit => ThisManyInstantCasts - AstralSoulStacks;
-
     protected override IAction? CountDownAction(float remainTime)
     {
         IAction act;

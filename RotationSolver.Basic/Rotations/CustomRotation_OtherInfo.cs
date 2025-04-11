@@ -57,6 +57,42 @@ partial class CustomRotation
     public static uint CurrentMp => DataCenter.CurrentMp;
 
     /// <summary>
+    /// Does someone in party have a damage buff active.
+    /// </summary>
+    [Description("Party Burst Status Active")]
+    public static bool PartyBurst => PartyMembers.Any(m => m.HasStatus(true, StatusID.Brotherhood, StatusID.SearingLight, StatusID.BattleLitany, StatusID.ArcaneCircle, StatusID.MagesBallad, StatusID.TechnicalFinish, StatusID.Embolden));
+
+    /// <summary>
+    /// Determines if the current combat time is within an even minute.
+    /// WARNING: Do not use as a main function of your rotation, hardcoding timers is begging for everything to fuck up.
+    /// </summary>
+    /// <returns>True if the current combat time is within an even minute; otherwise, false.</returns>
+    public static bool IsEvenMinute()
+    {
+        if (CombatTime <= 0)
+            return false;
+
+        int minutes = (int)Math.Floor(CombatTime / 60f);
+        return minutes % 2 == 0;
+    }
+
+    /// <summary>
+    /// Determines if the current combat time is within the first 15 seconds of an even minute.
+    /// WARNING: Do not use as a main function of your rotation, hardcoding timers is begging for everything to fuck up.
+    /// </summary>
+    /// <returns>True if the current combat time is within the first 15 seconds of an even minute; otherwise, false.</returns>
+    public static bool IsWithinFirst15SecondsOfEvenMinute()
+    {
+        if (CombatTime <= 0)
+            return false;
+
+        int minutes = (int)Math.Floor(CombatTime / 60f);
+        int secondsInCurrentMinute = (int)Math.Floor(CombatTime % 60f);
+
+        return minutes % 2 == 0 && secondsInCurrentMinute < 15;
+    }
+
+    /// <summary>
     /// Condition.
     /// </summary>
     protected static ICondition Condition => Svc.Condition;

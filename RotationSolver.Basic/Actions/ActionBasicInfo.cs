@@ -190,7 +190,7 @@ public readonly struct ActionBasicInfo
     private bool IsStatusNeeded()
     {
         var player = Player.Object;
-        return _action.Setting.StatusNeed != null && player.WillStatusEndGCD(0, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusNeed);
+        return _action.Setting.StatusNeed != null && player.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusNeed);
     }
 
     private bool IsStatusProvided(bool skipStatusProvideCheck)
