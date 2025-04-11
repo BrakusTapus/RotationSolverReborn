@@ -175,8 +175,9 @@ namespace RotationSolver.Commands
                     ActionUpdater.AutoCancelTime = DateTime.MinValue;
                 }
 
+                var isLoggedIn = Svc.ClientState.IsLoggedIn;
                 var playerObject = Player.Object;
-                if (playerObject == null)
+                if (playerObject == null && isLoggedIn)
                 {
                     if (Service.Config.InDebug)
                         Svc.Log.Information("Player object is null.");
