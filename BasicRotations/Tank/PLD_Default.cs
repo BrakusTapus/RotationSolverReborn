@@ -130,7 +130,7 @@ public sealed class PLD_Default : PaladinRotation
 
         if (DivineVeilPvE.CanUse(out act)) return true;
 
-        if (PassageOfArmsPvE.CanUse(out act)) return true;
+        if (PassageOfArmsPvE.CanUse(out act)) return true; // Throws error 'CastType is not valid! The value is 7'
 
         return base.DefenseAreaAbility(nextGCD, out act);
     }
