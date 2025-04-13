@@ -303,6 +303,11 @@ public static class ObjectHelper
         return nameplateKind == NameplateKind.FriendlyBattleNPC;
     }
 
+    internal static bool IsEnemyBattleNPC(this IGameObject gameObj)
+    {
+        return gameObj?.GetObjectKind() == ObjectKind.BattleNpc;
+    }
+
     internal static bool IsFocusTarget(this IGameObject gameObj)
     {
         var focusTarget = Svc.Targets.FocusTarget;
@@ -608,7 +613,7 @@ public static class ObjectHelper
 
         //Icon
         var npc = obj.GetObjectNPC();
-        return npc?.Rank is 1 or 2 or 6;
+        return npc?.Rank is 1 or 2 or 6; //TODO find a boss that actually has rank 1
     }
 
     /// <summary>
