@@ -2936,7 +2936,7 @@ public partial class RotationConfigWindow : Window
             ImGui.Text($"Is Attackable: {battleChara.IsAttackable()}");
             ImGui.Text($"Is Jeuno Boss Immune: {battleChara.IsJeunoBossImmune()}");
             ImGui.Text($"CanProvoke: {battleChara.CanProvoke()}");
-            //ImGui.Text($"EventType: {battleChara.GetEventType()}");
+            ImGui.Text($"EventType: {battleChara.GetEventType()}");
             ImGui.Text($"NamePlate: {battleChara.GetNamePlateIcon()}");
             ImGui.Text($"StatusFlags: {battleChara.StatusFlags}");
             ImGui.Text($"InView: {Svc.GameGui.WorldToScreen(battleChara.Position, out _)}");
