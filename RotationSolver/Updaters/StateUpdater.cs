@@ -157,7 +157,7 @@ internal static class StateUpdater
             if (ConfigurationHelper.ActionPositional.TryGetValue((ActionID)id, out var positional)
                 && positional != target?.FindEnemyPositional()
                 && target?.HasPositional() == true
-                && !target.HasStatus(true, StatusID.DirectionalDisregard))
+                && !target.HasStatus(false, StatusID.DirectionalDisregard))
             {
                 return true;
             }

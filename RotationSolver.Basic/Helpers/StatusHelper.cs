@@ -400,55 +400,34 @@ public static class StatusHelper
     /// <returns>An enumerable of all statuses.</returns>
     private static IEnumerable<Status> GetAllStatus(this IGameObject? obj, bool isFromSelf)
     {
+        if (obj is not IBattleChara b) return Enumerable.Empty<Status>();
+
         var playerId = Player.Object?.GameObjectId ?? 0;
         var result = new List<Status>();
 
-        // Early return if the object is not a BattleChara or is null
-        if (obj is not IBattleChara b || obj == null)
-        {
-            return Enumerable.Empty<Status>();
-        }
-
-        var statusList = b.StatusList;
-        if (statusList == null)
-        {
-            return Enumerable.Empty<Status>();
-        }
-
-        // Wrap the entire status retrieval process in a try-catch block
         try
         {
-            // Iterate through the status list with additional safety checks
+            if (b.StatusList is null || b.StatusList.Length == 0)
+            {
+                PluginLog.Error("StatusList is null. Cannot get statuses.");
+                return Enumerable.Empty<Status>();
+            }
+
             foreach (var status in b.StatusList.Where(status => status is not null && status.StatusId > 0))
             {
-                if (status == null) continue; // Skip null statuses
-
-                try
+                if (!isFromSelf || status.SourceId == playerId || status.SourceObject?.OwnerId == playerId)
                 {
-                    // Check if the status is from self if required
-                    if (!isFromSelf || status.SourceId == playerId ||
-                        (status.SourceObject != null && status.SourceObject.OwnerId == playerId))
-                    {
-                        result.Add(status);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception but continue processing other statuses
-                    PluginLog.Error($"Error processing individual status: {ex.Message}");
+                    result.Add(status);
                 }
             }
-        }
-        catch (NullReferenceException ex)
-        {
-            PluginLog.Error($"NullReferenceException while getting statuses for GameObjectId: {obj.GameObjectId}. Exception: {ex.Message}");
+
+            return result;
         }
         catch (Exception ex)
         {
-            PluginLog.Error($"Unexpected error while getting statuses for GameObjectId: {obj.GameObjectId}. Exception: {ex.Message}");
+            Svc.Log.Error($"Failed to get statuses: {ex.Message}");
+            return Enumerable.Empty<Status>();
         }
-
-        return result;
     }
 
 

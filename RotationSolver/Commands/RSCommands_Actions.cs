@@ -221,11 +221,6 @@ namespace RotationSolver.Commands
                     return;
                 }
 
-                if (DataCenter.AllHostileTargets == null || !DataCenter.AllHostileTargets.Any())
-                {
-                    return;
-                }
-
                 IBattleChara? target = null;
                 try
                 {
