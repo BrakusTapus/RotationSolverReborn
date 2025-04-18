@@ -2,7 +2,6 @@
 using Dalamud.Game.ClientState.Objects.Enums;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
-using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -20,7 +19,7 @@ namespace RotationSolver.Basic;
 internal static class DataCenter
 {
     private static ulong _hostileTargetId = 0;
-    
+
     public static bool ResetActionConfigs { get; set; } = false;
 
     public static bool IsActivated() => State || IsManual || Service.Config.TeachingMode;
@@ -91,19 +90,6 @@ internal static class DataCenter
     internal static Dictionary<ulong, uint> HealHP { get; set; } = new();
     internal static Dictionary<ulong, uint> ApplyStatus { get; set; } = new();
     internal static uint MPGain { get; set; }
-
-    internal static bool HasApplyStatus(ulong id, StatusID[] ids)
-    {
-        if (InEffectTime && ApplyStatus.TryGetValue(id, out var statusId))
-        {
-            foreach (var s in ids)
-            {
-                if ((ushort)s == statusId) return true;
-            }
-        }
-
-        return false;
-    }
 
     public static TerritoryInfo? Territory { get; set; }
 
@@ -847,7 +833,7 @@ internal static class DataCenter
     {
         return IsCastingVfx(VfxDataQueue, s =>
         {
-            if (!s.Path.StartsWith("vfx/lockon/eff/coshare") 
+            if (!s.Path.StartsWith("vfx/lockon/eff/coshare")
             && !s.Path.StartsWith("vfx/lockon/eff/share_laser")
             && !s.Path.StartsWith("vfx/lockon/eff/com_share")) return false;
 

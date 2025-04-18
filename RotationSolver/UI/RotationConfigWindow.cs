@@ -25,7 +25,6 @@ using RotationSolver.UI.SearchableSettings;
 using RotationSolver.Updaters;
 using System.Diagnostics;
 using System.Text;
-using static FFXIVClientStructs.FFXIV.Client.Game.Character.VfxContainer;
 using GAction = Lumina.Excel.Sheets.Action;
 using Status = Lumina.Excel.Sheets.Status;
 using Task = System.Threading.Tasks.Task;
@@ -1247,10 +1246,6 @@ public partial class RotationConfigWindow : Window
             var author = info.Author;
             if (string.IsNullOrEmpty(author)) author = "Author";
 
-            // Display relevant debugging information
-            var frameworkStyle = Service.Config.FrameworkStyle;
-            ImGui.Text($"Current FrameworkStyle: {frameworkStyle}");
-
             // Add a button to copy the WhyNotValid string to the clipboard
             if (ImGui.Button("Copy Error Message"))
             {
@@ -1400,11 +1395,7 @@ public partial class RotationConfigWindow : Window
     {
         var rotation = DataCenter.CurrentRotation;
         var status = UiString.ConfigWindow_Rotation_Status.GetDescription();
-        if (Service.Config.InDebug)
-        {
-            return status;
-        }
-        if (rotation == null || !rotation.ShowStatus) return string.Empty;
+        if (rotation == null) return string.Empty;
         return status;
     }
 
@@ -1772,6 +1763,8 @@ public partial class RotationConfigWindow : Window
                     ImGui.Text("ShouldCheckStatus: " + action.Config.ShouldCheckStatus);
 #if DEBUG
                     ImGui.Text("Is Real GCD: " + action.Info.IsRealGCD);
+                    ImGui.Text("Is PvP Action: " + action.Info.IsPvP);
+                    ImGui.Text("Cast Type: " + action.Info.CastType);
 
                     // Ensure ActionManager.Instance() is not null and action.AdjustedID is valid
                     if (ActionManager.Instance() != null && action.AdjustedID != 0)

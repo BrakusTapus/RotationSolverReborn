@@ -11,7 +11,7 @@ internal partial class Configs : IPluginConfiguration
     [JsonIgnore]
     public const string
         BasicTimer = "BasicTimer",
-        BasicAutoSwitch = "BasicAutoSwitch", 
+        BasicAutoSwitch = "BasicAutoSwitch",
         BasicParams = "BasicParams",
         UiInformation = "UiInformation",
         UiWindows = "UiWindows",
@@ -189,10 +189,6 @@ internal partial class Configs : IPluginConfiguration
         PvEFilter = JobFilterType.Interrupt,
         PvPFilter = JobFilterType.NoJob)]
     private static readonly bool _interruptibleMoreCheck = true;
-
-    [UI("Framework Update Method (Experimental: Changing this off of game thread will cause crashes)",
-        Filter = BasicParams)]
-    public FrameworkStyle FrameworkStyle { get; set; } = FrameworkStyle.MainThread;
 
     [ConditionBool, UI("Stop casting if the target dies.", Filter = Extra)]
     private static readonly bool _useStopCasting = false;
@@ -655,7 +651,7 @@ internal partial class Configs : IPluginConfiguration
     #region PvP
     [ConditionBool, UI("Ignore TTK for PvP purposes.", Filter = PvPSpecificControls)]
     private static readonly bool _ignorePvPTTK = true;
-    
+
     [JobConfig, UI("Ignore Invincibility for PvP purposes.", Filter = PvPSpecificControls)]
     private static readonly bool _ignorePvPInvincibility = false;
 
