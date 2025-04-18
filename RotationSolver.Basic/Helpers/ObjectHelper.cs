@@ -613,7 +613,7 @@ public static class ObjectHelper
 
         //Icon
         var npc = obj.GetObjectNPC();
-        return npc?.Rank is 1 or 2 or 6; //TODO find a boss that actually has rank 1
+        return npc?.Rank is /*1 or*/ 2 or 6; //TODO find a boss that actually has rank 1
     }
 
     /// <summary>
