@@ -121,10 +121,11 @@ public sealed class DNC_Default : DancerRotation
         // Attempt to use Fan Dance III if available
         if (FanDanceIiiPvE.CanUse(out act, skipAoeCheck: true)) return true;
 
-        IAction[] FeathersGCDs = [ReverseCascadePvE, FountainfallPvE, RisingWindmillPvE, BloodshowerPvE];
+        var hasProcs = Player.HasStatus(true, StatusID.SilkenFlow) || Player.HasStatus(true, StatusID.SilkenSymmetry) ||
+                       Player.HasStatus(true, StatusID.FlourishingFlow) || Player.HasStatus(true, StatusID.FlourishingSymmetry);
 
         //Use all feathers on burst or if about to overcap
-        if ((!DevilmentPvE.EnoughLevel || Player.HasStatus(true, StatusID.Devilment) || (Feathers > 3 && FeathersGCDs.Contains(nextGCD))) && !Player.HasStatus(true, StatusID.ThreefoldFanDance))
+        if ((!DevilmentPvE.EnoughLevel || Player.HasStatus(true, StatusID.Devilment) || (Feathers > 3 && hasProcs)) && !Player.HasStatus(true, StatusID.ThreefoldFanDance))
         {
             if (FanDanceIiPvE.CanUse(out act)) return true;
             if (FanDancePvE.CanUse(out act)) return true;
@@ -202,7 +203,7 @@ public sealed class DNC_Default : DancerRotation
 
         if (IsDancing) return false;
         // Use Dance of the Dawn immediately if available
-        if (burst && Esprit > 50 && DanceOfTheDawnPvE.CanUse(out act)) return true;
+        if (burst && DanceOfTheDawnPvE.CanUse(out act)) return true;
 
         if (HandleTillana(out act)) return true;
 
@@ -225,7 +226,7 @@ public sealed class DNC_Default : DancerRotation
             if (DevilmentPvE.Cooldown.ElapsedAfter(10) && FinishingMovePvE.CanUse(out act, skipAoeCheck: true)) return true;
         }
 
-        if (shouldUseLastDance)
+        if (shouldUseLastDance && Esprit <= 90)
         {
             if (LastDancePvE.CanUse(out act, skipAoeCheck: true)) return true;
         }
@@ -264,6 +265,7 @@ public sealed class DNC_Default : DancerRotation
 
         return false;
     }
+
     // Method for Standard Step Logic
     private bool UseStandardStep(out IAction act)
     {
@@ -323,12 +325,12 @@ public sealed class DNC_Default : DancerRotation
         act = null;
         return false;
     }
- 
+
     // Handles the logic for using the Tillana.
     private bool HandleTillana(out IAction? act)
     {
-        // Check if Esprit is less than or equal to 50 and Devilment cannot be used
-        if (Esprit <= 45 && !DevilmentPvE.CanUse(out _, skipComboCheck: true))
+        // Check if Devilment cannot be used
+        if (!DevilmentPvE.CanUse(out _, skipComboCheck: true))
         {
             // Attempt to use Tillana, skipping the AoE check
             if (TillanaPvE.CanUse(out act, skipAoeCheck: true)) return true;

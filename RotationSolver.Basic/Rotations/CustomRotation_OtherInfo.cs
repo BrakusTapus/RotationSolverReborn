@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
@@ -156,7 +155,6 @@ partial class CustomRotation
     /// The last attacked hostile target.
     /// </summary>
     protected static IBattleChara? HostileTarget => DataCenter.HostileTarget;
-
 
     /// <summary>
     /// Is player in position to hit the positional?

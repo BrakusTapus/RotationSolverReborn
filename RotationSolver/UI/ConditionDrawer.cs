@@ -499,13 +499,15 @@ internal static class ConditionDrawer
             void Delete()
             {
                 conditionSet.Conditions.RemoveAt(i);
-            };
+            }
+            ;
 
             void Up()
             {
                 conditionSet.Conditions.RemoveAt(i);
                 conditionSet.Conditions.Insert(Math.Max(0, i - 1), condition);
-            };
+            }
+            ;
 
             void Down()
             {

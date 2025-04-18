@@ -101,12 +101,12 @@ public sealed class SAM_Default : SamuraiRotation
             return false;
         }
 
-        var isTargetBoss = HostileTarget?.IsBossFromTTK() ?? false;
-        var isTargetDying = HostileTarget?.IsDying() ?? false;
+        var isTargetBoss = CurrentTarget?.IsBossFromTTK() ?? false;
+        var isTargetDying = CurrentTarget?.IsDying() ?? false;
 
         // from old version - didn't touch this, didn't test this, personally i doubt it's working !!! check later !!!
         if (HasHostilesInRange && IsLastGCD(true, YukikazePvE, MangetsuPvE, OkaPvE) &&
-            (!isTargetBoss || (HostileTarget?.HasStatus(true, StatusID.Higanbana) ?? false) && !(HostileTarget?.WillStatusEnd(40, true, StatusID.Higanbana) ?? false) || !HasMoon && !HasFlower || isTargetBoss && isTargetDying))
+            (!isTargetBoss || (CurrentTarget?.HasStatus(true, StatusID.Higanbana) ?? false) && !(CurrentTarget?.WillStatusEnd(40, true, StatusID.Higanbana) ?? false) || !HasMoon && !HasFlower || isTargetBoss && isTargetDying))
         {
             if (MeikyoShisuiPvE.CanUse(out act, usedUp: true)) return true;
         }
@@ -121,8 +121,8 @@ public sealed class SAM_Default : SamuraiRotation
             return false;
         }
 
-        var isTargetBoss = HostileTarget?.IsBossFromTTK() ?? false;
-        var isTargetDying = HostileTarget?.IsDying() ?? false;
+        var isTargetBoss = CurrentTarget?.IsBossFromTTK() ?? false;
+        var isTargetDying = CurrentTarget?.IsDying() ?? false;
 
         // IkishotenPvE logic combined with the delayed opener:
         // you should weave the tincture in manually after rsr lands the first gcd (usually Gekko)
@@ -130,9 +130,9 @@ public sealed class SAM_Default : SamuraiRotation
         if (!CombatElapsedLessGCD(2) && IkishotenPvE.CanUse(out act)) return true;
         if (ShohaPvE.CanUse(out act)) return true;
         // from old version - didn't touch this, didn't test this, never saw Hagakure button pressed personally !!! check later !!!
-        if ((HostileTarget?.HasStatus(true, StatusID.Higanbana) ?? false) &&
-            (HostileTarget?.WillStatusEnd(32, true, StatusID.Higanbana) ?? false) &&
-            !(HostileTarget?.WillStatusEnd(28, true, StatusID.Higanbana) ?? false) &&
+        if ((CurrentTarget?.HasStatus(true, StatusID.Higanbana) ?? false) &&
+            (CurrentTarget?.WillStatusEnd(32, true, StatusID.Higanbana) ?? false) &&
+            !(CurrentTarget?.WillStatusEnd(28, true, StatusID.Higanbana) ?? false) &&
             SenCount == 1 && IsLastAction(true, YukikazePvE) && !HaveMeikyoShisui)
         {
             if (HagakurePvE.CanUse(out act)) return true;
@@ -160,15 +160,16 @@ public sealed class SAM_Default : SamuraiRotation
     protected override bool GeneralGCD(out IAction? act)
     {
         act = null;
-        var isTargetBoss = HostileTarget?.IsBossFromTTK() ?? false;
-        var isTargetDying = HostileTarget?.IsDying() ?? false;
+        var isTargetBoss = CurrentTarget?.IsBossFromTTK() ?? false;
+        var isTargetDying = CurrentTarget?.IsDying() ?? false;
 
         if (EnableTEAChecker && Target.Name.ToString() == "Jagd Doll" && Target.GetHealthRatio() < 0.25)
         {
             return false;
         }
 
-        if ((!HiganbanaTargets || (HiganbanaTargets && NumberOfAllHostilesInRange < 2)) && (HostileTarget?.WillStatusEnd(18, true, StatusID.Higanbana) ?? false) && HiganbanaPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+        if ((!HiganbanaTargets || (HiganbanaTargets && NumberOfAllHostilesInRange < 2)) && (HostileTarget?.WillStatusEnd(18, true, StatusID.Higanbana) ?? false) && HiganbanaPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true)) return true;
+        if (KaeshiNamikiriPvE.CanUse(out act)) return true;
 
         if (NumberOfHostilesInRange >= 3)
         {
@@ -189,23 +190,22 @@ public sealed class SAM_Default : SamuraiRotation
         if (!HagakurePvE.EnoughLevel && NumberOfHostilesInRange >= 3 && MidareSetsugekkaPvE.CanUse(out act)) return true;
 
         if (TendoKaeshiGokenPvE.CanUse(out act)) return true;
-        if (TendoGokenPvE.CanUse(out act)) return true;
-        if (KaeshiGokenPvE.CanUse(out act)) return true;
-        if (TenkaGokenPvE.CanUse(out act)) return true;
+        if (TendoGokenPvE.CanUse(out act, skipComboCheck: true)) return true;
+        if (KaeshiGokenPvE.CanUse(out act, skipComboCheck: true)) return true;
+        if (TenkaGokenPvE.CanUse(out act, skipComboCheck: true)) return true;
 
         // aoe 12 combo's 2
         if ((!HasMoon || IsMoonTimeLessThanFlower || !OkaPvE.EnoughLevel) && MangetsuPvE.CanUse(out act, skipComboCheck: HaveMeikyoShisui && !HasGetsu)) return true;
         if ((!HasFlower || !IsMoonTimeLessThanFlower) && OkaPvE.CanUse(out act, skipComboCheck: HaveMeikyoShisui && !HasKa)) return true;
 
         // initiate aoe
-        if (FukoPvE.CanUse(out act, skipComboCheck: true)) return true;
-        if (!FukoPvE.EnoughLevel && FugaPvE.CanUse(out act, skipComboCheck: true)) return true;
+        if (FukoPvE.CanUse(out act)) return true;
+        if (!FukoPvE.EnoughLevel && FugaPvE.CanUse(out act)) return true;
 
-        if (TendoSetsugekkaPvE.CanUse(out act)) return true;
-        if (MidareSetsugekkaPvE.CanUse(out act)) return true;
+        if (TendoSetsugekkaPvE.CanUse(out act, skipComboCheck: true)) return true;
+        if (MidareSetsugekkaPvE.CanUse(out act, skipComboCheck: true)) return true;
 
         // use 2nd finisher combo spell first
-        if (KaeshiNamikiriPvE.CanUse(out act, usedUp: true)) return true;
         if (!KaeshiNamikiriReady && KaeshiSetsugekkaPvE.CanUse(out act, usedUp: true)) return true;
         if (!KaeshiNamikiriReady && TendoKaeshiSetsugekkaPvE.CanUse(out act, usedUp: true)) return true;
 
@@ -237,7 +237,7 @@ public sealed class SAM_Default : SamuraiRotation
             if (HakazePvE.CanUse(out act)) return true;
 
             // target out of range
-            if (EnpiPvE.CanUse(out act)) return true;
+            if (EnpiPvE.CanUse(out act, skipComboCheck: true)) return true;
         }
 
         return base.GeneralGCD(out act);
