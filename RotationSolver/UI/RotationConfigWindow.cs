@@ -2985,10 +2985,25 @@ public partial class RotationConfigWindow : Window
         ImGui.Text($"IsLastActionGCD: {IActionHelper.IsLastActionGCD()}");
     }
 
-    private static void DrawOthers()
+    private unsafe static void DrawOthers()
     {
         ImGui.Text($"Combat Time: {DataCenter.CombatTimeRaw}");
         ImGui.Text($"Limit Break: {CustomRotation.LimitBreakLevel}");
+        ImGui.Spacing();
+        ImGui.Text($"Territory: '{DataCenter.Territory?.Name ?? "null"}' (ID: {CustomRotation.TerritoryID.ToString() ?? "0"})");
+        ImGui.Text($"Content: '{DataCenter.Territory?.ContentFinderName ?? "null"}'");
+                var target = Svc.Targets.Target;
+        if (target == null) return;
+        if (target is IBattleChara battleChara)
+        {
+            ImGui.Text($"TitleId: {battleChara.Struct()->TitleId.ToString()}");
+            ImGui.Text($"NamePlateIconId: {battleChara.Struct()->NamePlateIconId.ToString()}");
+            ImGui.Text($"Icon: {battleChara.Struct()->Icon.ToString()}");
+            ImGui.Text($"Name: {battleChara.Struct()->Name.ToString()}");
+            ImGui.Text($"Battalion: {battleChara.Struct()->Battalion.ToString()}");
+        }
+        // Icon
+        // TitleId
     }
 
     private static float _maxAnimationLockTime = 0;

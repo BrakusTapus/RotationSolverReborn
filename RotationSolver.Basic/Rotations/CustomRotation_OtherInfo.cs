@@ -325,6 +325,12 @@ partial class CustomRotation
     protected static TerritoryContentType TerritoryContentType => DataCenter.Territory?.ContentType ?? TerritoryContentType.None;
 
     /// <summary>
+    /// Gets the current ID from Territory the player resides in.
+    /// </summary>
+    [Description("Gets ID from current territory")]
+    public static ushort TerritoryID => DataCenter.TerritoryID;
+
+    /// <summary>
     /// Is player in high-end duty, savage, extrene or ultimate.
     /// </summary>
     [Description("Is in the high-end duty")]
