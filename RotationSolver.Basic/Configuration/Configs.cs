@@ -47,17 +47,25 @@ internal partial class Configs : IPluginConfiguration
     Filter = AutoActionUsage, Section = 5)]
     private static readonly bool _interceptAction2 = false;
 
-    [ConditionBool, UI("Intercept Spells. (Experimental)",
+    [ConditionBool, UI("Allow intercepting Spells. (Experimental)",
     Filter = AutoActionUsage, Section = 5)]
     private static readonly bool _interceptSpell2 = false;
 
-    [ConditionBool, UI("Intercept Weaponskills. (Experimental)",
+    [ConditionBool, UI("Allow intercepting Weaponskills. (Experimental)",
     Filter = AutoActionUsage, Section = 5)]
     private static readonly bool _interceptWeaponskill2 = false;
 
-    [ConditionBool, UI("Intercept Abilities. (Experimental)",
+    [ConditionBool, UI("Allow intercepting Abilities. (Experimental)",
     Filter = AutoActionUsage, Section = 5)]
     private static readonly bool _interceptAbility2 = false;
+
+    [ConditionBool, UI("Allow intercepting actions in macros. (Experimental)",
+    Filter = AutoActionUsage, Section = 5)]
+    private static readonly bool _interceptMacro = false;
+
+    [ConditionBool, UI("Allow intercepting actions that are currently on cooldown. (Experimental)",
+    Filter = AutoActionUsage, Section = 5)]
+    private static readonly bool _interceptCooldown = false;
 
     [UI("Intercepted action execution window",
     Filter = AutoActionUsage, Section = 5)]
