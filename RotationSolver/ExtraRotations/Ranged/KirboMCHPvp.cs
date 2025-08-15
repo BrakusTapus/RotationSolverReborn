@@ -1,6 +1,7 @@
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using RotationSolver.UI;
 using System.ComponentModel;
@@ -673,18 +674,11 @@ public sealed class KirboMCHPvp : MachinistRotation
         {
             if (child.Success)
             {
-                // Inside your ImGui drawing function
-                var enumType = typeof(LBMethod);
-                var memberInfo = enumType.GetMember(LBMethodPicker.ToString());
-                var descriptionAttr = memberInfo[0].GetCustomAttribute<DescriptionAttribute>();
-
-                string displayText = descriptionAttr != null ? descriptionAttr.Description : LBMethodPicker.ToString();
-                ImGui.Text($"Current LB Method: {displayText}");
-                ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0]
-    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
-
-                ImGui.Text($"Target is PC: {(CurrentTarget != null && IsPlayerCharacter(CurrentTarget) ? "Yes" : "No")}");
+                //var test = Svc.Targets.MouseOverTarget;
+                //ImGui.Text("MO name: " + test?.Name);
+                //ImGui.Text($"Target is PC: {(CurrentTarget != null && IsPlayerCharacter(CurrentTarget) ? "Yes" : "No")}");
                 ImGui.Text("Player HPP: " + Player.GetHealthRatio());
+                ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
                 ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
                 ImguiTooltips.HoveredTooltip("CurrentUnits: " + CurrentCurrentUnits);
                 ImGui.NewLine();
