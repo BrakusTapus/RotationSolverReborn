@@ -4,7 +4,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 namespace RotationSolver.ExtraRotations.Ranged;
 
 [Rotation("Churin MCH", CombatType.PvE, GameVersion = "7.3", Description = "Kill it with kindness. And if that fails, kill it with sharp sticks or knives...or guns!")]
-[SourceCode(Path = "ArgentiRotations/Ranged/Machinist/ChurinMCH.cs")]
+[SourceCode(Path = "main/ExtraRotations/Ranged/ChurinMCH.cs")]
 [ExtraRotation]
 public sealed class ChurinMCH: MachinistRotation
 {
