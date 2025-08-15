@@ -1,6 +1,8 @@
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using RotationSolver.UI;
 using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Ranged;
@@ -37,6 +39,11 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static float PvPTargetWildfireStatusTime => CurrentTarget!.StatusTime(true, StatusID.Wildfire_1323);
     private static float AnalysisStatusTime => Player.StatusTime(true, StatusID.Analysis);
     private static bool PlayerHasBravery => Player.HasStatus(true, StatusID.Bravery);
+    private enum LBMethod
+    {
+        [Description("MCH LB NEW")] MCHLBNEW,
+        [Description("MCH LB 4")] MCHLB4
+    }
     #endregion
 
     #region Config Options
@@ -46,11 +53,13 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Emergency Healing")]
     private bool EmergencyHealing { get; set; } = false;
 
+    /* TODO should consider removing this
     //[RotationConfig(CombatType.PvP, Name = "LowHPNoBlastCharge")]
     //public bool LowHPNoBlastCharge { get; set; } = true;
 
     //[RotationConfig(CombatType.PvP, Name = "LowHPNoBlastChargeThreshold")]
     //public int LowHPNoBlastChargeThreshold { get; set; } = 15000;
+    */
 
     [RotationConfig(CombatType.PvP, Name = "AnalysisOnDrill")]
     private bool AnalysisOnDrill { get; set; } = true;
@@ -90,11 +99,16 @@ public sealed class KirboMCHPvp : MachinistRotation
     //    return false;
     //}
 
+    [RotationConfig(CombatType.PvP, Name = "LB method picker")]
+    private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
+
+    /* TODO obsolete if lbmethodpicker works as intended
     [RotationConfig(CombatType.PvP, Name = "Enable experimental features.")]
     private bool ExperimentalFeature { get; set; } = true;
 
     [RotationConfig(CombatType.PvP, Name = "Enable experimental LB features.")]
     private bool ExperimentalLBFeature { get; set; } = true;
+    */
     #endregion Rotation Config
 
     #region oGCD Logic
@@ -215,18 +229,19 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
+        /* old LB logic
         if (ExperimentalFeature)
         {
             if (ExperimentalLBFeature)
             {
-                if (UseMCHLBNEW/*UseMCHLB4*/(out act)) // Should be best one to use
+                if (UseMCHLBNEW(out act)) // Should be best one to use
                 {
                     return true;
                 }
             }
             else
             {
-                if (MarksmansSpitePvP2.CanUse(out act) && CustomRotationEx.CurrentLimitBreakLevel == 1)
+                if (MarksmansSpitePvP2.CanUse(out act) && CurrentLimitBreakLevel == 1)
                 {
                     return true;
                 }
@@ -234,12 +249,14 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
         else
         {
-            Dalamud.Game.ClientState.Objects.Enums.ObjectKind battleNPC = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc;
+            //Dalamud.Game.ClientState.Objects.Enums.ObjectKind battleNPC = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc;
             if (MarksmansSpitePvP2.CanUse(out act) &&
-                CustomRotationEx.CurrentLimitBreakLevel == 1 &&
+                CurrentLimitBreakLevel == 1 &&
                 CurrentTarget != null &&
-                CurrentTarget.ObjectKind != battleNPC &&
-                !CustomRotationEx.IsPvPNpc(CurrentTarget.Name.ToString()))
+                //CurrentTarget.ObjectKind != battleNPC &&
+                IsPlayerCharacter(CurrentTarget)
+                //!IsPvPNpc(CurrentTarget.Name.ToString())
+                )
             {
                 //TODO: instead of checking isjobcategory should use enemy names like "Summoner" or "Paladin" as it will be more acurate
                 if (CurrentTarget.IsJobCategory(JobRole.RangedMagical) && CurrentTarget.CurrentHp >= 10000 && CurrentTarget.CurrentHp <= 32400) return true;
@@ -252,7 +269,16 @@ public sealed class KirboMCHPvp : MachinistRotation
 
             }
         }
+        */
 
+        // New LB logic
+        if (TryUseLB(out act))
+        {
+            return true;
+        }
+
+
+        // Drill
         if (!IsPvPOverheated && DrillPvP.CanUse(out act, usedUp: true) && Player.HasStatus(true, StatusID.DrillPrimed))
         {
             return true;
@@ -270,6 +296,7 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
+        // BlazingShot
         if (BlazingShotPvP.CanUse(out act))
         {
             if (Player.HasStatus(true, StatusID.Overheated_3149) /*&& !Player.HasStatus(true, StatusID.Analysis)*/)
@@ -277,8 +304,6 @@ public sealed class KirboMCHPvp : MachinistRotation
                 return true;
             }
         }
-
-
 
         // FullMetalField
         if (!IsPvPOverheated &&  /*&& !Player.HasStatus(true, StatusID.Analysis) &&*/ FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
@@ -330,6 +355,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion GCD Logic
 
     #region Extra Methods
+    // TODO can prolly be removed
     private bool EmergencyLowHP(out IAction? act)
     {
         if (Player.HasStatus(true, StatusID.Guard))
@@ -366,11 +392,30 @@ public sealed class KirboMCHPvp : MachinistRotation
         return false;
     }
 
+    private bool TryUseLB(out IAction? act)
+    {
+        act = default;
+
+        switch (LBMethodPicker)
+        {
+            case LBMethod.MCHLBNEW:
+                return UseMCHLBNEW(out act);
+
+            case LBMethod.MCHLB4:
+                return UseMCHLB4(out act);
+
+            default:
+                return false;
+        }
+    }
+
+
+    /* TODO no longer in use, can be removed
     // Tries to use Marksman Spite on a suitable target. (Tries to avoid using if target's HP is very low, but it's not perfect)
     private bool UseMCHLB(out IAction? action)
     {
         // Exit early if LB level is below 1
-        if (CustomRotationEx.CurrentLimitBreakLevel == 0)
+        if (CurrentLimitBreakLevel == 0)
         {
             action = null;
             return false;
@@ -399,13 +444,15 @@ public sealed class KirboMCHPvp : MachinistRotation
         action = null;
         return false;
     }
+    */
 
+    // TODO compare with 'UseMCHLB4' to find out which method is better
     private bool UseMCHLBNEW(out IAction? action)
     {
 
         action = null;
 
-        if (CustomRotationEx.CurrentLimitBreakLevel == 0)
+        if (CurrentLimitBreakLevel == 0)
         {
             return false;
         }
@@ -418,13 +465,17 @@ public sealed class KirboMCHPvp : MachinistRotation
         .Where(obj =>
             obj.CurrentHp >= MinEffectiveHp &&
             obj.CurrentHp <= 35000 &&
+            IsPlayerCharacter(obj) &&
             !obj.IsJobCategory(JobRole.Tank) &&
             !obj.IsJobCategory(JobRole.Melee) &&
-            (obj.IsJobCategory(JobRole.Healer) ||
-             obj.IsJobCategory(JobRole.RangedPhysical) ||
-             obj.IsJobCategory(JobRole.RangedMagical)) &&
+                (
+                 obj.IsJobCategory(JobRole.Healer) ||
+                 obj.IsJobCategory(JobRole.RangedPhysical) ||
+                 obj.IsJobCategory(JobRole.RangedMagical)
+                ) &&
             obj.DistanceToPlayer() <= 50 &&
-            !obj.HasStatus(false, StatusID.Guard))
+            !obj.HasStatus(false, StatusID.Guard)
+            )
         .OrderBy(obj => obj.CurrentHp)
         .FirstOrDefault();
 
@@ -450,14 +501,18 @@ public sealed class KirboMCHPvp : MachinistRotation
         { JobRole.RangedPhysical, (17000, 30000) },
     };
 
+    // Checks if player has Guard
     private static bool IsGuarded() => Player.HasStatus(true, StatusID.Guard);
+
+    // Checks if target has Guard
     private static bool TargetHasGuard(IBattleChara target) => target.HasStatus(false, StatusID.Guard);
 
+    // TODO compare with 'UseMCHLBNEW' to find out which method is better
     private bool UseMCHLB4(out IAction? action)
     {
         action = null;
 
-        if (CustomRotationEx.CurrentLimitBreakLevel == 0)
+        if (CurrentLimitBreakLevel == 0)
             return false;
 
         if (IsGuarded())
@@ -494,6 +549,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         return true;
     }
 
+    // Eagle Eye Shot Logic
     private bool UseEagleEyeShot(out IAction? action)
     {
 
@@ -558,6 +614,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         return false;
     }
 
+    // Early Analysis use
     private bool UseEarlyAnalysis(out IAction? action)
     {
         action = null;
@@ -577,6 +634,12 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         return false;
     }
+
+    // Checks if an object is a player character
+    private static bool IsPlayerCharacter(IBattleChara battleChara)
+    {
+        return battleChara.GetObjectKind() == ObjectKind.Player;
+    }
     #endregion
 
     #region MCH LB
@@ -587,7 +650,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         IBaseAction action40 = new BaseAction((ActionID)29415);
         ActionSetting setting40 = action40.Setting;
         setting40.RotationCheck = () =>
-        CustomRotationEx.CurrentLimitBreakLevel == 1 &&
+        CurrentLimitBreakLevel == 1 &&
         action40.Target.Target.CurrentHp <= 30000 &&
             (
                 action40.Target.Target.IsJobCategory(JobRole.RangedMagical) ||
@@ -601,34 +664,29 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion
 
     #region Status Display
-    public override bool ShowStatus =>  true;
+    public override bool ShowStatus => true;
     public override void DisplayRotationStatus()
     {
-        // testing purpose
-        //if (ImGui.Button("Send debug log"))
-        //{
-        //    try
-        //    {
-        //        Svc.Log.Warning($"sample text Kirbo");
-        //        Svc.Chat.PrintError($"sample text Kirbo", "[KIRBOOOO]");
-        //    }
-        //    catch
-        //    {
-        //        Svc.Log.Warning($"sample text Kirbo");
-        //        Svc.Chat.PrintError($"sample text Kirbo", "[KIRBOOOO]");
-        //    }
-        //}
-
         //Get available width in the current ImGui window
         float availableWidth = ImGui.GetContentRegionAvail().X;
         using (ImRaii.IEndObject child = ImRaii.Child("playerinfo", new Vector2((availableWidth / 2), 200), true))
         {
             if (child.Success)
             {
+                // Inside your ImGui drawing function
+                var enumType = typeof(LBMethod);
+                var memberInfo = enumType.GetMember(LBMethodPicker.ToString());
+                var descriptionAttr = memberInfo[0].GetCustomAttribute<DescriptionAttribute>();
+
+                string displayText = descriptionAttr != null ? descriptionAttr.Description : LBMethodPicker.ToString();
+                ImGui.Text($"Current LB Method: {displayText}");
+                ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0]
+    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
+
+                ImGui.Text($"Target is PC: {(CurrentTarget != null && IsPlayerCharacter(CurrentTarget) ? "Yes" : "No")}");
                 ImGui.Text("Player HPP: " + Player.GetHealthRatio());
-                //ImGui.Text("LimitBreakLevel: " + LimitBreakLevel);
-                ImGui.Text("LimitBreakLevel: " + CustomRotationEx.CurrentLimitBreakLevel);
-                ImGuiToolTipsKirbo.HoveredTooltip("CurrentUnits: " + CustomRotationEx.CurrentCurrentUnits);
+                ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
+                ImguiTooltips.HoveredTooltip("CurrentUnits: " + CurrentCurrentUnits);
                 ImGui.NewLine();
 
                 ImGui.Text("HeatStacks: " + PvP_OverheatedStacks);
@@ -701,6 +759,47 @@ public sealed class KirboMCHPvp : MachinistRotation
                 ImGui.Text($"- Cast Action ID: {(enemy.IsCasting ? enemy.CastActionId.ToString() : "N/A")}");
                 ImGui.Text($"- Targeting Player: {(enemy.CastTargetObjectId == Player.GameObjectId ? "Yes" : "No")}");
             }
+        }
+    }
+    #endregion
+
+    #region Limit Break value
+    [Description("Limit Break Level")]
+    private unsafe static byte CurrentLimitBreakLevel
+    {
+        get
+        {
+            FFXIVClientStructs.FFXIV.Client.Game.UI.LimitBreakController limitBreakController = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->LimitBreakController;
+            ushort currentUnits = *&limitBreakController.CurrentUnits;
+
+            if (currentUnits >= 9000)
+            {
+                return 3;
+            }
+            else if (currentUnits >= 6000)
+            {
+                return 2;
+            }
+            else if (currentUnits >= 3000)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
+
+    [Description("Current Units")]
+    private unsafe static ushort CurrentCurrentUnits
+    {
+        get
+        {
+            FFXIVClientStructs.FFXIV.Client.Game.UI.LimitBreakController limitBreakController = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->LimitBreakController;
+            ushort currentUnits = *&limitBreakController.CurrentUnits;
+
+            return currentUnits;
         }
     }
     #endregion
