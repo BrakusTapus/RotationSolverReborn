@@ -413,7 +413,17 @@ internal static class StateUpdater
 
     private static bool ShouldAddSpeed()
     {
-        return DataCenter.IsMoving && DataCenter.NotInCombatDelay && Service.Config.AutoSpeedOutOfCombat;
+        if (DataCenter.IsMoving && DataCenter.NotInCombatDelay && DataCenter.IsInDuty && Service.Config.AutoSpeedOutOfCombat)
+        {
+            return true;
+        }
+
+        if (DataCenter.IsMoving && DataCenter.NotInCombatDelay && !DataCenter.IsInDuty && Service.Config.AutoSpeedOutOfCombatNoDuty)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     // Helper methods used in condition methods

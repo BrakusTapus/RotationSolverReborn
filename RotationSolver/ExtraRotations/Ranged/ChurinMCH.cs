@@ -4,28 +4,24 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 namespace RotationSolver.ExtraRotations.Ranged;
 
 [Rotation("Churin MCH", CombatType.PvE, GameVersion = "7.3", Description = "Kill it with kindness. And if that fails, kill it with sharp sticks or knives...or guns!")]
-[SourceCode(Path = "main/ExtraRotations/Ranged/ChurinMCH.cs")]
+[SourceCode(Path = "ArgentiRotations/Ranged/Machinist/ChurinMCH.cs")]
 [ExtraRotation]
 public sealed class ChurinMCH: MachinistRotation
 {
     #region Properties
-
     #region Boolean Properties
-
     #region Potion Booleans
     private bool InTwoMinuteWindow => WildfirePvE.Cooldown.IsCoolingDown && WildfirePvE.Cooldown.WillHaveOneChargeGCD(5) &&
                                       AirAnchorPvE.Cooldown.IsCoolingDown && AirAnchorPvE.Cooldown.WillHaveOneChargeGCD(1);
     private bool InOddMinuteWindow => !InTwoMinuteWindow && AirAnchorPvE.Cooldown.IsCoolingDown && AirAnchorPvE.Cooldown.WillHaveOneChargeGCD(1);
 
     #endregion
-
     #region Status Booleans
 
     private static bool IsMedicated => Player.HasStatus(true,StatusID.Medicated) ||
                                        !Player.WillStatusEnd(0, true, StatusID.Medicated);
 
     #endregion
-
     #region  Logic Booleans
 
     private static bool CanLateWeave => WeaponRemain <= LateWeaveWindow && EnoughWeaveTime;
@@ -37,20 +33,14 @@ public sealed class ChurinMCH: MachinistRotation
     private static bool CanDoubleHypercharge => HasHypercharged && Heat >= 50;
 
     #endregion
-
+    #endregion
     #region Other Properties
-
-    #region Logic Constants
     private const float TimeToNextTool = 8;
     private static double RecastTime => ActionManager.GetAdjustedRecastTime(ActionType.Action, (uint)ActionID.HeatedCleanShotPvE, false) / 1000.00;
 
     private const float DefaultAnimationLock = 0.6f;
     private static float LateWeaveWindow => (float)(RecastTime * 0.5f);
-
     #endregion
-
-    #endregion
-
     #region Potion Properties
     private enum PotionTimings
     {
@@ -63,10 +53,7 @@ public sealed class ChurinMCH: MachinistRotation
         TwoEight,
 
         [Description("Opener, Five Minutes and Ten Minutes")]
-        ZeroFiveTen,
-
-        [Description("Custom - set values below")]
-        Custom
+        ZeroFiveTen
     }
 
     #region Potions
@@ -75,34 +62,50 @@ public sealed class ChurinMCH: MachinistRotation
     private void InitializePotions()
     {
         _potions.Clear();
-        switch (PotionTiming)
+        switch (PotionTiming, CustomPotionTiming)
         {
-            case PotionTimings.ZeroSix:
+            case (PotionTimings.None, false):
+                break;
+            case (PotionTimings.ZeroSix, false):
                 _potions.Add((0, true, false));
                 _potions.Add((6, true, false));
                 break;
-            case PotionTimings.TwoEight:
+            case (PotionTimings.TwoEight, false):
                 _potions.Add((2, true, false));
                 _potions.Add((8, true, false));
                 break;
-            case PotionTimings.ZeroFiveTen:
+            case (PotionTimings.ZeroFiveTen, false):
                 _potions.Add((0, true, false));
                 _potions.Add((5, true, false));
                 _potions.Add((10, true, false));
                 break;
-            case PotionTimings.Custom:
-                if (CustomEnableFirstPotion) _potions.Add((CustomFirstPotionTime, true, false));
-                if (CustomEnableSecondPotion) _potions.Add((CustomSecondPotionTime, true, false));
-                if (CustomEnableThirdPotion) _potions.Add((CustomThirdPotionTime, true, false));
-                break;
         }
+
+        if (CustomPotionTiming)
+        {
+            if (CustomEnableFirstPotion)
+            {
+                _potions.Add((CustomFirstPotionTime, true, false));
+            }
+
+            if (CustomEnableSecondPotion)
+            {
+                _potions.Add((CustomSecondPotionTime, true, false));
+            }
+
+            if (CustomEnableThirdPotion)
+            {
+                _potions.Add((CustomThirdPotionTime, true, false));
+            }
+        }
+
     }
 
     #endregion
 
     #endregion
 
-    #endregion
+
 
     #endregion
 
@@ -117,25 +120,32 @@ public sealed class ChurinMCH: MachinistRotation
     [RotationConfig(CombatType.PvE, Name = "Potion Presets")]
     private PotionTimings PotionTiming { get; set; } = PotionTimings.None;
 
-    [RotationConfig(CombatType.PvE, Name = "Enable First Potion for Custom Potion Timings?")]
-    private bool CustomEnableFirstPotion { get; set; } = true;
+    [Range(0, 20, ConfigUnitType.Seconds, 0.5f)]
+    [RotationConfig(CombatType.PvE, Name = "Use Opener Potion at minus time in seconds")]
+    private float OpenerPotionTime { get; set; } = 1f;
+
+    [RotationConfig(CombatType.PvE, Name = "Use Custom Potion Timing")]
+    private bool CustomPotionTiming { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable First Potion", Parent = nameof(CustomPotionTiming))]
+    private bool CustomEnableFirstPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "First Potion Usage for custom timings - enter time in minutes")]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - First Potion(time in minutes)", Parent = nameof(CustomEnableFirstPotion))]
     private int CustomFirstPotionTime { get; set; } = 0;
 
-    [RotationConfig(CombatType.PvE, Name = "Enable Second Potion for Custom Potion Timings?")]
-    private bool CustomEnableSecondPotion { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Second Potion", Parent = nameof(CustomPotionTiming))]
+    private bool CustomEnableSecondPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Second Potion Usage for custom timings - enter time in minutes")]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Second Potion(time in minutes)", Parent = nameof(CustomEnableSecondPotion))]
     private int CustomSecondPotionTime { get; set; } = 0;
 
-    [RotationConfig(CombatType.PvE, Name = "Enable Third Potion for Custom Potion Timings?")]
-    private bool CustomEnableThirdPotion { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Third Potion", Parent = nameof(CustomPotionTiming))]
+    private bool CustomEnableThirdPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Third Potion Usage for custom timings - enter time in minutes")]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Third Potion(time in minutes)", Parent = nameof(CustomEnableThirdPotion))]
     private int CustomThirdPotionTime { get; set; } = 0;
 
     #endregion
@@ -195,7 +205,6 @@ public sealed class ChurinMCH: MachinistRotation
     #endregion
 
     #region Extra Methods
-
     #region GCD Skills
 
     #region MultiTool
@@ -328,9 +337,7 @@ public sealed class ChurinMCH: MachinistRotation
     #endregion
 
     #endregion
-
     #region oGCD Abilities
-
     #region Queen Logic
     // Step-based Queen battery transitions: (from, to, step)
     private readonly (byte from, byte to, int step)[] _queenStepPairs =
@@ -355,7 +362,6 @@ public sealed class ChurinMCH: MachinistRotation
     private byte _lastOddQueenBattery;
     private byte _nextOddQueenBattery;
     private bool _foundQueenStepPair;
-
     private void UpdateQueenStepPair()
     {
         if (_queenStep < _queenStepPairs.Length)
@@ -397,7 +403,6 @@ public sealed class ChurinMCH: MachinistRotation
             _queenStep++;
         }
     }
-
     private void ResetQueenTracking()
     {
         _queenStep = 0;
@@ -406,7 +411,6 @@ public sealed class ChurinMCH: MachinistRotation
         _nextOddQueenBattery = 0;
         _foundQueenStepPair = false;
     }
-
     private bool TryUseQueen(out IAction? act)
     {
         act = null;
@@ -428,7 +432,7 @@ public sealed class ChurinMCH: MachinistRotation
             // Fallback in case the step tracking fails
             case false when InCombat:
             {
-                if (LastSummonBatteryPower == 50 && Battery > _nextOddQueenBattery  ||
+                if (LastSummonBatteryPower == 50 && Battery > _nextOddQueenBattery && Battery > _lastOddQueenBattery ||
                     Battery == 100 && LastSummonBatteryPower is 60 or 70 or 80 or 90 ||
                     LastSummonBatteryPower == 100 && Battery == 50)
                 {
@@ -446,7 +450,6 @@ public sealed class ChurinMCH: MachinistRotation
 
     }
     #endregion
-
     #region Hypercharge Logic
 
     // Core hypercharge decision logic
@@ -519,7 +522,6 @@ public sealed class ChurinMCH: MachinistRotation
 
 
     #endregion
-
     #region Other oGCDs
     private bool TryUseWildfire(out IAction? act)
     {
@@ -627,10 +629,7 @@ public sealed class ChurinMCH: MachinistRotation
         return SetActToNull(out act);
     }
     #endregion
-
     #endregion
-
-    #region Miscellaneous Methods
     #region Potions
 
     private bool TryUsePotion(out IAction? act)
@@ -664,6 +663,8 @@ public sealed class ChurinMCH: MachinistRotation
     }
 
     #endregion
+    #region Miscellaneous
+
     private static bool SetActToNull(out IAction? act)
     {
         act = null;

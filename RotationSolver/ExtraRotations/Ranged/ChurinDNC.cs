@@ -116,7 +116,7 @@ public sealed class ChurinDNC : DancerRotation
 
     #endregion
 
-    #region Other Properties
+    #region Enums
     private enum PotionTimings
     {
         [Description("None")] None,
@@ -159,28 +159,32 @@ public sealed class ChurinDNC : DancerRotation
     [RotationConfig(CombatType.PvE, Name = "Use Custom Potion Timing")]
     private static bool CustomPotionTiming { get; set; } = false;
 
-    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable First Potion")]
-    private bool CustomEnableFirstPotion { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable First Potion", Parent = nameof(CustomPotionTiming))]
+    private static bool CustomEnableFirstPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Custom Potions - First Potion(time in minutes)")]
-    private int CustomFirstPotionTime { get; set; } = 0;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - First Potion(time in minutes)", Parent = nameof(CustomEnableFirstPotion))]
+    private static int CustomFirstPotionTime { get; set; } = 0;
 
-    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Second Potion")]
-    private bool CustomEnableSecondPotion { get; set; } = true;
-
-    [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Second Potion(time in minutes)")]
-    private int CustomSecondPotionTime { get; set; } = 0;
-
-    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Third Potion")]
-    private bool CustomEnableThirdPotion { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Second Potion", Parent = nameof(CustomPotionTiming))]
+    private static bool CustomEnableSecondPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Third Potion(time in minutes)")]
-    private int CustomThirdPotionTime { get; set; } = 0;
-    [Range(0,1, ConfigUnitType.Seconds, 0)]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Second Potion(time in minutes)", Parent = nameof(CustomEnableSecondPotion))]
+    private static int CustomSecondPotionTime { get; set; } = 0;
 
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Third Potion", Parent = nameof(CustomPotionTiming))]
+    private static bool CustomEnableThirdPotion { get; set; }
+
+    [Range(0, 20, ConfigUnitType.None, 1)]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Third Potion(time in minutes)", Parent = nameof(CustomEnableThirdPotion))]
+    private static int CustomThirdPotionTime { get; set; } = 0;
+
+    [Range(0,16, ConfigUnitType.Seconds, 0)]
+    [RotationConfig(CombatType.PvE, Name = "How many seconds before combat starts to use Standard Step?")]
+    private float OpenerStandardStepTime { get; set; } = 15.5f;
+
+    [Range(0, 1, ConfigUnitType.Seconds, 0)]
     [RotationConfig(CombatType.PvE, Name = "How many seconds before combat starts to use Standard Finish?")]
     private float OpenerFinishTime { get; set; } = 0.5f;
 
@@ -197,9 +201,9 @@ public sealed class ChurinDNC : DancerRotation
     {
         InitializePotions();
         UpdatePotions();
-        if (remainTime > 15) return base.CountDownAction(remainTime);
+        if (remainTime > OpenerStandardStepTime) return base.CountDownAction(remainTime);
         if (TryUseClosedPosition(out var act) ||
-            remainTime <= 15 &&StandardStepPvE.CanUse(out act) ||
+            remainTime <= OpenerStandardStepTime && StandardStepPvE.CanUse(out act) ||
             ExecuteStepGCD(out act) ||
             TryUsePotion(out act)
             || remainTime <= OpenerFinishTime && DoubleStandardFinishPvE.CanUse(out act)) return act;

@@ -86,7 +86,7 @@ public partial class ScholarRotation
         ImGui.Text($"Excog Target: {ExcogitationPvE.Target.Target.Name}");
         ImGui.Text($"Recitation on Cooldown: {RecitationPvE.Cooldown.IsCoolingDown}");
         ImGui.Text($"Excog on cooldown: {ExcogitationPvE.Cooldown.IsCoolingDown}");
-        ImGui.Text($"Whispering Dawn On Cooldown: {WhisperingDawnPvE_16537.Cooldown.IsCoolingDown}");
+        ImGui.Text($"Whispering Dawn On Cooldown: {WhisperingDawnPvE.Cooldown.IsCoolingDown}");
         ImGui.Text($"Fey Blessing On Cooldown: {FeyBlessingPvE.Cooldown.IsCoolingDown}");
     }
     #endregion
@@ -121,7 +121,7 @@ public partial class ScholarRotation
         setting.ActionCheck = () => Player.CurrentMp >= RaiseMPMinimum;
     }
 
-    static partial void ModifyWhisperingDawnPvE_16537(ref ActionSetting setting)
+    static partial void ModifyWhisperingDawnPvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => DataCenter.HasPet() && !FairyDismissed;
         setting.IsFriendly = true;
@@ -171,9 +171,10 @@ public partial class ScholarRotation
 
     }
 
-    static partial void ModifyFeyIlluminationPvE_16538(ref ActionSetting setting)
+    static partial void ModifyFeyIlluminationPvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => DataCenter.HasPet() && !FairyDismissed;
+        setting.IsFriendly = true;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 1,

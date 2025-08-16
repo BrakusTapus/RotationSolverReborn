@@ -162,6 +162,23 @@ public partial class RotationConfigWindow : Window
             ImGui.OpenPopup("Reset RSR Plugin Settings");
             _showResetPopup = false;
         }
+
+        // Custom padding for this popup only (affects this modal window)
+        using var popupWinPad = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(12, 12) * Scale);
+        using var popupFramePad = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(4, 3) * Scale);
+        using var popupCellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(4, 2) * Scale);
+        using var popupItemSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(8, 4) * Scale);
+        using var popupItemInnerSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemInnerSpacing, new Vector2(4, 4) * Scale);
+        using var popupIndentSpacing = ImRaii.PushStyle(ImGuiStyleVar.IndentSpacing, 21f * Scale);
+        using var popupScrollbarSize = ImRaii.PushStyle(ImGuiStyleVar.ScrollbarSize, 16f * Scale);
+        using var popupGrabMinSize = ImRaii.PushStyle(ImGuiStyleVar.GrabMinSize, 13f * Scale);
+        using var popupWindowBorderSize = ImRaii.PushStyle(ImGuiStyleVar.WindowBorderSize, 0f * Scale);
+        using var popupChildRounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 11f * Scale);
+        using var popupFrameRounding = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 11f * Scale);
+        using var popupPopupRounding = ImRaii.PushStyle(ImGuiStyleVar.PopupRounding, 11f * Scale);
+        using var popupScrollbarRounding = ImRaii.PushStyle(ImGuiStyleVar.ScrollbarRounding, 11f * Scale);
+        using var popupGrabRounding = ImRaii.PushStyle(ImGuiStyleVar.GrabRounding, 11f * Scale);
+        using var popupTabRounding = ImRaii.PushStyle(ImGuiStyleVar.TabRounding, 11f * Scale);
         if (ImGui.BeginPopupModal("Reset RSR Plugin Settings"))
         {
             ImGui.Text("Are you sure you want to reset all plugin settings?");
@@ -183,12 +200,23 @@ public partial class RotationConfigWindow : Window
             ImGui.EndPopup();
         }
 
-        if (DataCenter.HoldingRestore)
-        {
-            IsOpen = false;
-            DataCenter.HoldingRestore = false;
-        }
-        using ImRaii.Style style = ImRaii.PushStyle(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
+        // This affects framed widgets and child windows you create below
+        using ImRaii.Style selectableAlign = ImRaii.PushStyle(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
+        using var framePad = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(4, 3) * Scale);
+        using var childWinPad = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(12, 12) * Scale);
+        using var frameCellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(4, 2) * Scale);
+        using var frameItemSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(8, 4) * Scale);
+        using var frameItemInnerSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemInnerSpacing, new Vector2(4, 4) * Scale);
+        using var frameIndentSpacing = ImRaii.PushStyle(ImGuiStyleVar.IndentSpacing, 21f * Scale);
+        using var frameScrollbarSize = ImRaii.PushStyle(ImGuiStyleVar.ScrollbarSize, 16f * Scale);
+        using var frameGrabMinSize = ImRaii.PushStyle(ImGuiStyleVar.GrabMinSize, 13f * Scale);
+        using var frameWindowRounding = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding, 11f * Scale);
+        using var frameChildRounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 11f * Scale);
+        using var frameFrameRounding = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 11f * Scale);
+        using var framePopupRounding = ImRaii.PushStyle(ImGuiStyleVar.PopupRounding, 11f * Scale);
+        using var frameScrollbarRounding = ImRaii.PushStyle(ImGuiStyleVar.ScrollbarRounding, 11f * Scale);
+        using var frameGrabRounding = ImRaii.PushStyle(ImGuiStyleVar.GrabRounding, 11f * Scale);
+        using var frameTabRounding = ImRaii.PushStyle(ImGuiStyleVar.TabRounding, 11f * Scale);
         try
         {
             using ImRaii.IEndObject table = ImRaii.Table("Rotation Config Table", 2, ImGuiTableFlags.Resizable);
@@ -215,7 +243,6 @@ public partial class RotationConfigWindow : Window
                 }
             }
         }
-
         catch (Exception ex)
         {
             PluginLog.Warning($"Something wrong with config window: {ex.Message}");
@@ -276,6 +303,7 @@ public partial class RotationConfigWindow : Window
             _ = diagInfo.AppendLine($"Dalamud Branch: {_cachedDiagInfo.DalamudBranch}");
             _ = diagInfo.AppendLine($"Game Language: {_cachedDiagInfo.Language}");
             _ = diagInfo.AppendLine($"Update Frequency: {Service.Config.MinUpdatingTime}");
+            _ = diagInfo.AppendLine($"Intercept: {Service.Config.InterceptAction2}");
         }
 
         if (_enabledIncompatiblePlugins.Count > 0)
@@ -346,9 +374,9 @@ public partial class RotationConfigWindow : Window
 
                 // Calculate the required height for the button
                 Vector2 textSize = ImGui.CalcTextSize(warning, false, availableWidth);
+                float buttonHeight = textSize.Y + (ImGui.GetStyle().FramePadding.Y * 2);
                 float lineHeight = ImGui.GetTextLineHeight();
                 int lineCount = (int)Math.Ceiling(textSize.X / availableWidth);
-                float buttonHeight = (lineHeight * lineCount) + (ImGui.GetStyle().FramePadding.Y * 2);
 
                 if (ImGui.Button(warning, new Vector2(availableWidth, buttonHeight)))
                 {
@@ -595,11 +623,6 @@ public partial class RotationConfigWindow : Window
 
         if (!rotation.GetTexture(out IDalamudTextureWrap? jobIcon) || jobIcon == null)
             return;
-
-        if (jobIcon == null)
-        {
-            return;
-        }
 
         if (ImGuiHelper.SilenceImageButton(jobIcon, Vector2.One * iconSize, _activeTab == RotationConfigWindowTab.Rotation))
         {
@@ -868,6 +891,12 @@ public partial class RotationConfigWindow : Window
         foreach (IRotationConfig config in set.Configs)
         {
             if (!config.Type.HasFlag(CombatType.PvE))
+            {
+                continue;
+            }
+
+            // Check parent-child visibility logic
+            if (!ShouldShowRotationConfig(config, set))
             {
                 continue;
             }
@@ -1279,13 +1308,6 @@ public partial class RotationConfigWindow : Window
             Service.Config.FriendlyPartyNpcHealRaise3.Value = true;
         }
         ImGui.Spacing();
-        // Display the Download Custom Rotations status
-        ImGui.TextWrapped($"Download Custom Rotations: {Service.Config.DownloadCustomRotations}");
-        if (ImGui.Button("Enable Downloading Custom Rotations"))
-        {
-            Service.Config.DownloadCustomRotations.Value = true;
-        }
-        ImGui.Spacing();
         // Display the Auto Off Between Area status
         ImGui.TextWrapped($"Auto Off Between Areas: {Service.Config.AutoOffBetweenArea}");
         if (ImGui.Button("Disable Auto Off Between Areas"))
@@ -1315,17 +1337,16 @@ public partial class RotationConfigWindow : Window
         // Create a new list of AutoDutyPlugin objects
         List<AutoDutyPlugin> pluginsToCheck =
         [
-        new AutoDutyPlugin { Name = "AutoDuty", Url = "https://puni.sh/api/repository/herc" },
-        new AutoDutyPlugin { Name = "vnavmesh", Url = "https://puni.sh/api/repository/veyn" },
-        new AutoDutyPlugin { Name = "BossModReborn", Url = "https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json" },
-        new AutoDutyPlugin { Name = "Boss Mod", Url = "https://puni.sh/api/repository/veyn" },
-        new AutoDutyPlugin { Name = "Avarice", Url = "https://love.puni.sh/ment.json" },
-        new AutoDutyPlugin { Name = "AutoRetainer", Url = "https://love.puni.sh/ment.json" },
-        new AutoDutyPlugin { Name = "SkipCutscene", Url = "https://raw.githubusercontent.com/KangasZ/DalamudPluginRepository/main/plugin_repository.json" },
-        new AutoDutyPlugin { Name = "AntiAfkKick", Url = "https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json" },
-        new AutoDutyPlugin { Name = "Gearsetter", Url = "https://plugins.carvel.li/" },
-        // Add more plugins as needed
-    ];
+            new AutoDutyPlugin { Name = "AutoDuty", Url = "https://puni.sh/api/repository/herc" },
+            new AutoDutyPlugin { Name = "vnavmesh", Url = "https://puni.sh/api/repository/veyn" },
+            new AutoDutyPlugin { Name = "BossModReborn", Url = "https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json" },
+            new AutoDutyPlugin { Name = "Boss Mod", Url = "https://puni.sh/api/repository/veyn" },
+            new AutoDutyPlugin { Name = "Avarice", Url = "https://love.puni.sh/ment.json" },
+            new AutoDutyPlugin { Name = "AutoRetainer", Url = "https://love.puni.sh/ment.json" },
+            new AutoDutyPlugin { Name = "SkipCutscene", Url = "https://raw.githubusercontent.com/KangasZ/DalamudPluginRepository/main/plugin_repository.json" },
+            new AutoDutyPlugin { Name = "AntiAfkKick", Url = "https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json" },
+            new AutoDutyPlugin { Name = "Gearsetter", Url = "https://plugins.carvel.li/" },
+        ];
 
         // Check if "Boss Mod" and "BossMod Reborn" are enabled
         bool isBossModEnabled = pluginsToCheck.Any(plugin => plugin.Name == "Boss Mod" && plugin.IsEnabled);
@@ -1351,16 +1372,19 @@ public partial class RotationConfigWindow : Window
                     if (ImGui.Button($"Add Plugin##{plugin.Name}"))
                     {
                         PluginLog.Information($"Attempting to add plugin: {plugin.Name} from URL: {plugin.Url}");
-                        Task<bool> success = DalamudReflector.AddPlugin(plugin.Url, plugin.Name);
-                        if (success.Result)
+                        _ = DalamudReflector.AddPlugin(plugin.Url, plugin.Name).ContinueWith(t =>
                         {
-                            PluginLog.Information($"Successfully added plugin: {plugin.Name} from URL: {plugin.Url}");
-                        }
-                        else
-                        {
-                            PluginLog.Error($"Failed to add plugin: {plugin.Name} from URL: {plugin.Url}");
-                        }
-                        DalamudReflector.ReloadPluginMasters();
+                            if (t.IsCompletedSuccessfully && t.Result)
+                            {
+                                PluginLog.Information($"Successfully added plugin: {plugin.Name} from URL: {plugin.Url}");
+                            }
+                            else
+                            {
+                                PluginLog.Error($"Failed to add plugin: {plugin.Name} from URL: {plugin.Url}");
+                            }
+                            // Refresh plugin masters after install
+                            DalamudReflector.ReloadPluginMasters();
+                        });
                     }
                     ImGui.SameLine();
                 }
@@ -1382,13 +1406,13 @@ public partial class RotationConfigWindow : Window
             string text;
             if (plugin.Name == "Boss Mod" && isBossModEnabled && isBossModRebornEnabled)
             {
-                color = ImGuiColors.DalamudYellow; // Display "Boss Mod" in yellow if both are installed
+                color = ImGuiColors.DalamudYellow;
                 text = $"{plugin.Name} is {(isEnabled ? "installed and enabled" : "not enabled")}. Both Boss Mods cannot be installed and enabled at the same time. Please disable Boss Mod.";
             }
             else if (plugin.Name == "Boss Mod" && isBossModEnabled && !isBossModRebornEnabled)
             {
                 color = isEnabled ? ImGuiColors.DalamudYellow : ImGuiColors.DalamudRed;
-                text = $"{plugin.Name} is {(isEnabled ? "installed and enabled" : "not enabled")}. Please use BossModReborn instead, BMR has specific intergration with RSR that improves RSRs ability to react to combat i.e. Gaze effects.";
+                text = $"{plugin.Name} is {(isEnabled ? "installed and enabled" : "not enabled")}. Please use BossModReborn instead, BMR has specific integration with RSR that improves RSRs ability to react to combat i.e. Gaze effects.";
             }
             else if (plugin.Name == "BossModReborn" && isBossModRebornEnabled && !isBossModEnabled)
             {
@@ -1401,7 +1425,6 @@ public partial class RotationConfigWindow : Window
                 text = $"{plugin.Name} is {(isEnabled ? "installed and enabled" : "not enabled")}";
             }
 
-            // Display the result using ImGui with text wrapping
             ImGui.PushStyleColor(ImGuiCol.Text, color);
             ImGui.TextWrapped(text);
             ImGui.PopStyleColor();
@@ -1464,9 +1487,9 @@ public partial class RotationConfigWindow : Window
     private static readonly CollapsingHeaderGroup _rotationHeader = new(new()
     {
         { UiString.ConfigWindow_Rotation_Description.GetDescription, DrawRotationDescription },
-        
+
         { GetRotationStatusHead,  DrawRotationStatus },
-        
+
         { UiString.ConfigWindow_Rotation_Configuration.GetDescription, DrawRotationConfiguration },
     });
 
@@ -1607,6 +1630,72 @@ public partial class RotationConfigWindow : Window
         return result;
     }
 
+    /// <summary>
+    /// Checks if a rotation config should be visible based on parent-child relationships.
+    /// </summary>
+    /// <param name="config">The configuration to check.</param>
+    /// <param name="configSet">The set of all configurations.</param>
+    /// <returns>True if the config should be shown, false otherwise.</returns>
+    private static bool ShouldShowRotationConfig(IRotationConfig config, IRotationConfigSet configSet)
+    {
+        // If config has no parent, always show it
+        if (string.IsNullOrEmpty(config.Parent))
+        {
+            return true;
+        }
+
+        // Find the parent config by name
+        var parentConfig = configSet.Configs.FirstOrDefault(c => c.Name == config.Parent);
+        switch (parentConfig)
+        {
+            case null:
+                // Parent not found, show the config by default
+                return true;
+            // Check if parent is a boolean and is enabled
+            case RotationConfigBoolean parentBool:
+            {
+                if (!bool.TryParse(parentBool.Value, out var isEnabled) || !isEnabled)
+                {
+                    return false;
+                }
+                // If enabled, continue to other checks for ParentValue
+                break;
+            }
+            default:
+            {
+                // Check if this config has a ParentValue property
+                var parentValueProperty = config.GetType().GetProperty("ParentValue");
+                if (parentValueProperty != null)
+                {
+                    // Get the ParentValue from the config instance
+                    var parentValue = parentValueProperty.GetValue(config);
+                    if (parentValue != null)
+                    {
+                        var parentValueStr = parentValue.ToString();
+
+                        // Handle enums by getting just the enum value name if it's a qualified name
+                        if (parentValue.GetType().IsEnum)
+                        {
+                            // For enum values, extract just the enum value name if it's fully qualified
+                            if (parentValueStr != null && parentValueStr.Contains('.'))
+                            {
+                                parentValueStr = parentValueStr.Split('.').Last();
+                            }
+                        }
+
+                        // Compare the parent's current value with the expected parent value
+                        // Both values need to be trimmed and compared case-insensitive
+                        return parentConfig.Value != null &&
+                               parentConfig.Value.Trim().Equals(parentValueStr?.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                break;
+            }
+        }
+        // If we got here and there's no ParentValue check, the config should be shown
+        return true;
+    }
+
     private static void DrawRotationConfiguration()
     {
         ICustomRotation? rotation = DataCenter.CurrentRotation;
@@ -1652,6 +1741,12 @@ public partial class RotationConfigWindow : Window
                 {
                     continue;
                 }
+            }
+
+            // Check parent-child visibility logic
+            if (!ShouldShowRotationConfig(config, set))
+            {
+                continue;
             }
 
             string key = rotation.GetType().FullName ?? rotation.GetType().Name + "." + config.Name;
@@ -1865,113 +1960,110 @@ public partial class RotationConfigWindow : Window
 
         if (Player.AvailableThreadSafe && DataCenter.PartyMembers != null && Player.Object.IsJobs(Job.AST))
         {
+            using ImRaii.IEndObject table = ImRaii.Table("AstCardPriorityTable", 2, ImGuiTableFlags.SizingStretchProp);
+            if (!table)
+                return;
+
+            // Column 1: Spear Card Priority
+            ImGui.TableNextColumn();
+            ImGui.Spacing();
+            ImGui.Text("Spear Card Priority");
+            ImGui.Spacing();
+            //var currentTheSpearPriority = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheSpear, 0, SpecialActionType.None);
+            //ImGui.Text($"Current Target: {currentTheSpearPriority?.Name ?? "None"}");
+            //ImGui.Spacing();
+
+            if (ImGui.Button("Reset to Default##Spear"))
+            {
+                OtherConfiguration.ResetTheSpearPriority();
+            }
             ImGui.Spacing();
 
-            if (ImGui.BeginTable("PriorityTable", 2, ImGuiTableFlags.SizingStretchProp))
+            List<Job> spearPriority = [.. OtherConfiguration.TheSpearPriority];
+            bool spearOrderChanged = false;
+
+            _ = ImGui.BeginChild("TheSpearPriorityList", new Vector2(0, 200 * Scale), true);
+
+            for (int i = 0; i < spearPriority.Count; i++)
             {
-                // The Spear Priority Column
-                _ = ImGui.TableNextColumn();
-                ImGui.Spacing();
-                ImGui.Text("Spear Card Priority");
-                ImGui.Spacing();
-                //var currentTheSpearPriority = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheSpear, 0, SpecialActionType.None);
-                //ImGui.Text($"Current Target: {currentTheSpearPriority?.Name ?? "None"}");
-                //ImGui.Spacing();
+                Job job = spearPriority[i];
+                string jobName = job.ToString();
 
-                if (ImGui.Button("Reset to Default##Spear"))
+                if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowUp, $"##UpSpear{i}") && i > 0)
                 {
-                    OtherConfiguration.ResetTheSpearPriority();
-                }
-                ImGui.Spacing();
-
-                List<Job> spearPriority = [.. OtherConfiguration.TheSpearPriority];
-                bool spearOrderChanged = false;
-
-                _ = ImGui.BeginChild("TheSpearPriorityList", new Vector2(0, 200 * Scale), true);
-
-                for (int i = 0; i < spearPriority.Count; i++)
-                {
-                    Job job = spearPriority[i];
-                    string jobName = job.ToString();
-
-                    if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowUp, $"##UpSpear{i}") && i > 0)
-                    {
-                        (spearPriority[i], spearPriority[i - 1]) = (spearPriority[i - 1], spearPriority[i]);
-                        spearOrderChanged = true;
-                    }
-
-                    ImGui.SameLine();
-
-                    if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowDown, $"##DownSpear{i}") && i < spearPriority.Count - 1)
-                    {
-                        (spearPriority[i], spearPriority[i + 1]) = (spearPriority[i + 1], spearPriority[i]);
-                        spearOrderChanged = true;
-                    }
-
-                    ImGui.SameLine();
-                    ImGui.Text(jobName);
+                    (spearPriority[i], spearPriority[i - 1]) = (spearPriority[i - 1], spearPriority[i]);
+                    spearOrderChanged = true;
                 }
 
-                ImGui.EndChild();
+                ImGui.SameLine();
 
-                if (spearOrderChanged)
+                if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowDown, $"##DownSpear{i}") && i < spearPriority.Count - 1)
                 {
-                    OtherConfiguration.TheSpearPriority = spearPriority;
-                    _ = OtherConfiguration.SaveTheSpearPriority();
+                    (spearPriority[i], spearPriority[i + 1]) = (spearPriority[i + 1], spearPriority[i]);
+                    spearOrderChanged = true;
                 }
 
-                // The Balance Priority Column
-                _ = ImGui.TableNextColumn();
-                ImGui.Spacing();
-                ImGui.Text("Balance Card Priority");
-                ImGui.Spacing();
-                //var currentTheBalancePriority = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheBalance, 0, SpecialActionType.None);
-                //ImGui.Text($"Current Target: {currentTheBalancePriority?.Name ?? "None"}");
-                //ImGui.Spacing();
+                ImGui.SameLine();
+                ImGui.Text(jobName);
+            }
 
-                if (ImGui.Button("Reset to Default##Balance"))
+            ImGui.EndChild();
+
+            if (spearOrderChanged)
+            {
+                OtherConfiguration.TheSpearPriority = spearPriority;
+                _ = OtherConfiguration.SaveTheSpearPriority();
+            }
+
+            // Column 2: Balance Card Priority
+            ImGui.TableNextColumn();
+            ImGui.Spacing();
+            ImGui.Text("Balance Card Priority");
+            ImGui.Spacing();
+            //var currentTheBalancePriority = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheBalance, 0, SpecialActionType.None);
+            //ImGui.Text($"Current Target: {currentTheBalancePriority?.Name ?? "None"}");
+            //ImGui.Spacing();
+
+            if (ImGui.Button("Reset to Default##Balance"))
+            {
+                OtherConfiguration.ResetTheBalancePriority();
+            }
+            ImGui.Spacing();
+
+            List<Job> balancePriority = [.. OtherConfiguration.TheBalancePriority];
+            bool balanceOrderChanged = false;
+
+            _ = ImGui.BeginChild("TheBalancePriorityList", new Vector2(0, 200 * Scale), true);
+
+            for (int i = 0; i < balancePriority.Count; i++)
+            {
+                Job job = balancePriority[i];
+                string jobName = job.ToString();
+
+                if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowUp, $"##UpBalance{i}") && i > 0)
                 {
-                    OtherConfiguration.ResetTheBalancePriority();
-                }
-                ImGui.Spacing();
-
-                List<Job> balancePriority = [.. OtherConfiguration.TheBalancePriority];
-                bool balanceOrderChanged = false;
-
-                _ = ImGui.BeginChild("TheBalancePriorityList", new Vector2(0, 200 * Scale), true);
-
-                for (int i = 0; i < balancePriority.Count; i++)
-                {
-                    Job job = balancePriority[i];
-                    string jobName = job.ToString();
-
-                    if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowUp, $"##UpBalance{i}") && i > 0)
-                    {
-                        (balancePriority[i], balancePriority[i - 1]) = (balancePriority[i - 1], balancePriority[i]);
-                        balanceOrderChanged = true;
-                    }
-
-                    ImGui.SameLine();
-
-                    if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowDown, $"##DownBalance{i}") && i < balancePriority.Count - 1)
-                    {
-                        (balancePriority[i], balancePriority[i + 1]) = (balancePriority[i + 1], balancePriority[i]);
-                        balanceOrderChanged = true;
-                    }
-
-                    ImGui.SameLine();
-                    ImGui.Text(jobName);
-                }
-
-                ImGui.EndChild();
-
-                if (balanceOrderChanged)
-                {
-                    OtherConfiguration.TheBalancePriority = balancePriority;
-                    _ = OtherConfiguration.SaveTheBalancePriority();
+                    (balancePriority[i], balancePriority[i - 1]) = (balancePriority[i - 1], balancePriority[i]);
+                    balanceOrderChanged = true;
                 }
 
-                ImGui.EndTable();
+                ImGui.SameLine();
+
+                if (ImGuiEx.IconButton(FontAwesomeIcon.ArrowDown, $"##DownBalance{i}") && i < balancePriority.Count - 1)
+                {
+                    (balancePriority[i], balancePriority[i + 1]) = (balancePriority[i + 1], balancePriority[i]);
+                    balanceOrderChanged = true;
+                }
+
+                ImGui.SameLine();
+                ImGui.Text(jobName);
+            }
+
+            ImGui.EndChild();
+
+            if (balanceOrderChanged)
+            {
+                OtherConfiguration.TheBalancePriority = balancePriority;
+                _ = OtherConfiguration.SaveTheBalancePriority();
             }
         }
     }
@@ -2161,7 +2253,7 @@ public partial class RotationConfigWindow : Window
                         ImGui.TextColored(ImGuiColors.DalamudRed, "Target is not a valid BattleChara.");
                         return;
                     }
-                    ImGui.Text($"Can Use: {action.CanUse(out _)} ");
+                    ImGui.Text("Can Use: " + action.CanUse(out _));
                     ImGui.Spacing();
                     ImGui.Text("ID: " + action.Info.ID);
                     ImGui.Text("AdjustedID: " + Service.GetAdjustedActionId(action.Info.ID));

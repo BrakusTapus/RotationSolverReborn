@@ -216,7 +216,7 @@ public sealed class SCH_Reborn : ScholarRotation
         return SeraphTime < 3 && ConsolationPvE.CanUse(out act, usedUp: true) || base.EmergencyAbility(nextGCD, out act);
     }
 
-    [RotationDesc(ActionID.SummonSeraphPvE, ActionID.ConsolationPvE, ActionID.SacredSoilPvE, ActionID.IndomitabilityPvE, ActionID.WhisperingDawnPvE_16537, ActionID.FeyBlessingPvE, ActionID.SeraphismPvE)]
+    [RotationDesc(ActionID.SummonSeraphPvE, ActionID.ConsolationPvE, ActionID.SacredSoilPvE, ActionID.IndomitabilityPvE, ActionID.WhisperingDawnPvE, ActionID.FeyBlessingPvE, ActionID.SeraphismPvE)]
     protected override bool HealAreaAbility(IAction nextGCD, out IAction? act)
     {
         // Always try to use Indomitability if we've just used Recitation and are area healing
@@ -246,7 +246,7 @@ public sealed class SCH_Reborn : ScholarRotation
         }
 
         // Otherwise we use fairy abilities as these are cheaper/better than our aether charges
-        if (WhisperingDawnPvE_16537.CanUse(out act))
+        if (WhisperingDawnPvE.CanUse(out act))
         {
             return true;
         }
@@ -256,7 +256,7 @@ public sealed class SCH_Reborn : ScholarRotation
             return true;
         }
 
-        if (WhisperingDawnPvE_16537.Cooldown.IsCoolingDown && FeyBlessingPvE.Cooldown.IsCoolingDown)
+        if (WhisperingDawnPvE.Cooldown.IsCoolingDown && FeyBlessingPvE.Cooldown.IsCoolingDown)
         {
             if (SummonSeraphPvE.CanUse(out act))
             {
@@ -285,7 +285,7 @@ public sealed class SCH_Reborn : ScholarRotation
         return base.HealAreaAbility(nextGCD, out act);
     }
 
-    [RotationDesc(ActionID.AetherpactPvE, ActionID.ExcogitationPvE, ActionID.LustratePvE, ActionID.SacredSoilPvE, ActionID.WhisperingDawnPvE_16537, ActionID.FeyBlessingPvE)]
+    [RotationDesc(ActionID.AetherpactPvE, ActionID.ExcogitationPvE, ActionID.LustratePvE, ActionID.SacredSoilPvE, ActionID.WhisperingDawnPvE, ActionID.FeyBlessingPvE)]
     protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
     {
         bool haveLinkDRK = false;
@@ -356,7 +356,7 @@ public sealed class SCH_Reborn : ScholarRotation
         }
 
         // Use aoe faerie abilities even for single target to avoid GCD heals
-        if (WhisperingDawnPvE_16537.CanUse(out act))
+        if (WhisperingDawnPvE.CanUse(out act))
         {
             return true;
         }
@@ -411,7 +411,7 @@ public sealed class SCH_Reborn : ScholarRotation
             return true;
         }
 
-        if (WhisperingDawnPvE_16537.Cooldown.IsCoolingDown && FeyBlessingPvE.Cooldown.IsCoolingDown)
+        if (WhisperingDawnPvE.Cooldown.IsCoolingDown && FeyBlessingPvE.Cooldown.IsCoolingDown)
         {
             if (SummonSeraphPvE.CanUse(out act))
             {
@@ -420,7 +420,7 @@ public sealed class SCH_Reborn : ScholarRotation
         }
 
         // It's better than nothing for an oGCD, and at level 40 is the only thing we've got
-        if (FeyIlluminationPvE_16538.CanUse(out act))
+        if (FeyIlluminationPvE.CanUse(out act))
         {
             return true;
         }
@@ -484,7 +484,7 @@ public sealed class SCH_Reborn : ScholarRotation
 
             // We could likely make better decisions for both this and energy drain if JobGauge.Aetherflow was available
             if (!HasAetherflow && AetherflowPvE.Cooldown.IsCoolingDown && // No Aether and aetherflow is on cooldown
-                ((SummonSeraphPvE.Cooldown.IsCoolingDown && SeraphTime <= 0 && WhisperingDawnPvE_16537.Cooldown.IsCoolingDown && FeyBlessingPvE.Cooldown.IsCoolingDown) // And all our fairy abilities on are cooldown
+                ((SummonSeraphPvE.Cooldown.IsCoolingDown && SeraphTime <= 0 && WhisperingDawnPvE.Cooldown.IsCoolingDown && FeyBlessingPvE.Cooldown.IsCoolingDown) // And all our fairy abilities on are cooldown
                 || (Target.IsBossFromTTK() && Target.IsDying()) // Or the boss is dying and we can snag some aether to carry forward
                 || (ShouldDissipate && Target.HasStatus(true, StatusID.ChainStratagem))) // Or we've marked dissipation as part of our burst phase and we're in 2 minute cycle
                 && DissipationPvE.CanUse(out act))

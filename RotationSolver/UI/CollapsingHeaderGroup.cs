@@ -32,7 +32,7 @@ internal class CollapsingHeaderGroup(Dictionary<Func<string>, Action> headers)
     }
 
     public void Draw()
-    {
+    {      
         int index = -1;
         foreach (KeyValuePair<Func<string>, Action> header in _headers)
         {

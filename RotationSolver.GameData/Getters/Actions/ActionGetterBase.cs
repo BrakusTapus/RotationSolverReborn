@@ -40,15 +40,17 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData) : ExcelRowGet
     protected override bool AddToList(Action item)
     {
         if (item.RowId is 3 or 120) return true; // Sprint and cure.
+        if (item.RowId is 16538 or 16537) return true;
         if (item.ClassJobCategory.RowId == 0) return false;
 
         var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
         if (!name.All(char.IsAscii)) return false;
-        if (item.Icon is 0 or 405) return false;
+        if (item.Icon is 0 or 405 or 784) return false;
 
         if (item.ActionCategory.RowId is 6 or 7 or 8 or 12 or > 14 or 9) return false;
 
+        if (item.CooldownGroup == 0 && item.AdditionalCooldownGroup == 0 && item.ClassJobCategory.RowId == 29) return false;
         if (!item.ClassJobCategory.IsValid) return false;
         var category = item.ClassJobCategory.Value;
 

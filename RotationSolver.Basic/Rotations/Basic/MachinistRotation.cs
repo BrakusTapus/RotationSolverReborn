@@ -517,13 +517,5 @@ public partial class MachinistRotation
             IsEnabled = false,
         };
     }
-
-    static partial void ModifyHeatBlastPvP(ref ActionSetting setting)
-    {
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            IsEnabled = false,
-        };
-    }
     #endregion
 }

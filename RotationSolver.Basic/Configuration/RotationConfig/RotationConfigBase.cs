@@ -39,6 +39,16 @@ internal abstract class RotationConfigBase : IRotationConfig
     public PhantomJob PhantomJob { get; }
 
     /// <summary>
+    /// Gets the parent of this configuration.
+    /// </summary>
+    public string Parent { get; }
+
+    /// <summary>
+    /// Gets the parent value of this configuration.
+    /// </summary>
+    public object? ParentValue { get; private set; }
+
+    /// <summary>
     /// Gets or sets the value of the configuration.
     /// </summary>
     public string Value
@@ -68,16 +78,33 @@ internal abstract class RotationConfigBase : IRotationConfig
 
         Name = property.Name;
         DefaultValue = property.GetValue(rotation)?.ToString() ?? string.Empty;
-        RotationConfigAttribute? attr = property.GetCustomAttribute<RotationConfigAttribute>();
+        var attr = property.GetCustomAttribute<RotationConfigAttribute>();
         if (attr != null)
         {
             DisplayName = attr.Name;
             Type = attr.Type;
+            Parent = attr.Parent;
+
+            // Use ParentValue from the attribute if specified
+            if (attr.ParentValue != null)
+            {
+                ParentValue = attr.ParentValue;
+            }
+            // Otherwise, get the actual value from the parent property
+            else if (!string.IsNullOrEmpty(Parent))
+            {
+                PropertyInfo? parentProperty = rotation.GetType().GetProperty(Parent);
+                if (parentProperty != null)
+                {
+                    ParentValue = parentProperty.GetValue(rotation);
+                }
+            }
         }
         else
         {
             DisplayName = Name;
             Type = CombatType.None;
+            Parent = string.Empty;
         }
 
         // Set up initial value
@@ -105,12 +132,28 @@ internal abstract class RotationConfigBase : IRotationConfig
             DisplayName = attr.Name;
             Type = attr.Type;
             PhantomJob = attr.PhantomJob;
+            Parent = attr.Parent;
 
+            // Use ParentValue from the attribute if specified
+            if (attr.ParentValue != null)
+            {
+                ParentValue = attr.ParentValue;
+            }
+            // Otherwise, get the actual value from the parent property
+            else if (!string.IsNullOrEmpty(Parent))
+            {
+                PropertyInfo? parentProperty = rotation.GetType().GetProperty(Parent);
+                if (parentProperty != null)
+                {
+                    ParentValue = parentProperty.GetValue(rotation);
+                }
+            }
         }
         else
         {
             DisplayName = Name;
             Type = CombatType.None;
+            Parent = string.Empty;
         }
 
         // Set up initial value

@@ -26,6 +26,11 @@ public interface IRotationConfig
     CombatType Type { get; }
 
     /// <summary>
+    /// Gets the parent of this configuration for hierarchical display.
+    /// </summary>
+    string Parent { get; }
+
+    /// <summary>
     /// Gets or sets the current value of this configuration.
     /// </summary>
     string Value { get; set; }

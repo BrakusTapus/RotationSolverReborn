@@ -1,7 +1,8 @@
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ECommons.GameHelpers;
 using RotationSolver.ActionTimeline;
-using Dalamud.Interface.Textures.TextureWraps;
 using RotationSolver.Data;
 
 namespace RotationSolver.UI;
@@ -69,7 +70,22 @@ internal class ActionTimelineWindow : Window
             return;
         }
 
-
+        using ImRaii.Style selectableAlign = ImRaii.PushStyle(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
+        using var framePad = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(4, 3));
+        using var childWinPad = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(12, 12));
+        using var frameCellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(4, 2));
+        using var frameItemSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(8, 4));
+        using var frameItemInnerSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemInnerSpacing, new Vector2(4, 4));
+        using var frameIndentSpacing = ImRaii.PushStyle(ImGuiStyleVar.IndentSpacing, 21f);
+        using var frameScrollbarSize = ImRaii.PushStyle(ImGuiStyleVar.ScrollbarSize, 16f);
+        using var frameGrabMinSize = ImRaii.PushStyle(ImGuiStyleVar.GrabMinSize, 13f);
+        using var frameWindowRounding = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding, 11f);
+        using var frameChildRounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 11f);
+        using var frameFrameRounding = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 11f);
+        using var framePopupRounding = ImRaii.PushStyle(ImGuiStyleVar.PopupRounding, 11f);
+        using var frameScrollbarRounding = ImRaii.PushStyle(ImGuiStyleVar.ScrollbarRounding, 11f);
+        using var frameGrabRounding = ImRaii.PushStyle(ImGuiStyleVar.GrabRounding, 11f);
+        using var frameTabRounding = ImRaii.PushStyle(ImGuiStyleVar.TabRounding, 11f);
         var pos = ImGui.GetWindowPos();
         var size = ImGui.GetWindowSize();
         var now = DateTime.Now;

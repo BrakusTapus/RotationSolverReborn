@@ -261,13 +261,8 @@ internal static class RotationUpdater
             string key = string.Empty;
             if (a is IBaseAction act)
             {
-                // Filter out dead actions
-                if (act.IconID == 784)
-                {
-                    continue;
-                }
                 // Filter out special actions, usually related to duty specifc mechanics but not duty actions
-                else if (act.Info.IsSpecialAction)
+                if (act.Info.IsSpecialAction)
                 {
                     continue;
                 }

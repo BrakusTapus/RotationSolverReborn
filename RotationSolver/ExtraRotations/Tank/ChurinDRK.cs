@@ -46,34 +46,49 @@ public sealed class ChurinDRK : DarkKnightRotation
         [Description("Opener and Six Minutes")] ZeroSix,
         [Description("Two Minutes and Eight Minutes")] TwoEight,
         [Description("Opener, Five Minutes and Ten Minutes")] ZeroFiveTen,
-        [Description("Custom - set values below")] Custom
     }
     private readonly List<(int Time, bool Enabled, bool Used)> _potions = [];
 
     private void InitializePotions()
     {
         _potions.Clear();
-        switch (PotionTiming)
+        switch (PotionTiming, CustomPotionTiming)
         {
-            case PotionTimings.ZeroSix:
+            case (PotionTimings.None, false):
+                break;
+            case (PotionTimings.ZeroSix, false):
                 _potions.Add((0, true, false));
                 _potions.Add((6, true, false));
                 break;
-            case PotionTimings.TwoEight:
+            case (PotionTimings.TwoEight, false):
                 _potions.Add((2, true, false));
                 _potions.Add((8, true, false));
                 break;
-            case PotionTimings.ZeroFiveTen:
+            case (PotionTimings.ZeroFiveTen, false):
                 _potions.Add((0, true, false));
                 _potions.Add((5, true, false));
                 _potions.Add((10, true, false));
                 break;
-            case PotionTimings.Custom:
-                if (CustomEnableFirstPotion) _potions.Add((CustomFirstPotionTime, true, false));
-                if (CustomEnableSecondPotion) _potions.Add((CustomSecondPotionTime, true, false));
-                if (CustomEnableThirdPotion) _potions.Add((CustomThirdPotionTime, true, false));
-                break;
         }
+
+        if (CustomPotionTiming)
+        {
+            if (CustomEnableFirstPotion)
+            {
+                _potions.Add((CustomFirstPotionTime, true, false));
+            }
+
+            if (CustomEnableSecondPotion)
+            {
+                _potions.Add((CustomSecondPotionTime, true, false));
+            }
+
+            if (CustomEnableThirdPotion)
+            {
+                _potions.Add((CustomThirdPotionTime, true, false));
+            }
+        }
+
     }
 
 
@@ -99,25 +114,32 @@ public sealed class ChurinDRK : DarkKnightRotation
     [RotationConfig(CombatType.PvE, Name = "Potion Presets")]
     private PotionTimings PotionTiming { get; set; } = PotionTimings.None;
 
-    [RotationConfig(CombatType.PvE, Name = "Enable First Potion for Custom Potion Timings?")]
-    private bool CustomEnableFirstPotion { get; set; } = true;
+    [Range(0, 20, ConfigUnitType.Seconds, 0.5f)]
+    [RotationConfig(CombatType.PvE, Name = "Use Opener Potion at minus time in seconds")]
+    private float OpenerPotionTime { get; set; } = 1f;
+
+    [RotationConfig(CombatType.PvE, Name = "Use Custom Potion Timing")]
+    private bool CustomPotionTiming { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable First Potion", Parent = nameof(CustomPotionTiming))]
+    private bool CustomEnableFirstPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "First Potion Usage for custom timings - enter time in minutes")]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - First Potion(time in minutes)", Parent = nameof(CustomEnableFirstPotion))]
     private int CustomFirstPotionTime { get; set; } = 0;
 
-    [RotationConfig(CombatType.PvE, Name = "Enable Second Potion for Custom Potion Timings?")]
-    private bool CustomEnableSecondPotion { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Second Potion", Parent = nameof(CustomPotionTiming))]
+    private bool CustomEnableSecondPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Second Potion Usage for custom timings - enter time in minutes")]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Second Potion(time in minutes)", Parent = nameof(CustomEnableSecondPotion))]
     private int CustomSecondPotionTime { get; set; } = 0;
 
-    [RotationConfig(CombatType.PvE, Name = "Enable Third Potion for Custom Potion Timings?")]
-    private bool CustomEnableThirdPotion { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Enable Third Potion", Parent = nameof(CustomPotionTiming))]
+    private bool CustomEnableThirdPotion { get; set; }
 
     [Range(0, 20, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Third Potion Usage for custom timings - enter time in minutes")]
+    [RotationConfig(CombatType.PvE, Name = "Custom Potions - Third Potion(time in minutes)", Parent = nameof(CustomEnableThirdPotion))]
     private int CustomThirdPotionTime { get; set; } = 0;
 
     #endregion
