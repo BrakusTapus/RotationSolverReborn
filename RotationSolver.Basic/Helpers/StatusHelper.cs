@@ -112,7 +112,8 @@ public static class StatusHelper
     [
         StatusID.Swiftcast,
         StatusID.Triplecast,
-        StatusID.Dualcast
+        StatusID.Dualcast,
+        StatusID.OccultQuick
     ];
 
     /// <summary>

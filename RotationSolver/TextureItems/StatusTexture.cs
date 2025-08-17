@@ -2,14 +2,9 @@
 
 namespace RotationSolver.TextureItems;
 
-internal class StatusTexture : ITexture
+internal class StatusTexture(Status status) : ITexture
 {
-    private readonly Status _status;
-
-    public StatusTexture(Status status)
-    {
-        _status = status;
-    }
+    private readonly Status _status = status;
 
     /// <summary>
     /// Gets the icon ID associated with the texture.
@@ -32,9 +27,14 @@ internal class StatusTexture : ITexture
     public string Description => _status.Description.ExtractText() ?? string.Empty;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the texture is enabled.
+    /// Gets or sets a value indicating whether the texture is enabled. IsIntercepted
     /// </summary>
     public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool IsIntercepted { get; set; } = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StatusTexture"/> class with the specified status ID.

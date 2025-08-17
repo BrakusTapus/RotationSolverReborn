@@ -32,7 +32,7 @@ public partial class CustomRotation
 
     static partial void ModifySwiftcastPvE(ref ActionSetting setting)
     {
-        // setting.StatusProvide = StatusHelper.SwiftcastStatus;
+        setting.StatusProvide = StatusHelper.SwiftcastStatus;
     }
 
     static partial void ModifyEsunaPvE(ref ActionSetting setting)

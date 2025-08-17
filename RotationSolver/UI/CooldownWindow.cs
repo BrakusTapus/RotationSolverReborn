@@ -30,7 +30,7 @@ internal class CooldownWindow() : CtrlWindow(nameof(CooldownWindow))
             List<IAction> showItems = [];
             foreach (IAction a in pair)
             {
-                if (!a.IsInCooldown)
+                if (!a.IsOnCooldownWindow)
                 {
                     continue;
                 }

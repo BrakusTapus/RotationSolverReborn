@@ -74,7 +74,6 @@ public class BaseItem : IBaseItem
     /// <summary>
     /// Is item enabled.
     /// </summary>
-
     public bool IsEnabled
     {
         get => Config.IsEnabled;
@@ -82,13 +81,21 @@ public class BaseItem : IBaseItem
     }
 
     /// <summary>
+    ///
+    /// </summary>
+    public bool IsIntercepted
+    {
+        get => Config.IsIntercepted;
+        set => Config.IsIntercepted = value;
+    }
+
+    /// <summary>
     /// Is the item in the cd window.
     /// </summary>
-
-    public bool IsInCooldown
+    public bool IsOnCooldownWindow
     {
-        get => Config.IsInCooldown;
-        set => Config.IsInCooldown = value;
+        get => Config.IsOnCooldownWindow;
+        set => Config.IsOnCooldownWindow = value;
     }
 
     /// <summary>

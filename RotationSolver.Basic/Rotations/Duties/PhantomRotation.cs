@@ -370,7 +370,7 @@ public partial class DutyRotation
     {
         setting.ActionCheck = () => TimeMageLevel >= 5;
         setting.TargetType = TargetType.Self;
-        setting.StatusProvide = [StatusID.OccultQuick, StatusID.OccultSwift];
+        setting.StatusProvide = StatusHelper.SwiftcastStatus;
     }
     #endregion
 

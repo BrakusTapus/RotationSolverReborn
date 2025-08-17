@@ -23,7 +23,7 @@ public interface IAction : ITexture, IEnoughLevel
     /// <summary>
     /// Gets or sets a value indicating whether this action is in the cooldown UI window.
     /// </summary>
-    bool IsInCooldown { get; set; }
+    bool IsOnCooldownWindow { get; set; }
 
     /// <summary>
     /// Gets the cooldown information for this action.

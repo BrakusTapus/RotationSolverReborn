@@ -8,10 +8,15 @@ public class ItemConfig
     /// <summary>
     /// Is in the cooldown window.
     /// </summary>
-    public bool IsInCooldown { get; set; }
+    public bool IsOnCooldownWindow { get; set; }
 
     /// <summary>
     /// Is this action enabled.
     /// </summary>
     public bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool IsIntercepted { get; set; }
 }

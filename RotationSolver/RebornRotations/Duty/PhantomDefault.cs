@@ -604,7 +604,7 @@ public sealed class PhantomDefault : PhantomRotation
             }
         }
 
-        if (InCombat && OccultQuickPvE.CanUse(out act))
+        if (InCombat && OccultQuickPvE.CanUse(out act) && !Player.HasStatus(true, StatusID.Manafication) && !Player.HasStatus(true, StatusID.Embolden) && !Player.HasStatus(true, StatusID.MagickedSwordplay) && !Player.HasStatus(true, StatusID.GrandImpactReady))
         {
             return true;
         }
@@ -694,11 +694,19 @@ public sealed class PhantomDefault : PhantomRotation
 
         if (OccultCometPvE.CanUse(out act)) // Adding this to general swiftcast check is slightly more expensive for the many operations it will never be valid in
         {
-            if (!IsRDM && !IsPLD && !IsBLM)
+            if (IsBLM && HasSwift)
             {
                 return true;
             }
-            if (((IsRDM || IsBLM) && HasSwift) || (IsPLD && Player.HasStatus(true, StatusID.Requiescat)))
+            if (IsRDM && HasSwift)
+            {
+                return true;
+            }
+            if (IsPLD && (Player.HasStatus(true, StatusID.Requiescat) || HasSwift))
+            {
+                return true;
+            }
+            if (!IsRDM && !IsPLD && !IsBLM)
             {
                 return true;
             }

@@ -74,10 +74,17 @@ public class BaseAction : IBaseAction
     }
 
     /// <inheritdoc/>
-    public bool IsInCooldown
+    public bool IsIntercepted
     {
-        get => Config.IsInCooldown;
-        set => Config.IsInCooldown = value;
+        get => Config.IsIntercepted;
+        set => Config.IsIntercepted = value;
+    }
+
+    /// <inheritdoc/>
+    public bool IsOnCooldownWindow
+    {
+        get => Config.IsOnCooldownWindow;
+        set => Config.IsOnCooldownWindow = value;
     }
 
     /// <inheritdoc/>

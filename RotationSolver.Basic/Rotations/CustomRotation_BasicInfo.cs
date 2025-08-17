@@ -1,7 +1,6 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using Lumina.Excel.Sheets;
-using static FFXIVClientStructs.FFXIV.Client.UI.Agent.HudStatus;
 
 namespace RotationSolver.Basic.Rotations;
 
@@ -51,6 +50,9 @@ public partial class CustomRotation : ICustomRotation
     {
         get => !Service.Config.DisabledJobs.Contains(Job); set => _ = value ? Service.Config.DisabledJobs.Remove(Job) : Service.Config.DisabledJobs.Add(Job);
     }
+
+    /// <inheritdoc/>
+    public bool IsIntercepted { get; set; }
 
     /// <inheritdoc/>
     public uint IconID { get; }

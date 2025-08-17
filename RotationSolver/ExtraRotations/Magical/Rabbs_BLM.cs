@@ -792,7 +792,7 @@ public sealed class Rabbs_BLM : BlackMageRotation
                         if (DespairPvE.CanUse(out act)) return true;
                     }
 
-                    if (ManafontPvE.IsInCooldown && ManafontPvE.Cooldown.RecastTimeElapsed > 6 && AstralSoulStacks == 4)
+                    if (ManafontPvE.Cooldown.IsCoolingDown && ManafontPvE.Cooldown.RecastTimeElapsed > 6 && AstralSoulStacks == 4)
                     {
                         if (ParadoxPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
                         if (AltFlareOpenerPvE.CanUse(out act, skipAoeCheck: true)) return true;

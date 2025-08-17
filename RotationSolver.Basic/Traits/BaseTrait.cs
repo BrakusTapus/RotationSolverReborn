@@ -34,11 +34,16 @@ public class BaseTrait : IBaseTrait
     /// Gets the description of this trait.
     /// </summary>
     public string Description => Name;
-
+    
     /// <summary>
     /// Gets or sets a value indicating whether this trait is enabled.
     /// </summary>
     public bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool IsIntercepted { get; set; }
 
     /// <summary>
     /// Gets the ID of this trait.

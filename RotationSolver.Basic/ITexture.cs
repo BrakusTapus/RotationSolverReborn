@@ -27,4 +27,9 @@ public interface ITexture
     /// Enable or disable the usage of a skill. Turning this option off prevents RSR from using it completely.
     /// </markdown>
     bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    bool IsIntercepted { get; set; }
 }

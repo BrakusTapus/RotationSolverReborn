@@ -124,22 +124,25 @@ namespace RotationSolver.Data
         [Description("Show on CD window")]
         ConfigWindow_Actions_ShowOnCDWindow,
 
+        [Description("Allow action to be intercepted by the intercept system")]
+        ConfigWindow_Actions_IsIntercepted,
+
         [Description("Time-to-kill threshold required for this action to be used")]
         ConfigWindow_Actions_TTK,
 
         [Description("Number of targets needed to use this action")]
         ConfigWindow_Actions_AoeCount,
 
-        [Description("Should this action check status effects")]
+        [Description("Should this action check needed status effects")]
         ConfigWindow_Actions_CheckStatus,
 
-        [Description("Should this action check targets status effects")]
+        [Description("Should this action check targets needed status effects")]
         ConfigWindow_Actions_CheckTargetStatus,
 
-        [Description("Number of GCDs before the DoT is reapplied")]
+        [Description("Number of GCDs before the DOT/Status effect is reapplied")]
         ConfigWindow_Actions_GcdCount,
 
-        [Description("HP ratio for automatic healing")]
+        [Description("HP ratio for automatic healing (only applies to healing actions)")]
         ConfigWindow_Actions_HealRatio,
 
         [Description("Forced Conditions have higher priority. If Forced Conditions are met, Disabled Conditions will be ignored.")]

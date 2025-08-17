@@ -16,6 +16,17 @@ public class ActionConfig()
         set => _isEnable = value;
     }
 
+    private bool _isIntercepted = true;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool IsIntercepted
+    {
+        get => _isIntercepted;
+        set => _isIntercepted = value;
+    }
+
     /// <summary>
     /// Should check the status for this action.
     /// </summary>
@@ -81,5 +92,5 @@ public class ActionConfig()
     /// <summary>
     /// Is this action in the cd window.
     /// </summary>
-    public bool IsInCooldown { get; set; } = true;
+    public bool IsOnCooldownWindow { get; set; } = true;
 }

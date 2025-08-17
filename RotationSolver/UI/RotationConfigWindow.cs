@@ -2154,10 +2154,10 @@ public partial class RotationConfigWindow : Window
                 return;
             }
 
-            bool enable = _activeAction.IsEnabled;
-            if (ImGui.Checkbox($"{_activeAction.Name}##{_activeAction.Name} Enabled", ref enable))
+            bool isEnabled = _activeAction.IsEnabled;
+            if (ImGui.Checkbox($"{_activeAction.Name}##{_activeAction.Name} Enabled", ref isEnabled))
             {
-                _activeAction.IsEnabled = enable;
+                _activeAction.IsEnabled = isEnabled;
             }
 
             const string key = "Action Enable Popup";
@@ -2165,10 +2165,16 @@ public partial class RotationConfigWindow : Window
             ImGuiHelper.DrawHotKeysPopup(key, cmd);
             ImGuiHelper.ExecuteHotKeysPopup(key, cmd, string.Empty, false);
 
-            enable = _activeAction.IsInCooldown;
-            if (ImGui.Checkbox($"{UiString.ConfigWindow_Actions_ShowOnCDWindow.GetDescription()}##{_activeAction.Name}InCooldown", ref enable))
+            bool isIntercepted = _activeAction.IsIntercepted;
+            if (ImGui.Checkbox($"{UiString.ConfigWindow_Actions_IsIntercepted.GetDescription()}##{_activeAction.Name}", ref isIntercepted))
             {
-                _activeAction.IsInCooldown = enable;
+                _activeAction.IsIntercepted = isIntercepted;
+            }
+
+            bool showOnCdWindow = _activeAction.IsOnCooldownWindow;
+            if (ImGui.Checkbox($"{UiString.ConfigWindow_Actions_ShowOnCDWindow.GetDescription()}##{_activeAction.Name}InCooldown", ref showOnCdWindow))
+            {
+                _activeAction.IsOnCooldownWindow = showOnCdWindow;
             }
 
             if (_activeAction is IBaseAction a)

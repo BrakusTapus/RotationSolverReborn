@@ -284,12 +284,6 @@ public readonly struct ActionBasicInfo
         if (!Player.Object.WillStatusEnd(0, true, StatusHelper.SwiftcastStatus))
             return false;
 
-        if (!Player.Object.WillStatusEnd(0, false, StatusID.OccultQuick))
-            return false;
-
-        if (!Player.Object.WillStatusEnd(0, true, StatusID.OccultQuick))
-            return false;
-
         // Must not be in the no-cast list
         if (ActionsNoNeedCasting.Contains(ID))
             return false;

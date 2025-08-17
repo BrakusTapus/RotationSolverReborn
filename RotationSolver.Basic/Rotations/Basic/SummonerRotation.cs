@@ -335,7 +335,34 @@ public partial class SummonerRotation
 
     static partial void ModifyGemshinePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.GemshinePvE.GetCastTime());
+        
+    }
+
+    static partial void ModifyRubyRuinPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyRuinPvE.GetCastTime()) && InIfrit;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyEmeraldRuinPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.EmeraldRuinPvE.GetCastTime()) && InGaruda;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyTopazRuinPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.TopazRuinPvE.GetCastTime()) && InTitan;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifyFesterPvE(ref ActionSetting setting)
@@ -374,9 +401,31 @@ public partial class SummonerRotation
         };
     }
 
-    static partial void ModifyPreciousBrilliancePvE(ref ActionSetting setting)
+    static partial void ModifyRubyOutburstPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.PreciousBrilliancePvE.GetCastTime());
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyOutburstPvE.GetCastTime()) && InIfrit;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyEmeraldOutburstPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.EmeraldOutburstPvE.GetCastTime()) && InGaruda;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyTopazOutburstPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.TopazOutburstPvE.GetCastTime()) && InTitan;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifyRuinIiPvE(ref ActionSetting setting)

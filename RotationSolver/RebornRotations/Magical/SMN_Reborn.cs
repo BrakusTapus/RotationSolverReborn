@@ -33,6 +33,15 @@ public sealed class SMN_Reborn : SummonerRotation
     [RotationConfig(CombatType.PvE, Name = "Use Crimson Cyclone when moving")]
     public bool AddCrimsonCycloneMoving { get; set; } = false;
 
+    [RotationConfig(CombatType.PvE, Name = "Use Swiftcast on ressurection")]
+    public bool AddSwiftcastOnRaise { get; set; } = true;
+
+    [RotationConfig(CombatType.PvE, Name = "Use Swiftcast on Ruby Ruin when not enough level for Ruby Rite")]
+    public bool AddSwiftcastOnLowST { get; set; } = true;
+
+    [RotationConfig(CombatType.PvE, Name = "Use Swiftcast on Ruby Outburst when not enough level for Ruby Rite")]
+    public bool AddSwiftcastOnLowAOE { get; set; } = true;
+
     [RotationConfig(CombatType.PvE, Name = "Use Swiftcast on Garuda")]
     public bool AddSwiftcastOnGaruda { get; set; } = false;
 
@@ -297,17 +306,25 @@ public sealed class SMN_Reborn : SummonerRotation
 
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
-        if (AddSwiftcastOnGaruda && nextGCD.IsTheSameTo(false, SlipstreamPvE) && ElementalMasteryTrait.EnoughLevel && !InBahamut && !InPhoenix && !InSolarBahamut)
+        if (SwiftcastPvE.CanUse(out act))
         {
-            if (SwiftcastPvE.CanUse(out act))
+            if (AddSwiftcastOnRaise && nextGCD.IsTheSameTo(false, ResurrectionPvE))
             {
                 return true;
             }
-        }
-
-        if (AddSwiftcastOnRuby && nextGCD.IsTheSameTo(false, RubyRitePvE) && !ElementalMasteryTrait.EnoughLevel)
-        {
-            if (SwiftcastPvE.CanUse(out act))
+            if (AddSwiftcastOnLowST && !RubyRitePvE.EnoughLevel && nextGCD.IsTheSameTo(false, RubyRuinPvE, RubyRuinIiPvE, RubyRuinIiiPvE))
+            {
+                return true;
+            }
+            if (AddSwiftcastOnLowAOE && !RubyRitePvE.EnoughLevel && nextGCD.IsTheSameTo(false, RubyOutburstPvE))
+            {
+                return true;
+            }
+            if (AddSwiftcastOnRuby && nextGCD.IsTheSameTo(false, RubyRitePvE) && !ElementalMasteryTrait.EnoughLevel)
+            {
+                return true;
+            }
+            if (AddSwiftcastOnGaruda && nextGCD.IsTheSameTo(false, SlipstreamPvE) && ElementalMasteryTrait.EnoughLevel && !InBahamut && !InPhoenix && !InSolarBahamut)
             {
                 return true;
             }
@@ -371,12 +388,28 @@ public sealed class SMN_Reborn : SummonerRotation
             return true;
         }
 
-        if (PreciousBrilliancePvE.CanUse(out act))
+        if (RubyOutburstPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldOutburstPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazOutburstPvE.CanUse(out act))
         {
             return true;
         }
 
-        if (GemshinePvE.CanUse(out act))
+        if (RubyRuinPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldRuinPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazRuinPvE.CanUse(out act))
         {
             return true;
         }

@@ -105,10 +105,17 @@ namespace RotationSolver.Updaters
 
                             PluginLog.Debug($"[ActionQueueManager] Matching action decided: (ID: {matchingAction})");
 
-                            if (matchingAction != null && matchingAction.IsEnabled && matchingAction.EnoughLevel && (!matchingAction.Cooldown.IsCoolingDown || Service.Config.InterceptCooldown))
+                            if (matchingAction != null)
                             {
-                                HandleInterceptedAction(matchingAction, actionID);
-                                return false; // Block the original action
+                                if (matchingAction.IsIntercepted)
+                                {
+                                    if (matchingAction.EnoughLevel && (!matchingAction.Cooldown.IsCoolingDown || Service.Config.InterceptCooldown))
+                                    {
+                                        HandleInterceptedAction(matchingAction, actionID);
+                                        return false; // Block the original action
+                                    }
+                                }
+                                PluginLog.Debug($"[ActionQueueManager] Matching action disabled for intercepting: (ID: {matchingAction})");
                             }
                         }
                     }
