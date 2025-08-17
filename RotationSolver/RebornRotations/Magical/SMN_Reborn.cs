@@ -388,30 +388,66 @@ public sealed class SMN_Reborn : SummonerRotation
             return true;
         }
 
-        if (RubyOutburstPvE.CanUse(out act))
+        if (OutburstMasteryIiTrait.EnoughLevel)
         {
-            return true;
+            if (RubyDisasterPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (EmeraldDisasterPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (TopazDisasterPvE.CanUse(out act))
+            {
+                return true;
+            }
         }
-        if (EmeraldOutburstPvE.CanUse(out act))
+        if (!OutburstMasteryIiTrait.EnoughLevel)
         {
-            return true;
-        }
-        if (TopazOutburstPvE.CanUse(out act))
-        {
-            return true;
+            if (RubyOutburstPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (EmeraldOutburstPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (TopazOutburstPvE.CanUse(out act))
+            {
+                return true;
+            }
         }
 
-        if (RubyRuinPvE.CanUse(out act))
+        if (RuinMasteryIiiTrait.EnoughLevel)
         {
-            return true;
+            if (RubyRitePvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (EmeraldRitePvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (TopazRitePvE.CanUse(out act))
+            {
+                return true;
+            }
         }
-        if (EmeraldRuinPvE.CanUse(out act))
+        if (!RuinMasteryIiiTrait.EnoughLevel)
         {
-            return true;
-        }
-        if (TopazRuinPvE.CanUse(out act))
-        {
-            return true;
+            if (RubyRuinPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (EmeraldRuinPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (TopazRuinPvE.CanUse(out act))
+            {
+                return true;
+            }
         }
 
         if ((!IsMoving || AddCrimsonCycloneMoving) && CrimsonCyclonePvE.CanUse(out act) && (AddCrimsonCyclone || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance))

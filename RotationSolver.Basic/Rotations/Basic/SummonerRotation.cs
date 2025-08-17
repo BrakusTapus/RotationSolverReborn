@@ -591,17 +591,17 @@ public partial class SummonerRotation
 
     static partial void ModifyRubyRitePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => RubyRitePvEReady;
+        setting.ActionCheck = () => RubyRitePvEReady && RuinMasteryIiiTrait.EnoughLevel;
     }
 
     static partial void ModifyTopazRitePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => TopazRitePvEReady;
+        setting.ActionCheck = () => TopazRitePvEReady && RuinMasteryIiiTrait.EnoughLevel;
     }
 
     static partial void ModifyEmeraldRitePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => EmeraldRitePvEReady;
+        setting.ActionCheck = () => EmeraldRitePvEReady && RuinMasteryIiiTrait.EnoughLevel;
     }
 
     static partial void ModifySummonPhoenixPvE(ref ActionSetting setting)
@@ -652,17 +652,17 @@ public partial class SummonerRotation
 
     static partial void ModifyRubyCatastrophePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => RubyCatastrophePvEReady;
+        setting.ActionCheck = () => RubyCatastrophePvEReady && OutburstMasteryIiTrait.EnoughLevel;
     }
 
     static partial void ModifyTopazCatastrophePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => TopazCatastrophePvEReady;
+        setting.ActionCheck = () => TopazCatastrophePvEReady && OutburstMasteryIiTrait.EnoughLevel;
     }
 
     static partial void ModifyEmeraldCatastrophePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => EmeraldCatastrophePvEReady;
+        setting.ActionCheck = () => EmeraldCatastrophePvEReady && OutburstMasteryIiTrait.EnoughLevel;
     }
 
     static partial void ModifyCrimsonCyclonePvE(ref ActionSetting setting)
