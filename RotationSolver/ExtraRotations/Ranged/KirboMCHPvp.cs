@@ -102,14 +102,6 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     [RotationConfig(CombatType.PvP, Name = "LB method picker")]
     private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
-
-    /* TODO obsolete if lbmethodpicker works as intended
-    [RotationConfig(CombatType.PvP, Name = "Enable experimental features.")]
-    private bool ExperimentalFeature { get; set; } = true;
-
-    [RotationConfig(CombatType.PvP, Name = "Enable experimental LB features.")]
-    private bool ExperimentalLBFeature { get; set; } = true;
-    */
     #endregion Rotation Config
 
     #region oGCD Logic
@@ -150,7 +142,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // Analysis should be used on any of the tools depending on which options are enabled
-        if (AnalysisPvP.CanUse(out act, usedUp: true) && NumberOfAllHostilesInRange > 0 && /*!IsPvPOverheated &&*/ !Player.HasStatus(true, StatusID.Analysis) && !IsLastAction(ActionID.AnalysisPvP))
+        if (AnalysisPvP.CanUse(out act, usedUp: true) && NumberOfAllHostilesInRange > 0 && !Player.HasStatus(true, StatusID.Analysis) && !IsLastAction(ActionID.AnalysisPvP))
         {
             if (AnalysisOnDrill && nextGCD.IsTheSameTo(false, ActionID.DrillPvP) && Player.HasStatus(true, StatusID.DrillPrimed))
             {
@@ -171,7 +163,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // wildfire
-        if (/*!IsPvPOverheated &&*/ /*nextGCD != null && */nextGCD.IsTheSameTo(false, FullMetalFieldPvP) && WildfirePvP.CanUse(out act))
+        if (nextGCD.IsTheSameTo(false, FullMetalFieldPvP) && WildfirePvP.CanUse(out act))
         {
             return true;
         }
@@ -230,48 +222,6 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        /* old LB logic
-        if (ExperimentalFeature)
-        {
-            if (ExperimentalLBFeature)
-            {
-                if (UseMCHLBNEW(out act)) // Should be best one to use
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (MarksmansSpitePvP2.CanUse(out act) && CurrentLimitBreakLevel == 1)
-                {
-                    return true;
-                }
-            }
-        }
-        else
-        {
-            //Dalamud.Game.ClientState.Objects.Enums.ObjectKind battleNPC = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc;
-            if (MarksmansSpitePvP2.CanUse(out act) &&
-                CurrentLimitBreakLevel == 1 &&
-                CurrentTarget != null &&
-                //CurrentTarget.ObjectKind != battleNPC &&
-                IsPlayerCharacter(CurrentTarget)
-                //!IsPvPNpc(CurrentTarget.Name.ToString())
-                )
-            {
-                //TODO: instead of checking isjobcategory should use enemy names like "Summoner" or "Paladin" as it will be more acurate
-                if (CurrentTarget.IsJobCategory(JobRole.RangedMagical) && CurrentTarget.CurrentHp >= 10000 && CurrentTarget.CurrentHp <= 32400) return true;
-                else if (CurrentTarget.IsJobCategory(JobRole.Healer) && CurrentTarget.CurrentHp >= 10000 && CurrentTarget.CurrentHp <= 30000) return true;
-                else if (CurrentTarget.IsJobCategory(JobRole.RangedPhysical) && CurrentTarget.CurrentHp >= 10000 && CurrentTarget.CurrentHp <= 32400) return true;
-                else if (CurrentTarget.IsJobCategory(JobRole.Melee) && CurrentTarget.CurrentHp >= 12000 && CurrentTarget.CurrentHp <= 15000) return true;
-                else if (CurrentTarget.IsJobCategory(JobRole.Tank) && CurrentTarget.CurrentHp >= 12000 && CurrentTarget.CurrentHp <= 15000) return true;
-                else if (PvPTargetHasWildfire && PvPTargetWildfireStatusTime <= 2f && CurrentTarget.CurrentHp >= 12000 && CurrentTarget.CurrentHp <= 35000) return true;
-                else if (CurrentTarget.HasStatus(true, StatusID.ChainSaw) && CurrentTarget.CurrentHp >= 12000 && CurrentTarget.CurrentHp <= 40000) return true;
-
-            }
-        }
-        */
-
         // New LB logic
         if (TryUseLB(out act))
         {
@@ -286,13 +236,13 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // FullMetalField
-        if (/*IsPvPOverheated && */FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
+        if (FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
         {
             return true;
         }
 
         // Uses BioBlaster automatically when a Target is in range
-        if (!IsPvPOverheated && BioblasterPvP.CanUse(out act, usedUp: true, skipAoeCheck: true) /*&& CurrentTarget != null*/ && Player.HasStatus(true, StatusID.BioblasterPrimed) /*&& CurrentTarget.DistanceToPlayer() <= 12*/)
+        if (!IsPvPOverheated && BioblasterPvP.CanUse(out act, usedUp: true, skipAoeCheck: true) && Player.HasStatus(true, StatusID.BioblasterPrimed))
         {
             return true;
         }
@@ -300,20 +250,20 @@ public sealed class KirboMCHPvp : MachinistRotation
         // BlazingShot
         if (BlazingShotPvP.CanUse(out act))
         {
-            if (Player.HasStatus(true, StatusID.Overheated_3149) /*&& !Player.HasStatus(true, StatusID.Analysis)*/)
+            if (Player.HasStatus(true, StatusID.Overheated_3149))
             {
                 return true;
             }
         }
 
         // FullMetalField
-        if (!IsPvPOverheated &&  /*&& !Player.HasStatus(true, StatusID.Analysis) &&*/ FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
+        if (!IsPvPOverheated && FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
         {
             return true;
         }
 
         // Scattergun is used if Player is not overheated and available
-        if (!IsPvPOverheated && ScattergunPvP.CanUse(out act, usedUp: true, skipAoeCheck: true) /*&& ScattergunPvP.Target.Target.DistanceToPlayer() <= 5*/)
+        if (!IsPvPOverheated && ScattergunPvP.CanUse(out act, usedUp: true, skipAoeCheck: true))
         {
             return true;
         }
@@ -325,7 +275,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // Air Anchor is used if Player is not overheated and available
-        if (!IsPvPOverheated && AirAnchorPvP.CanUse(out act/*, usedUp: true*/) && Player.HasStatus(true, StatusID.AirAnchorPrimed))
+        if (!IsPvPOverheated && AirAnchorPvP.CanUse(out act) && Player.HasStatus(true, StatusID.AirAnchorPrimed))
         {
             return true;
         }
@@ -409,43 +359,6 @@ public sealed class KirboMCHPvp : MachinistRotation
                 return false;
         }
     }
-
-
-    /* TODO no longer in use, can be removed
-    // Tries to use Marksman Spite on a suitable target. (Tries to avoid using if target's HP is very low, but it's not perfect)
-    private bool UseMCHLB(out IAction? action)
-    {
-        // Exit early if LB level is below 1
-        if (CurrentLimitBreakLevel == 0)
-        {
-            action = null;
-            return false;
-        }
-
-        // Get all valid hostile targets
-        List<IBattleChara> validTargets = CustomRotation.AllHostileTargets
-        .Where(obj => obj.CurrentHp >= 15000 && obj.CurrentHp <= 30000 && (obj.IsJobCategory(JobRole.Healer) || obj.IsJobCategory(JobRole.RangedPhysical) || obj.IsJobCategory(JobRole.RangedMagical))) // Valid job categories only
-        //.Where(obj => obj.CurrentHp >= 17000 && obj.CurrentHp <= 30000) // HP range for LB
-        .Where(obj => obj.DistanceToPlayer() <= 50) // Exclude targets beyond 50 yalms
-        //.Where(obj => obj.CurrentMp < 5000) // MP condition (low MP prevents healing)
-        .OrderBy(obj => obj.CurrentHp) // Prioritize lowest HP first for kill confirmation
-        //.ThenBy(obj => obj.CurrentMp) // Prioritize lowest MP next
-        .ToList(); // Convert to a list for iteration
-
-        // If we have a valid target, use Marksman's Spite LB
-        if (validTargets.Count > 0 && MarksmansSpitePvP.CanUse(out action))
-        {
-            foreach (IBattleChara obj in validTargets)
-            {
-                MarksmansSpitePvP.Target = new TargetResult(obj, [obj], obj.Position);
-                return true;
-            }
-            return true;
-        }
-        action = null;
-        return false;
-    }
-    */
 
     // TODO compare with 'UseMCHLB4' to find out which method is better
     private bool UseMCHLBNEW(out IAction? action)
