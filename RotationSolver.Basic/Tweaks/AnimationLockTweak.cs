@@ -20,8 +20,8 @@ public sealed unsafe class AnimationLockTweak
 {
     private float _lastReqInitialAnimLock;
     private uint _lastReqSequence = uint.MaxValue;
-    
-    private static float DelayMax => Service.Config.AnimationLockDelayMax2 * 0.001f;
+
+    private static float DelayMax => Math.Max(Service.Config.AnimationLockDelayMax2, 26) * 0.001f;
     private static readonly float DelaySmoothing = 0.8f; // Exponential smoothing factor
 
     /// <summary>

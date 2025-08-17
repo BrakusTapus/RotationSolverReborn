@@ -693,8 +693,8 @@ internal partial class Configs : IPluginConfiguration
     /// Do NOT use with XivAlexander or NoClippy - this should automatically disable itself if they are detected, but double check first!
     /// </summary>
     [ConditionBool, UI("Remove extra lag-induced animation lock delay from instant casts (read tooltip!)", 
-    Description = "Do NOT use with XivAlexander or NoClippy - this should automatically disable itself if they are detected, but double check first!",
-    Filter = BasicTimer)]
+    Description = "Do NOT use with XivAlexander, BMR tweaks enabled, or NoClippy - this should automatically disable itself if they are detected, but double check first!",
+    Filter = Extra)]
     private static readonly bool _removeAnimationLockDelay = false;
 
     /// <summary>
@@ -705,7 +705,7 @@ internal partial class Configs : IPluginConfiguration
     /// </summary>
     [UI("Animation lock max. simulated delay (read tooltip!)", 
     Description = "Configures the maximum simulated delay in milliseconds when using animation lock removal - this is required and cannot be reduced to zero. Setting this to 20ms will enable triple-weaving when using autorotation. The minimum setting to remove triple-weaving is 26ms. The minimum of 20ms has been accepted by FFLogs and should not cause issues with your logs.",
-    Parent = nameof(RemoveAnimationLockDelay), Filter = BasicTimer)]
+    Parent = nameof(RemoveAnimationLockDelay), Filter = Extra)]
     [Range(26, 50, ConfigUnitType.None, 1f)]
     public int AnimationLockDelayMax2 { get; set; } = 26;
 
@@ -715,7 +715,7 @@ internal partial class Configs : IPluginConfiguration
     /// </summary>
     [ConditionBool, UI("Remove extra framerate-induced cooldown delay", 
     Description = "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations",
-    Filter = BasicTimer)]
+    Filter = Extra)]
     private static readonly bool _removeCooldownDelay = false;
 
     [JobConfig, UI("The HP for using Guard.",
