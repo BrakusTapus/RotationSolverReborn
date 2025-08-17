@@ -1,4 +1,4 @@
-using Dalamud.Game.ClientState.Objects.Enums;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
@@ -77,28 +77,8 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Auto Bishop")]
     private bool AutoBishop { get; set; } = false;
 
-    //[RotationConfig(CombatType.PvP, Name = "Use Purify [Obsolete, Use RSR's Lists feature]")]
-    //public bool UsePurifyPvP { get; set; } = true;
-
-    //[Obsolete("Use RSR's Lists feature")]
-    //private bool DoPurify(out IAction? action)
-    //{
-    //    action = null;
-    //    if (!UsePurifyPvP) return false;
-
-    //    var purifiableStatusesIDs = new List<int>
-    //    {
-    //        // Stun, DeepFreeze, HalfAsleep, Sleep, Bind, Heavy, Silence
-    //        1343, 3219, 3022, 1348, 1345, 1344, 1347
-    //    };
-
-    //    if (purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
-    //    {
-    //        return PurifyPvP.CanUse(out action);
-    //    }
-
-    //    return false;
-    //}
+    [RotationConfig(CombatType.PvP, Name = "Use Purify")]
+    public bool UsePurifyPvP { get; set; } = false;
 
     [RotationConfig(CombatType.PvP, Name = "LB method picker")]
     private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
@@ -114,8 +94,10 @@ public sealed class KirboMCHPvp : MachinistRotation
             return false;
         }
 
-        // Use RSR's Lists feature
-        //if (DoPurify(out act)) return true;
+        if (DoPurify(out act))
+        {
+            return true;
+        }
 
         if (EmergencyHealing && EmergencyLowHP(out act))
         {
@@ -206,6 +188,11 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         if (EmergencyHealing && EmergencyLowHP(out act))
+        {
+            return true;
+        }
+
+        if (DoPurify(out act))
         {
             return true;
         }
@@ -554,6 +541,63 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         return battleChara.GetObjectKind() == ObjectKind.Player;
     }
+
+    private bool DoPurify(out IAction? action)
+    {
+        action = null;
+
+        if (!UsePurifyPvP)
+        {
+            return false;
+        }
+
+        List<int> purifiableStatusesIDs = new()
+        {
+        // Stun, Heavy, Bind, Silence, Deep Freeze, Miracle of Nature
+        1343, 1344, 1345, 1347, 3219, 3085
+        };
+
+        // Bail early if no purifiable status is present
+        if (!purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
+        {
+            return false;
+        }
+
+        // Basic resource info
+        uint currentHP = Player.CurrentHp;
+        uint maxHP = Player.MaxHp;
+        uint currentMP = Player.CurrentMp;
+        uint maxMP = Player.MaxMp;
+
+        const int purifyCost = 2500;
+        const int recuperateCost = 2500;
+
+        // HP % thresholds
+        double hpPercent = (double)currentHP / maxHP;
+
+        // Decision logic:
+        // 1. If HP < 40% and you don’t have enough MP for BOTH Purify + Recuperate → skip Purify, keep MP to heal
+        if (hpPercent < 0.40 && currentMP < recuperateCost * 2)
+        {
+            return false;
+        }
+
+        // 2. If HP is very low (<25%), always prioritize saving for Recuperate
+        if (hpPercent < 0.25 && currentMP < recuperateCost + purifyCost)
+        {
+            return false;
+        }
+
+        // 3. Only use Purify if MP >= Purify cost
+        if (currentMP < purifyCost)
+        {
+            return false;
+        }
+
+        // 4. If all checks pass, we can use Purify
+        return PurifyPvP.CanUse(out action);
+    }
+
     #endregion
 
     #region MCH LB
