@@ -135,7 +135,7 @@ internal static class DataCenter
             }
 
             while (next != null && NextActs.Count > 0 &&
-                   (next.DeadTime < DateTime.Now || IActionHelper.IsLastAction(true, next.Act)))
+                   (next.DeadTime < DateTime.Now || IActionHelper.IsLastAction(false, next.Act)))
             {
                 NextActs.RemoveAt(0);
                 next = NextActs.Count > 0 ? NextActs[0] : null;

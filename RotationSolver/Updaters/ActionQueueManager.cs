@@ -109,7 +109,7 @@ namespace RotationSolver.Updaters
                             {
                                 if (matchingAction.IsIntercepted)
                                 {
-                                    if (matchingAction.EnoughLevel && (!matchingAction.Cooldown.IsCoolingDown || Service.Config.InterceptCooldown))
+                                    if (matchingAction.EnoughLevel && (matchingAction.Cooldown.CurrentCharges > 0 || Service.Config.InterceptCooldown))
                                     {
                                         HandleInterceptedAction(matchingAction, actionID);
                                         return false; // Block the original action

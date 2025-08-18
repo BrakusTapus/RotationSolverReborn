@@ -282,6 +282,22 @@ public sealed class SMN_Reborn : SummonerRotation
             }
         }
 
+        if (NecrotizePvE.CanUse(out act))
+        {
+            if ((inSolarUnique && HasSearingLight) || !SearingLightPvE.EnoughLevel)
+            {
+                return true;
+            }
+            if ((NecrotizePvE.Target.Target.IsBossFromTTK() || NecrotizePvE.Target.Target.IsBossFromIcon()) && NecrotizePvE.Target.Target.IsDying())
+            {
+                return true;
+            }
+            if (EnergyDrainPvE.Cooldown.WillHaveOneChargeGCD(2))
+            {
+                return true;
+            }
+        }
+
         if (FesterPvE.CanUse(out act))
         {
             if ((inSolarUnique && HasSearingLight) || !SearingLightPvE.EnoughLevel)
@@ -289,6 +305,10 @@ public sealed class SMN_Reborn : SummonerRotation
                 return true;
             }
             if ((FesterPvE.Target.Target.IsBossFromTTK() || FesterPvE.Target.Target.IsBossFromIcon()) && FesterPvE.Target.Target.IsDying())
+            {
+                return true;
+            }
+            if (EnergyDrainPvE.Cooldown.WillHaveOneChargeGCD(2))
             {
                 return true;
             }
@@ -367,6 +387,10 @@ public sealed class SMN_Reborn : SummonerRotation
         {
             return true;
         }
+        if (DreadwyrmTrancePvE.CanUse(out act))
+        {
+            return true;
+        }
 
         if ((HasSearingLight || SearingLightPvE.Cooldown.IsCoolingDown) && SummonBahamutPvE.CanUse(out act))
         {
@@ -383,74 +407,22 @@ public sealed class SMN_Reborn : SummonerRotation
             return true;
         }
 
+        if ((!IsMoving || AddCrimsonCycloneMoving) && CrimsonCyclonePvE.CanUse(out act) && (AddCrimsonCyclone || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance))
+        {
+            return true;
+        }
+
         if (CrimsonStrikePvE.CanUse(out act))
         {
             return true;
         }
 
-        if (OutburstMasteryIiTrait.EnoughLevel)
+        if (PreciousBrillianceTime(out act))
         {
-            if (RubyDisasterPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (EmeraldDisasterPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (TopazDisasterPvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
-        if (!OutburstMasteryIiTrait.EnoughLevel)
-        {
-            if (RubyOutburstPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (EmeraldOutburstPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (TopazOutburstPvE.CanUse(out act))
-            {
-                return true;
-            }
+            return true;
         }
 
-        if (RuinMasteryIiiTrait.EnoughLevel)
-        {
-            if (RubyRitePvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (EmeraldRitePvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (TopazRitePvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
-        if (!RuinMasteryIiiTrait.EnoughLevel)
-        {
-            if (RubyRuinPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (EmeraldRuinPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (TopazRuinPvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
-
-        if ((!IsMoving || AddCrimsonCycloneMoving) && CrimsonCyclonePvE.CanUse(out act) && (AddCrimsonCyclone || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance))
+        if (GemshineTime(out act))
         {
             return true;
         }
@@ -466,17 +438,17 @@ public sealed class SMN_Reborn : SummonerRotation
             {
                 case SummonOrderType.TopazEmeraldRuby:
                 default:
-                    if (SummonTopazPvE.CanUse(out act))
+                    if (TitanTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonEmeraldPvE.CanUse(out act))
+                    if (GarudaTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonRubyPvE.CanUse(out act))
+                    if (IfritTime(out act))
                     {
                         return true;
                     }
@@ -484,17 +456,17 @@ public sealed class SMN_Reborn : SummonerRotation
                     break;
 
                 case SummonOrderType.TopazRubyEmerald:
-                    if (SummonTopazPvE.CanUse(out act))
+                    if (TitanTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonRubyPvE.CanUse(out act))
+                    if (IfritTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonEmeraldPvE.CanUse(out act))
+                    if (GarudaTime(out act))
                     {
                         return true;
                     }
@@ -502,17 +474,17 @@ public sealed class SMN_Reborn : SummonerRotation
                     break;
 
                 case SummonOrderType.EmeraldTopazRuby:
-                    if (SummonEmeraldPvE.CanUse(out act))
+                    if (GarudaTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonTopazPvE.CanUse(out act))
+                    if (TitanTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonRubyPvE.CanUse(out act))
+                    if (IfritTime(out act))
                     {
                         return true;
                     }
@@ -520,17 +492,17 @@ public sealed class SMN_Reborn : SummonerRotation
                     break;
 
                 case SummonOrderType.RubyEmeraldTopaz:
-                    if (SummonRubyPvE.CanUse(out act))
+                    if (IfritTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonEmeraldPvE.CanUse(out act))
+                    if (GarudaTime(out act))
                     {
                         return true;
                     }
 
-                    if (SummonTopazPvE.CanUse(out act))
+                    if (TitanTime(out act))
                     {
                         return true;
                     }
@@ -545,11 +517,43 @@ public sealed class SMN_Reborn : SummonerRotation
             return true;
         }
 
+        if (BrandOfPurgatoryPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (UmbralFlarePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (AstralFlarePvE.CanUse(out act))
+        {
+            return true;
+        }
         if (OutburstPvE.CanUse(out act))
         {
             return true;
         }
 
+        if (FountainOfFirePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (UmbralImpulsePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (AstralImpulsePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (RuinIiiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (RuinIiPvE.CanUse(out act))
+        {
+            return true;
+        }
         if (RuinPvE.CanUse(out act))
         {
             return true;
@@ -559,6 +563,156 @@ public sealed class SMN_Reborn : SummonerRotation
     #endregion
 
     #region Extra Methods
+    private bool TitanTime(out IAction? act)
+    {
+        if (SummonTitanIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonTitanPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonTopazPvE.CanUse(out act))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool GarudaTime(out IAction? act)
+    {
+        if (SummonGarudaIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonGarudaPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonEmeraldPvE.CanUse(out act))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool IfritTime(out IAction? act)
+    {
+        if (SummonIfritIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonIfritPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonRubyPvE.CanUse(out act))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool GemshineTime(out IAction? act)
+    {
+        if (RubyRitePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldRitePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazRitePvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        if (RubyRuinIiiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldRuinIiiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazRuinIiiPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        if (RubyRuinIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldRuinIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazRuinIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        if (RubyRuinPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldRuinPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazRuinPvE.CanUse(out act))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool PreciousBrillianceTime(out IAction? act)
+    {
+        if (RubyCatastrophePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldCatastrophePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazCatastrophePvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        if (RubyDisasterPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldDisasterPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazDisasterPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        if (RubyOutburstPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (EmeraldOutburstPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (TopazOutburstPvE.CanUse(out act))
+        {
+            return true;
+        }
+        return false;
+    }
+
     public override bool CanHealSingleSpell
     {
         get

@@ -75,6 +75,11 @@ public partial class SummonerRotation
     /// <summary>
     /// 
     /// </summary>
+    public static bool NoElementalSummon => !InGaruda && !InIfrit && !InTitan && !InIfrit && !InPhoenix && !InBahamut && !InSolarBahamut;
+
+    /// <summary>
+    /// 
+    /// </summary>
     public static byte SMNAetherflowStacks => JobGauge.AetherflowStacks;
 
     private static float SummonTimeRaw => JobGauge.SummonTimerRemaining / 1000f;
@@ -153,39 +158,11 @@ public partial class SummonerRotation
     /// <summary>
     /// 
     /// </summary>
-    public static bool AstralImpulsePvEReady => Service.GetAdjustedActionId(ActionID.RuinIiiPvE) == ActionID.AstralImpulsePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool AstralFlarePvEReady => Service.GetAdjustedActionId(ActionID.TridisasterPvE) == ActionID.AstralFlarePvE;
-    /// <summary>
-    /// 
-    /// </summary>
     public static bool InBahamut => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.DeathflarePvE;
     /// <summary>
     /// 
     /// </summary>
-    public static bool RubyRitePvEReady => Service.GetAdjustedActionId(ActionID.GemshinePvE) == ActionID.RubyRitePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool TopazRitePvEReady => Service.GetAdjustedActionId(ActionID.GemshinePvE) == ActionID.TopazRitePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool EmeraldRitePvEReady => Service.GetAdjustedActionId(ActionID.GemshinePvE) == ActionID.EmeraldRitePvE;
-    /// <summary>
-    /// 
-    /// </summary>
     public static bool SummonPhoenixPvEReady => Service.GetAdjustedActionId(ActionID.SummonBahamutPvE) == ActionID.SummonPhoenixPvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool FountainOfFirePvEReady => Service.GetAdjustedActionId(ActionID.RuinIiiPvE) == ActionID.FountainOfFirePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool BrandOfPurgatoryPvEReady => Service.GetAdjustedActionId(ActionID.TridisasterPvE) == ActionID.BrandOfPurgatoryPvE;
     /// <summary>
     /// 
     /// </summary>
@@ -197,51 +174,11 @@ public partial class SummonerRotation
     /// <summary>
     /// 
     /// </summary>
-    public static bool RubyCatastrophePvEReady => Service.GetAdjustedActionId(ActionID.PreciousBrilliancePvE) == ActionID.RubyCatastrophePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool TopazCatastrophePvEReady => Service.GetAdjustedActionId(ActionID.PreciousBrilliancePvE) == ActionID.TopazCatastrophePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool EmeraldCatastrophePvEReady => Service.GetAdjustedActionId(ActionID.PreciousBrilliancePvE) == ActionID.EmeraldCatastrophePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool CrimsonCyclonePvEReady => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.CrimsonCyclonePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool CrimsonStrikePvEReady => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.CrimsonStrikePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool MountainBusterPvEReady => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.MountainBusterPvE_25836;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool SlipstreamPvEReady => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.SlipstreamPvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool SummonSolarBahamutPvEReady => Service.GetAdjustedActionId(ActionID.SummonBahamutPvE) == ActionID.SummonSolarBahamutPvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool UmbralImpulsePvEReady => Service.GetAdjustedActionId(ActionID.RuinIiiPvE) == ActionID.UmbralImpulsePvE;
-    /// <summary>
-    /// 
-    /// </summary>
-    public static bool UmbralFlarePvEReady => Service.GetAdjustedActionId(ActionID.TridisasterPvE) == ActionID.UmbralFlarePvE;
-    /// <summary>
-    /// 
-    /// </summary>
     public static bool InSolarBahamut => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.SunflarePvE;
     /// <summary>
     /// 
     /// </summary>
-    public static bool EnkindleSolarBahamutPvEReady => Service.GetAdjustedActionId(ActionID.EnkindleBahamutPvE) == ActionID.EnkindleSolarBahamutPvE;
+    public static bool MountainBusterPvEReady => Service.GetAdjustedActionId(ActionID.AstralFlowPvE) == ActionID.MountainBusterPvE_25836;
     #endregion
 
     #region Draw Debug
@@ -273,27 +210,9 @@ public partial class SummonerRotation
         ImGui.Text("HasSummon: " + HasSummon.ToString());
         ImGui.Text("Can Heal Single Spell: " + CanHealSingleSpell.ToString());
         ImGui.TextColored(ImGuiColors.DalamudViolet, "PvE Actions");
-        ImGui.TextColored(AstralImpulsePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "AstralImpulsePvEReady: " + AstralImpulsePvEReady.ToString());
-        ImGui.TextColored(AstralFlarePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "AstralFlarePvEReady: " + AstralFlarePvEReady.ToString());
         ImGui.TextColored(InBahamut ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "InBahamut: " + InBahamut.ToString());
-        ImGui.TextColored(RubyRitePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "RubyRitePvEReady: " + RubyRitePvEReady.ToString());
-        ImGui.TextColored(TopazRitePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "TopazRitePvEReady: " + TopazRitePvEReady.ToString());
-        ImGui.TextColored(EmeraldRitePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "EmeraldRitePvEReady: " + EmeraldRitePvEReady.ToString());
         ImGui.TextColored(SummonPhoenixPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "SummonPhoenixPvEReady: " + SummonPhoenixPvEReady.ToString());
-        ImGui.TextColored(FountainOfFirePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "FountainOfFirePvEReady: " + FountainOfFirePvEReady.ToString());
-        ImGui.TextColored(BrandOfPurgatoryPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "BrandOfPurgatoryPvEReady: " + BrandOfPurgatoryPvEReady.ToString());
         ImGui.TextColored(EnkindlePhoenixPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "EnkindlePhoenixPvEReady: " + EnkindlePhoenixPvEReady.ToString());
-        ImGui.TextColored(RubyCatastrophePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "RubyCatastrophePvEReady: " + RubyCatastrophePvEReady.ToString());
-        ImGui.TextColored(TopazCatastrophePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "TopazCatastrophePvEReady: " + TopazCatastrophePvEReady.ToString());
-        ImGui.TextColored(EmeraldCatastrophePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "EmeraldCatastrophePvEReady: " + EmeraldCatastrophePvEReady.ToString());
-        ImGui.TextColored(CrimsonCyclonePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "CrimsonCyclonePvEReady: " + CrimsonCyclonePvEReady.ToString());
-        ImGui.TextColored(CrimsonStrikePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "CrimsonStrikePvEReady: " + CrimsonStrikePvEReady.ToString());
-        ImGui.TextColored(SlipstreamPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "SlipstreamPvEReady: " + SlipstreamPvEReady.ToString());
-        ImGui.TextColored(SummonSolarBahamutPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "SummonSolarBahamutPvEReady: " + SummonSolarBahamutPvEReady.ToString());
-        ImGui.TextColored(UmbralImpulsePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "UmbralImpulsePvEReady: " + UmbralImpulsePvEReady.ToString());
-        ImGui.TextColored(UmbralFlarePvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "UmbralFlarePvEReady: " + UmbralFlarePvEReady.ToString());
-        ImGui.TextColored(EnkindleSolarBahamutPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "EnkindleSolarBahamutPvEReady: " + EnkindleSolarBahamutPvEReady.ToString());
-        ImGui.TextColored(MountainBusterPvEReady ? ImGuiColors.HealerGreen : ImGuiColors.DalamudWhite, "MountainBusterPvEReady: " + MountainBusterPvEReady.ToString());
     }
     #endregion
 
@@ -302,7 +221,7 @@ public partial class SummonerRotation
     //Class Actions
     static partial void ModifyRuinPvE(ref ActionSetting setting)
     {
-
+        setting.ActionCheck = () => !InBahamut && !InPhoenix;
     }
 
     private static RandomDelay _carbuncleDelay = new(() => (2, 2));
@@ -338,33 +257,6 @@ public partial class SummonerRotation
         
     }
 
-    static partial void ModifyRubyRuinPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyRuinPvE.GetCastTime()) && InIfrit;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
-
-    static partial void ModifyEmeraldRuinPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.EmeraldRuinPvE.GetCastTime()) && InGaruda;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
-
-    static partial void ModifyTopazRuinPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.TopazRuinPvE.GetCastTime()) && InTitan;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
-
     static partial void ModifyFesterPvE(ref ActionSetting setting)
     {
         setting.ActionCheck = () => SMNAetherflowStacks > 0;
@@ -395,53 +287,26 @@ public partial class SummonerRotation
 
     static partial void ModifyOutburstPvE(ref ActionSetting setting)
     {
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
-
-    static partial void ModifyRubyOutburstPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyOutburstPvE.GetCastTime()) && InIfrit;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
-
-    static partial void ModifyEmeraldOutburstPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.EmeraldOutburstPvE.GetCastTime()) && InGaruda;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
-
-    static partial void ModifyTopazOutburstPvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.TopazOutburstPvE.GetCastTime()) && InTitan;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-            AoeCount = 3,
-        };
-    }
+        setting.ActionCheck = () => !InBahamut && !InPhoenix;
+    }    
 
     static partial void ModifyRuinIiPvE(ref ActionSetting setting)
     {
         setting.UnlockedByQuestID = 65997;
+        setting.ActionCheck = () => !InBahamut && !InPhoenix;
     }
 
     // Job Actions
 
     static partial void ModifySummonIfritPvE(ref ActionSetting setting)
     {
+        setting.ActionCheck = () => SummonTime <= WeaponRemain && IsIfritReady;
         setting.UnlockedByQuestID = 66627;
     }
 
     static partial void ModifySummonTitanPvE(ref ActionSetting setting)
     {
+        setting.ActionCheck = () => SummonTime <= WeaponRemain && IsTitanReady;
         setting.UnlockedByQuestID = 66628;
     }
 
@@ -453,6 +318,7 @@ public partial class SummonerRotation
 
     static partial void ModifySummonGarudaPvE(ref ActionSetting setting)
     {
+        setting.ActionCheck = () => SummonTime <= WeaponRemain && IsGarudaReady;
         setting.UnlockedByQuestID = 66631;
     }
 
@@ -466,10 +332,12 @@ public partial class SummonerRotation
     static partial void ModifyRuinIiiPvE(ref ActionSetting setting)
     {
         setting.UnlockedByQuestID = 67638;
+        setting.ActionCheck = () => !InBahamut && !InPhoenix;
     }
 
     static partial void ModifyDreadwyrmTrancePvE(ref ActionSetting setting)
     {
+        setting.ActionCheck = () => InCombat && SummonTime <= WeaponRemain;
         setting.UnlockedByQuestID = 67640;
     }
 
@@ -510,22 +378,26 @@ public partial class SummonerRotation
 
     static partial void ModifyTridisasterPvE(ref ActionSetting setting)
     {
-
+        setting.ActionCheck = () => !InBahamut && !InPhoenix;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifySummonIfritIiPvE(ref ActionSetting setting)
     {
-
+        setting.ActionCheck = () => SummonTime <= WeaponRemain && IsIfritReady;
     }
 
     static partial void ModifySummonTitanIiPvE(ref ActionSetting setting)
     {
-
+        setting.ActionCheck = () => SummonTime <= WeaponRemain && IsTitanReady;
     }
 
     static partial void ModifySummonGarudaIiPvE(ref ActionSetting setting)
     {
-
+        setting.ActionCheck = () => SummonTime <= WeaponRemain && IsGarudaReady;
     }
 
     static partial void ModifyNecrotizePvE(ref ActionSetting setting)
@@ -555,12 +427,12 @@ public partial class SummonerRotation
     #region PvE Actions Unassignable
     static partial void ModifyAstralImpulsePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => AstralImpulsePvEReady;
+        setting.ActionCheck = () => InBahamut;
     }
 
     static partial void ModifyAstralFlarePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => AstralFlarePvEReady;
+        setting.ActionCheck = () => InBahamut;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 3,
@@ -589,19 +461,145 @@ public partial class SummonerRotation
         };
     }
 
-    static partial void ModifyRubyRitePvE(ref ActionSetting setting)
+    static partial void ModifyRubyRuinPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => RubyRitePvEReady && RuinMasteryIiiTrait.EnoughLevel;
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyRuinPvE.GetCastTime()) && InIfrit;
     }
 
-    static partial void ModifyTopazRitePvE(ref ActionSetting setting)
+    static partial void ModifyEmeraldRuinPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => TopazRitePvEReady && RuinMasteryIiiTrait.EnoughLevel;
+        setting.ActionCheck = () => InGaruda;
+    }
+
+    static partial void ModifyTopazRuinPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+    }
+
+    static partial void ModifyRubyRuinIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyRuinIiPvE.GetCastTime()) && InIfrit;
+    }
+
+    static partial void ModifyEmeraldRuinIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InGaruda;
+    }
+
+    static partial void ModifyTopazRuinIiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+    }
+
+    static partial void ModifyRubyRuinIiiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyRuinIiiPvE.GetCastTime()) && InIfrit;
+    }
+
+    static partial void ModifyEmeraldRuinIiiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InGaruda;
+    }
+
+    static partial void ModifyTopazRuinIiiPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+    }
+
+    static partial void ModifyRubyRitePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyRitePvE.GetCastTime()) && InIfrit;
     }
 
     static partial void ModifyEmeraldRitePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => EmeraldRitePvEReady && RuinMasteryIiiTrait.EnoughLevel;
+        setting.ActionCheck = () => InGaruda;
+    }
+
+    static partial void ModifyTopazRitePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+    }
+
+    static partial void ModifyRubyOutburstPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyOutburstPvE.GetCastTime()) && InIfrit;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyEmeraldOutburstPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InGaruda;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyTopazOutburstPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyRubyDisasterPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyDisasterPvE.GetCastTime()) && InIfrit;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyEmeraldDisasterPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InGaruda;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyTopazDisasterPvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyRubyCatastrophePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.RubyCatastrophePvE.GetCastTime()) && InIfrit;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyEmeraldCatastrophePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InGaruda;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
+    }
+
+    static partial void ModifyTopazCatastrophePvE(ref ActionSetting setting)
+    {
+        setting.ActionCheck = () => InTitan;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifySummonPhoenixPvE(ref ActionSetting setting)
@@ -611,12 +609,16 @@ public partial class SummonerRotation
 
     static partial void ModifyFountainOfFirePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => FountainOfFirePvEReady;
+        setting.ActionCheck = () => InPhoenix;
     }
 
     static partial void ModifyBrandOfPurgatoryPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => BrandOfPurgatoryPvEReady;
+        setting.ActionCheck = () => InPhoenix;
+        setting.CreateConfig = () => new ActionConfig()
+        {
+            AoeCount = 3,
+        };
     }
 
     static partial void ModifyRekindlePvE(ref ActionSetting setting)
@@ -650,25 +652,11 @@ public partial class SummonerRotation
         };
     }
 
-    static partial void ModifyRubyCatastrophePvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => RubyCatastrophePvEReady && OutburstMasteryIiTrait.EnoughLevel;
-    }
-
-    static partial void ModifyTopazCatastrophePvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => TopazCatastrophePvEReady && OutburstMasteryIiTrait.EnoughLevel;
-    }
-
-    static partial void ModifyEmeraldCatastrophePvE(ref ActionSetting setting)
-    {
-        setting.ActionCheck = () => EmeraldCatastrophePvEReady && OutburstMasteryIiTrait.EnoughLevel;
-    }
-
     static partial void ModifyCrimsonCyclonePvE(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.CrimsonStrikeReady_4403];
-        setting.ActionCheck = () => CrimsonCyclonePvEReady;
+        setting.StatusNeed = [StatusID.IfritsFavor];
+        setting.ActionCheck = () => InIfrit;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 1,
@@ -677,7 +665,8 @@ public partial class SummonerRotation
 
     static partial void ModifyCrimsonStrikePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => CrimsonStrikePvEReady;
+        setting.ActionCheck = () => InIfrit;
+        setting.StatusNeed = [StatusID.CrimsonStrikeReady_4403];
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 1,
@@ -695,7 +684,8 @@ public partial class SummonerRotation
 
     static partial void ModifySlipstreamPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => SlipstreamPvEReady;
+        setting.ActionCheck = () => Attunement > 0 && !AttunmentTimeEndAfter(ActionID.SlipstreamPvE.GetCastTime()) && InGaruda;
+        setting.StatusProvide = [StatusID.Slipstream];
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 1,
@@ -711,12 +701,12 @@ public partial class SummonerRotation
 
     static partial void ModifyUmbralImpulsePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => UmbralImpulsePvEReady;
+        setting.ActionCheck = () => InSolarBahamut;
     }
 
     static partial void ModifyUmbralFlarePvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => UmbralFlarePvEReady;
+        setting.ActionCheck = () => InSolarBahamut;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 3,
@@ -734,7 +724,7 @@ public partial class SummonerRotation
 
     static partial void ModifyEnkindleSolarBahamutPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => EnkindleSolarBahamutPvEReady;
+        setting.ActionCheck = () => InSolarBahamut;
     }
 
     static partial void ModifyLuxwavePvE(ref ActionSetting setting)

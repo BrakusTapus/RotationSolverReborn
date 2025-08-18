@@ -53,7 +53,11 @@ internal static class MiscUpdater
                     new IconPayload(icon),
                     new TextPayload(showStr)
                 );
-                if (Service.Config.DtrCycle)
+                if (Service.Config.DtrManual)
+                {
+                    _dtrEntry.OnClick = _ => CycleStateWithAllTargetTypes();
+                }
+                else if (Service.Config.DtrCycle)
                 {
                     _dtrEntry.OnClick = _ => CycleStateWithAllTargetTypes();
                 }
@@ -66,6 +70,23 @@ internal static class MiscUpdater
         else if (_dtrEntry != null && _dtrEntry.Shown)
         {
             _dtrEntry.Shown = false;
+        }
+    }
+
+    private static void CycleStateManual()
+    {
+        // If currently in off mode and not manual, go to Manual
+        if (DataCenter.State && !DataCenter.IsManual)
+        {
+            RSCommands.DoStateCommandType(StateCommandType.Manual);
+            return;
+        }
+
+        // If currently in Manual mode, turn off
+        if (DataCenter.State && DataCenter.IsManual)
+        {
+            RSCommands.DoStateCommandType(StateCommandType.Off);
+            return;
         }
     }
 

@@ -149,8 +149,8 @@ internal static class MajorUpdater
                 MacroUpdater.UpdateMacro();
                 TargetUpdater.UpdateTargets();
                 StateUpdater.UpdateState();
-                ActionSequencerUpdater.UpdateActionSequencerAction();
                 ActionUpdater.UpdateNextAction();
+                ActionSequencerUpdater.UpdateActionSequencerAction();
             }
             catch (Exception ex)
             {
