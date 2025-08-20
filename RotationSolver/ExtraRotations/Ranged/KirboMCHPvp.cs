@@ -553,8 +553,12 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         List<int> purifiableStatusesIDs = new()
         {
-        // Stun, Heavy, Bind, Silence, Deep Freeze, Miracle of Nature
-        1343, 1344, 1345, 1347, 3219, 3085
+          //1343, // Stun (Gets cleansed right before debuff falls off. When Purify is used manually it can be used immediately after player gets stunned)
+            1344, // Heavy
+            1345, // Bind
+            1347, // Silence
+            3219, // Deep Freeze
+            3085  // Miracle of Nature
         };
 
         // Bail early if no purifiable status is present
