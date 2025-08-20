@@ -54,6 +54,11 @@ public static class ObjectHelper
             return true;
         }
 
+        if (!target.IsAttackable())
+        {
+            return false;
+        }
+
         if (DataCenter.PlayerFateId != 0 && target.FateId() == DataCenter.PlayerFateId)
         {
             return false;

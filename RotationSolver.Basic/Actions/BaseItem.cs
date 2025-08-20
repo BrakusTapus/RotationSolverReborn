@@ -1,5 +1,6 @@
 ﻿using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel.Sheets;
 
 namespace RotationSolver.Basic.Actions;
@@ -209,9 +210,26 @@ public class BaseItem : IBaseItem
             return false; // Check if the item is uninitialized
         }
 
-        return InventoryManager.Instance()->GetInventoryItemCount(ID, true) > 0
-            ? ActionManager.Instance()->UseAction(ActionType.Item, ID + 1000000, Player.Object.GameObjectId, A4)
-            : ActionManager.Instance()->UseAction(ActionType.Item, ID, Player.Object.GameObjectId, A4);
+        if (_item.RowId == 4570 && DataCenter.DeathTarget != null)
+        {
+            if (InventoryManager.Instance()->GetInventoryItemCount(ID, true) > 0)
+            {
+                return ActionManager.Instance()->UseAction(ActionType.Item, ID + 1000000, DataCenter.DeathTarget.GameObjectId, 65535);
+            }
+            else
+            {
+                return ActionManager.Instance()->UseAction(ActionType.Item, ID, DataCenter.DeathTarget.GameObjectId, 65535);
+            }
+        }
+
+        if (InventoryManager.Instance()->GetInventoryItemCount(ID, true) > 0)
+        {
+            return ActionManager.Instance()->UseAction(ActionType.Item, ID + 1000000, Player.Object.GameObjectId, A4);
+        }
+        else
+        {
+            return ActionManager.Instance()->UseAction(ActionType.Item, ID, Player.Object.GameObjectId, A4);
+        }
     }
 
     /// <summary>

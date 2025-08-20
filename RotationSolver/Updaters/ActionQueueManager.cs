@@ -75,41 +75,19 @@ namespace RotationSolver.Updaters
                             var dutyActions = DataCenter.CurrentDutyRotation?.AllActions ?? [];
 
                             // Find matching action by ID without creating intermediate collections
-                            IAction? matchingAction = null;
                             uint adjustedActionId = Service.GetAdjustedActionId(actionID);
 
                             PluginLog.Debug($"[ActionQueueManager] Detected player input: (ID: {actionID})");
 
-                            // Search rotation actions first
-                            foreach (var action in rotationActions)
-                            {                                
-                                if (action.ID == adjustedActionId)
-                                {
-                                    matchingAction = action;
-                                    break;
-                                }
-                            }
-
-                            // If not found, search duty actions
-                            if (matchingAction == null)
-                            {
-                                foreach (var action in dutyActions)
-                                {
-                                    if (action.ID == adjustedActionId)
-                                    {
-                                        matchingAction = action;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            PluginLog.Debug($"[ActionQueueManager] Matching action decided: (ID: {matchingAction})");
+                            var matchingAction = ((ActionID)adjustedActionId).GetActionFromID(false, rotationActions, dutyActions);
 
                             if (matchingAction != null)
                             {
+                                PluginLog.Debug($"[ActionQueueManager] Matching action decided: (ID: {matchingAction})");
+                                
                                 if (matchingAction.IsIntercepted)
                                 {
-                                    if (matchingAction.EnoughLevel && (matchingAction.Cooldown.CurrentCharges > 0 || Service.Config.InterceptCooldown))
+                                    if (matchingAction.EnoughLevel && CanInterceptAction(matchingAction))
                                     {
                                         HandleInterceptedAction(matchingAction, actionID);
                                         return false; // Block the original action
@@ -176,6 +154,17 @@ namespace RotationSolver.Updaters
 
             return true;
         }
+
+        private static bool CanInterceptAction(IAction action)
+        {
+            if (Service.Config.InterceptCooldown || action.Cooldown.CurrentCharges > 0) return true;
+
+            // We check if the skill will fit inside the intercept action time window
+            var gcdCount = (byte)Math.Floor(Service.Config.InterceptActionTime / DataCenter.DefaultGCDTotal);
+
+            return action is IBaseAction baseAction && baseAction.Cooldown.CooldownCheck(false, (byte)(gcdCount < 1 ? 1 : gcdCount));
+        }
+
 
         private static void HandleInterceptedAction(IAction matchingAction, uint actionID)
         {

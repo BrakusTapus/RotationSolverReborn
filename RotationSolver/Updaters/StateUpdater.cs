@@ -246,8 +246,18 @@ internal static class StateUpdater
 
             if (!canHealAreaAbility)
             {
-                canHealAreaAbility = DataCenter.PartyMembersDifferHP < Service.Config.HealthDifference
-                && DataCenter.PartyMembersAverHP < Lerp(Service.Config.HealthAreaAbility, Service.Config.HealthAreaAbilityHot, ratio);
+                // If party is larger than 4 people, we select the 4 lowest HP players
+                // in the party, and then calculate the thresholds on them instead.
+                if (DataCenter.PartyMembers.Count > 4)
+                {
+                    canHealAreaAbility = DataCenter.LowestPartyMembersDifferHP < Service.Config.HealthDifference
+                                         && DataCenter.LowestPartyMembersAverHP < Lerp(Service.Config.HealthAreaAbility, Service.Config.HealthAreaAbilityHot, ratio);
+                }
+                else
+                {
+                    canHealAreaAbility = DataCenter.PartyMembersDifferHP < Service.Config.HealthDifference
+                                         && DataCenter.PartyMembersAverHP < Lerp(Service.Config.HealthAreaAbility, Service.Config.HealthAreaAbilityHot, ratio);
+                }
             }
         }
 

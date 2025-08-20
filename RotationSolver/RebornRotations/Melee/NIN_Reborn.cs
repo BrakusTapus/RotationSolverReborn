@@ -108,8 +108,6 @@ public sealed class NIN_Reborn : NinjaRotation
     // Determines the emergency abilities to use, overriding the base class implementation.
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
-        // Initializes the action to null, indicating no action has been chosen yet.
-
         // If the last action performed matches any of a list of specific actions, it clears the Ninjutsu aim.
         // This serves as a reset/cleanup mechanism to ensure the decision logic starts fresh for the next cycle.
         if (IsLastAction(false, FumaShurikenPvE, KatonPvE, RaitonPvE, HyotonPvE, DotonPvE, SuitonPvE)
@@ -117,15 +115,15 @@ public sealed class NIN_Reborn : NinjaRotation
             || (_ninActionAim == GokaMekkyakuPvE && IsLastGCD(false, GokaMekkyakuPvE))
             || (_ninActionAim == HyoshoRanryuPvE && IsLastGCD(false, HyoshoRanryuPvE))
             || (_ninActionAim == GokaMekkyakuPvE && !HasKassatsu)
-            || (_ninActionAim == HyoshoRanryuPvE && !HasKassatsu)
-            || IsLastAction(false, KassatsuPvE))
+            || (_ninActionAim == HyoshoRanryuPvE && !HasKassatsu))
         {
             ClearNinjutsu();
         }
 
-        if ((InCombat || (CombatMudra && HasHostilesInMaxRange && TenPvE.Cooldown.CurrentCharges == TenPvE.Cooldown.MaxCharges)) && ChoiceNinjutsu(out act))
+        // Side-effect: decide/refresh ninjutsu aim; do not consume the oGCD slot here.
+        if (InCombat || (CombatMudra && HasHostilesInMaxRange && TenPvE.Cooldown.CurrentCharges == TenPvE.Cooldown.MaxCharges))
         {
-            return true;
+            _ = ChoiceNinjutsu(out _);
         }
 
         if (!InCombat && !CombatMudra)
@@ -313,18 +311,9 @@ public sealed class NIN_Reborn : NinjaRotation
     {
         act = null;
 
-        // Ensures that the action ID currently considered for Ninjutsu is actually valid for Ninjutsu execution.
-        //if (AdjustId(ActionID.NinjutsuPvE) != ActionID.NinjutsuPvE) return false;
-        // If more than 4.5 seconds have passed since the last action, it clears any pending Ninjutsu to avoid stale actions.
-
-        //if (TimeSinceLastAction.TotalSeconds > 4.5 ) ClearNinjutsu();
-        //-- This has been commented out for now as it breaks ninjustsu decision making at the beginning of combat, need to find better implementation.
-
         // Checks for Kassatsu status to prioritize high-impact Ninjutsu due to its buff.
         if (Player.HasStatus(true, StatusID.Kassatsu))
         {
-            // Attempts to set high-damage AoE Ninjutsu if available under Kassatsu's effect.
-            // These are prioritized due to Kassatsu's enhancement of Ninjutsu abilities.
             if ((DeathBlossomPvE.CanUse(out _) || HakkeMujinsatsuPvE.CanUse(out _)) && GokaMekkyakuPvE.EnoughLevel && !IsLastAction(false, GokaMekkyakuPvE) && GokaMekkyakuPvE.IsEnabled)
             {
                 SetNinjutsu(GokaMekkyakuPvE);
@@ -355,10 +344,6 @@ public sealed class NIN_Reborn : NinjaRotation
         }
         else if (TenPvE.CanUse(out _, usedUp: ShadowWalkerNeeded || InTrickAttack || TenPvE.Cooldown.WillHaveXChargesGCD(2, 2, 0)) && _ninActionAim == null)
         {
-            // Chooses buffs or AoE actions based on combat conditions and cooldowns.
-            // For instance, setting Huton for speed buff or choosing AoE Ninjutsu like Katon or Doton based on enemy positioning.
-            // Also considers using Suiton for vulnerability debuff on the enemy if conditions are optimal.
-
             //Vulnerable
             if (ShadowWalkerNeeded && (!MeisuiPvE.Cooldown.IsCoolingDown || !TrickAttackPvE.Cooldown.IsCoolingDown || KunaisBanePvE.Cooldown.IsCoolingDown) && !IsShadowWalking && !HasTenChiJin && SuitonPvE.EnoughLevel)
             {
@@ -983,11 +968,6 @@ public sealed class NIN_Reborn : NinjaRotation
             }
 
             if (DoSuiton(out act))
-            {
-                return true;
-            }
-
-            if (DoHuton(out act))
             {
                 return true;
             }

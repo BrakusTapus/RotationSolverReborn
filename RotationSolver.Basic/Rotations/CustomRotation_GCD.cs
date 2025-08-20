@@ -2,6 +2,12 @@
 
 public partial class CustomRotation
 {
+    /// <summary>
+    /// Whether the player is currently doing nothing (and healing).
+    /// </summary>
+    public static bool HealingWhileDoingNothing =>
+        _nextTimeToHeal + TimeSpan.FromSeconds(DataCenter.DefaultGCDTotal) > DateTime.Now;
+    
     private static DateTime _nextTimeToHeal = DateTime.MinValue;
     private static readonly Random _random = new();
 

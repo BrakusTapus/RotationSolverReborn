@@ -4,7 +4,6 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -217,8 +216,14 @@ internal static class MiscUpdater
         }
 
         bool stopDueStatus = statusTimes.Length > 0 && minStatusTime > Player.Object.TotalCastTime - Player.Object.CurrentCastTime && minStatusTime < 5;
-
-        if (_tarStopCastDelay.Delay(tarDead) || stopDueStatus || tarHasRaise)
+        
+        bool shouldStopHealing = Service.Config.StopHealingAfterThresholdExperimental && DataCenter.InCombat &&
+                                 !CustomRotation.HealingWhileDoingNothing &&
+                                 DataCenter.CommandNextAction?.AdjustedID != Player.Object.CastActionId &&
+                                 ((ActionID)Player.Object.CastActionId).GetActionFromID(true, RotationUpdater.CurrentRotationActions) is IBaseAction {Setting.IsFriendly: true} && 
+                                 (DataCenter.MergedStatus & (AutoStatus.HealAreaSpell | AutoStatus.HealSingleSpell)) == 0;
+        
+        if (_tarStopCastDelay.Delay(tarDead) || stopDueStatus || tarHasRaise || shouldStopHealing)
         {
             UIState* uiState = UIState.Instance();
             if (uiState != null)

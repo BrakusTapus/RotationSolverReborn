@@ -422,7 +422,7 @@ public sealed class PLD_Reborn : PaladinRotation
             return true;
         }
 
-        if (ProminencePvE.CanUse(out act))
+        if (ProminencePvE.CanUse(out act, skipStatusProvideCheck: !EnhancedProminenceTrait.EnoughLevel))
         {
             return true;
         }

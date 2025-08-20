@@ -2265,7 +2265,10 @@ public partial class RotationConfigWindow : Window
                     ImGui.Text("AdjustedID: " + Service.GetAdjustedActionId(action.Info.ID));
                     ImGui.Text($"IsQuestUnlocked: {action.Info.IsQuestUnlocked()} ({action.Action.UnlockLink.RowId})");
                     ImGui.Text("EnoughLevel: " + action.EnoughLevel);
-                    ImGui.Text("AoeCount: " + action.Config.AoeCount);
+                    if (!action.TargetInfo.IsSingleTarget)
+                    {
+                        ImGui.Text("AoeCount: " + action.Config.AoeCount);
+                    }
                     ImGui.Text("ShouldCheckStatus: " + action.Config.ShouldCheckStatus);
                     ImGui.Text("ShouldCheckTargetStatus: " + action.Config.ShouldCheckTargetStatus);
                     ImGui.Text("Is Real GCD: " + action.Info.IsRealGCD);
@@ -2312,6 +2315,9 @@ public partial class RotationConfigWindow : Window
                         ImGui.Text("Status HQ: " + ActionManager.Instance()->GetActionStatus(ActionType.Item, item.ID + 1000000).ToString());
                         float remain = ActionManager.Instance()->GetRecastTime(ActionType.Item, item.ID) - ActionManager.Instance()->GetRecastTimeElapsed(ActionType.Item, item.ID);
                         ImGui.Text("remain: " + remain.ToString());
+                        ImGui.Text("ID: " + item.ID.ToString());
+                        ImGui.Text("A4: " + item.A4.ToString());
+                        ImGui.Text("AdjustedID: " + item.AdjustedID.ToString());
                     }
 
                     ImGui.Text("CanUse: " + item.CanUse(out _, true).ToString());
@@ -3439,6 +3445,7 @@ public partial class RotationConfigWindow : Window
         ImGui.Text($"Number of Party Members: {DataCenter.PartyMembers.Count}");
         ImGui.Text($"Number of Alliance Members: {DataCenter.AllianceMembers.Count}");
         ImGui.Text($"Average Party HP Percent: {DataCenter.PartyMembersAverHP * 100}");
+        ImGui.Text($"Average Lowest Party HP Percent: {DataCenter.LowestPartyMembersAverHP * 100}");
         ImGui.Text($"Number of Party Members with Doomed To Heal status: {DataCenter.PartyMembers.Count(member => member.DoomNeedHealing())}");
         foreach (Dalamud.Game.ClientState.Party.IPartyMember p in Svc.Party)
         {
@@ -3657,6 +3664,11 @@ public partial class RotationConfigWindow : Window
         {
             IPCProvider ipcProvider = new();
             ipcProvider.ActionCommand("Magick Barrier", 7);
+        }
+        if (ImGui.Button("Test AutodutyChangeOperatingMode IPC (AutoDuty, HighHPPercent)"))
+        {
+            IPCProvider ipcProvider = new();
+            ipcProvider.AutodutyChangeOperatingMode(StateCommandType.AutoDuty, TargetingType.HighHPPercent);
         }
     }
 

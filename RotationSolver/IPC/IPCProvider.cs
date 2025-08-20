@@ -128,6 +128,19 @@ namespace RotationSolver.IPC
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stateCommand">
+        /// The <see cref="StateCommandType"/> value specifying the desired operating mode, such as Off, Auto, or Manual.
+        /// </param>
+        [EzIPC]
+        public void AutodutyChangeOperatingMode(StateCommandType stateCommand, TargetingType targetingType)
+        {
+            RSCommands.AutodutyUpdateState(stateCommand, (JobRole)DataCenter.Job, targetingType);
+            PluginLog.Debug($"IPC AutodutyChangeOperatingMode was called. StateCommand:{stateCommand} TargetingType:{targetingType}");
+        }
+
+        /// <summary>
         /// Triggers a special state in the plugin via IPC, such as healing, defense, or movement.
         /// </summary>
         /// <param name="specialCommand">

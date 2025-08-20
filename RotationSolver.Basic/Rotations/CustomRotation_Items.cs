@@ -1,4 +1,6 @@
-﻿using Lumina.Excel.Sheets;
+﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Excel.Sheets;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 namespace RotationSolver.Basic.Rotations;
 
@@ -7,7 +9,57 @@ namespace RotationSolver.Basic.Rotations;
 /// </summary>
 public partial class CustomRotation
 {
-    private static readonly BaseItem PhoenixDownItem = new(4570);
+    private static readonly BaseItem PhoenixDownItemNumber = new(4570);
+
+    internal static PhoenixDownItem[] PhoenixDowns { get; } = GetPhoenixDownItem();
+
+    private static PhoenixDownItem[] GetPhoenixDownItem()
+    {
+        var items = Service.GetSheet<Item>();
+        var list = new List<PhoenixDownItem>();
+        foreach (var i in items)
+        {
+            if (i.RowId == PhoenixDownItemNumber.ID)
+            {
+                list.Add(new PhoenixDownItem(i));
+            }
+        }
+        return [.. list];
+    }
+
+    /// <summary>
+    /// Uses a Phoenix Down.
+    /// </summary>
+    /// <param name="nextGCD">The next GCD action.</param>
+    /// <param name="act">The action to be performed.</param>
+    /// <returns>True if a Phoenix Down can be used; otherwise, false.</returns>
+    public unsafe static bool UsePhoenixDown(IAction nextGCD, out IAction? act)
+    {
+        act = null;
+
+        if (DataCenter.DeathTarget == null)
+        {
+            return act != null;
+        }
+
+        var prevOverride = IBaseAction.TargetOverride;
+        IBaseAction.TargetOverride = TargetType.Death;
+        try
+        {
+            foreach (PhoenixDownItem phoenixdown in PhoenixDowns)
+            {
+                if (phoenixdown.CanUse(out act, true))
+                {
+                    ActionManager.Instance()->UseAction(ActionType.Item, 4570, DataCenter.DeathTarget.TargetObjectId);
+                }
+            }
+            return act != null;
+        }
+        finally
+        {
+            IBaseAction.TargetOverride = prevOverride;
+        }
+    }
 
     #region Burst Medicine
 

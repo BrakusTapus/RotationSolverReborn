@@ -41,6 +41,10 @@ public sealed class AST_Reborn : AstrologianRotation
     public float AspectedBeneficHeal { get; set; } = 0.4f;
 
     [Range(0, 1, ConfigUnitType.Percent)]
+    [RotationConfig(CombatType.PvE, Name = "Minimum HP threshold party member needs to be to use Synastry")]
+    public float SynastryHeal { get; set; } = 0.5f;
+
+    [Range(0, 1, ConfigUnitType.Percent)]
     [RotationConfig(CombatType.PvE, Name = "Minimum HP threshold among party member needed to use Horoscope")]
     public float HoroscopeHeal { get; set; } = 0.3f;
 
@@ -139,15 +143,17 @@ public sealed class AST_Reborn : AstrologianRotation
 
         if (nextGCD.IsTheSameTo(false, HeliosConjunctionPvE, HeliosPvE))
         {
-            if (HoroscopePvE.CanUse(out act))
+            if (PartyMembersAverHP < HoroscopeHeal && HoroscopePvE.CanUse(out act))
             {
                 return true;
             }
         }
 
-        if (nextGCD.IsTheSameTo(true, BeneficPvE, BeneficIiPvE, AspectedBeneficPvE))
+        if (SynastryPvE.CanUse(out act))
         {
-            if (SynastryPvE.CanUse(out act))
+            if (CanCastSynastry(AspectedBeneficPvE, SynastryPvE, SynastryHeal, nextGCD) ||
+                CanCastSynastry(BeneficIiPvE, SynastryPvE, SynastryHeal, nextGCD) ||
+                CanCastSynastry(BeneficPvE, SynastryPvE, SynastryHeal, nextGCD))
             {
                 return true;
             }
@@ -164,6 +170,11 @@ public sealed class AST_Reborn : AstrologianRotation
         }
 
         return base.EmergencyAbility(nextGCD, out act);
+
+        static bool CanCastSynastry(IBaseAction actionCheck, IBaseAction synastry, float synastryHp, IAction next)
+            => next.IsTheSameTo(false, actionCheck) &&
+               synastry.Target.Target == actionCheck.Target.Target &&
+               synastry.Target.Target.GetHealthRatio() < synastryHp;
     }
 
     [RotationDesc(ActionID.ExaltationPvE, ActionID.TheArrowPvE, ActionID.TheSpirePvE, ActionID.TheBolePvE, ActionID.TheEwerPvE)]
@@ -307,12 +318,12 @@ public sealed class AST_Reborn : AstrologianRotation
             return true;
         }
 
-        if (HoroscopePvE_16558.CanUse(out act))
+        if (PartyMembersAverHP < HoroscopeHeal && HoroscopePvE_16558.CanUse(out act))
         {
             return true;
         }
 
-        if (HoroscopePvE.CanUse(out act))
+        if (PartyMembersAverHP < HoroscopeHeal && HoroscopePvE.CanUse(out act))
         {
             return true;
         }
@@ -523,14 +534,15 @@ public sealed class AST_Reborn : AstrologianRotation
             return false;
         }
 
-        if (EssentialPrio2 == EssentialPrioStrategy.AnyCharges && EssentialDignityPvE.EnoughLevel && EssentialDignityPvE.Cooldown.CurrentCharges > 0)
-        {
-            return false;
-        }
+        var shouldUseEssentialDignity =
+            (EssentialPrio2 == EssentialPrioStrategy.AnyCharges && EssentialDignityPvE.EnoughLevel &&
+             EssentialDignityPvE.Cooldown.CurrentCharges > 0) ||
+            (EssentialPrio2 == EssentialPrioStrategy.CappedCharges && EssentialDignityPvE.EnoughLevel &&
+             EssentialDignityPvE.Cooldown.CurrentCharges == EssentialDignityPvE.Cooldown.MaxCharges);
 
-        if (EssentialPrio2 == EssentialPrioStrategy.CappedCharges && EssentialDignityPvE.EnoughLevel && EssentialDignityPvE.Cooldown.CurrentCharges == EssentialDignityPvE.Cooldown.MaxCharges)
+        if (shouldUseEssentialDignity)
         {
-            return false;
+            return base.HealSingleGCD(out act);
         }
 
         if (AspectedBeneficPvE.CanUse(out act) && (IsMoving || AspectedBeneficPvE.Target.Target?.GetHealthRatio() < AspectedBeneficHeal))

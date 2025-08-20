@@ -428,45 +428,40 @@ public sealed class SGE_Reborn : SageRotation
     {
         act = null;
 
-        if (!EukrasiaPvE.CanUse(out _))
-        {
-            return false;
-        }
-
-        // Checks for Eukrasia status.
-        // Attempts to set correct Eurkrasia action based on availability and MergedStatus.
+        // Only decide the aim; do not require Eukrasia to be currently usable here.
+        // Attempts to set correct Eukrasia action based on availability and MergedStatus.
         if (EukrasianPrognosisIiPvE.EnoughLevel && EukrasianPrognosisIiPvE.IsEnabled && MergedStatus.HasFlag(AutoStatus.DefenseArea)
-            && EukrasianPrognosisIiPvE.CanUse(out _))
+            && EukrasianPrognosisIiPvE.CanUse(out _, skipStatusNeed: true))
         {
             SetEukrasia(EukrasianPrognosisIiPvE);
         }
         else if (!EukrasianPrognosisIiPvE.EnoughLevel && EukrasianPrognosisPvE.EnoughLevel && EukrasianPrognosisPvE.IsEnabled && MergedStatus.HasFlag(AutoStatus.DefenseArea)
-            && EukrasianPrognosisPvE.CanUse(out _))
+            && EukrasianPrognosisPvE.CanUse(out _, skipStatusNeed: true))
         {
             SetEukrasia(EukrasianPrognosisPvE);
         }
         else if (EukrasianDiagnosisPvE.EnoughLevel && EukrasianDiagnosisPvE.IsEnabled && MergedStatus.HasFlag(AutoStatus.DefenseSingle)
-            && EukrasianDiagnosisPvE.CanUse(out _))
+            && EukrasianDiagnosisPvE.CanUse(out _, skipStatusNeed: true))
         {
             SetEukrasia(EukrasianDiagnosisPvE);
         }
         else if (EukrasianDyskrasiaPvE.EnoughLevel && EukrasianDyskrasiaPvE.IsEnabled && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea))
-            && EukrasianDyskrasiaPvE.CanUse(out _))
+            && EukrasianDyskrasiaPvE.CanUse(out _, skipStatusNeed: true))
         {
             SetEukrasia(EukrasianDyskrasiaPvE);
         }
-        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _))
-            && EukrasianDosisIiiPvE.CanUse(out _) && EukrasianDosisIiiPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea)) && EukrasianDosisIiiPvE.IsEnabled)
+        else if ((!EukrasianDyskrasiaPvE.CanUse(out _, skipStatusNeed: true) || !DyskrasiaPvE.CanUse(out _))
+            && EukrasianDosisIiiPvE.CanUse(out _, skipStatusNeed: true) && EukrasianDosisIiiPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea)) && EukrasianDosisIiiPvE.IsEnabled)
         {
             SetEukrasia(EukrasianDosisIiiPvE);
         }
-        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _))
-            && EukrasianDosisIiPvE.CanUse(out _) && !EukrasianDosisIiiPvE.EnoughLevel && EukrasianDosisIiPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea)) && EukrasianDosisIiPvE.IsEnabled)
+        else if ((!EukrasianDyskrasiaPvE.CanUse(out _, skipStatusNeed: true) || !DyskrasiaPvE.CanUse(out _))
+            && EukrasianDosisIiPvE.CanUse(out _, skipStatusNeed: true) && !EukrasianDosisIiiPvE.EnoughLevel && EukrasianDosisIiPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea)) && EukrasianDosisIiPvE.IsEnabled)
         {
             SetEukrasia(EukrasianDosisIiPvE);
         }
-        else if ((!EukrasianDyskrasiaPvE.CanUse(out _) || !DyskrasiaPvE.CanUse(out _))
-            && EukrasianDosisPvE.CanUse(out _) && !EukrasianDosisIiPvE.EnoughLevel && EukrasianDosisPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea)) && EukrasianDosisPvE.IsEnabled)
+        else if ((!EukrasianDyskrasiaPvE.CanUse(out _, skipStatusNeed: true) || !DyskrasiaPvE.CanUse(out _))
+            && EukrasianDosisPvE.CanUse(out _, skipStatusNeed: true) && !EukrasianDosisIiPvE.EnoughLevel && EukrasianDosisPvE.EnoughLevel && (!MergedStatus.HasFlag(AutoStatus.DefenseSingle) && !MergedStatus.HasFlag(AutoStatus.DefenseArea)) && EukrasianDosisPvE.IsEnabled)
         {
             SetEukrasia(EukrasianDosisPvE);
         }
@@ -481,19 +476,53 @@ public sealed class SGE_Reborn : SageRotation
 
     #region Eukrasia Execution
     // Attempts to perform a Eukrasia action, based on the current game state and conditions.
+    private bool DoEukrasianPrognosisIi(out IAction? act)
+    {
+        act = null;
+
+        if (_EukrasiaActionAim != null &&
+            _EukrasiaActionAim == EukrasianPrognosisIiPvE)
+        {
+            // If we don't have Eukrasia, press it first to enable the Eukrasian spell.
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianPrognosisIiPvE.CanUse(out act))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Attempts to perform a Eukrasia action, based on the current game state and conditions.
     private bool DoEukrasianPrognosis(out IAction? act)
     {
         act = null;
 
-        if (_EukrasiaActionAim != null && (_EukrasiaActionAim == EukrasianPrognosisPvE || _EukrasiaActionAim == EukrasianPrognosisIiPvE) && _EukrasiaActionAim.CanUse(out _))
+        if (_EukrasiaActionAim != null &&
+            _EukrasiaActionAim == EukrasianPrognosisPvE)
         {
-            if (EukrasiaPvE.CanUse(out act))
+            // If we don't have Eukrasia, press it first to enable the Eukrasian spell.
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianPrognosisPvE.CanUse(out act))
             {
                 return true;
             }
-
-            act = _EukrasiaActionAim;
-            return true;
         }
         return false;
     }
@@ -503,15 +532,21 @@ public sealed class SGE_Reborn : SageRotation
     {
         act = null;
 
-        if (_EukrasiaActionAim != null && _EukrasiaActionAim == EukrasianDiagnosisPvE && EukrasianDiagnosisPvE.CanUse(out _))
+        if (_EukrasiaActionAim != null && _EukrasiaActionAim == EukrasianDiagnosisPvE)
         {
-            if (EukrasiaPvE.CanUse(out act))
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianDiagnosisPvE.CanUse(out act))
             {
                 return true;
             }
-
-            act = _EukrasiaActionAim;
-            return true;
         }
         return false;
     }
@@ -521,33 +556,94 @@ public sealed class SGE_Reborn : SageRotation
     {
         act = null;
 
-        if (_EukrasiaActionAim != null && _EukrasiaActionAim == EukrasianDyskrasiaPvE && EukrasianDyskrasiaPvE.CanUse(out _))
+        if (_EukrasiaActionAim != null && _EukrasiaActionAim == EukrasianDyskrasiaPvE)
         {
-            if (EukrasiaPvE.CanUse(out act))
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianDyskrasiaPvE.CanUse(out act))
             {
                 return true;
             }
-
-            act = _EukrasiaActionAim;
-            return true;
         }
         return false;
     }
 
     // Attempts to perform a Eukrasia action, based on the current game state and conditions.
+    private bool DoEukrasianDosisIii(out IAction? act)
+    {
+        act = null;
+
+        if (_EukrasiaActionAim != null &&
+            _EukrasiaActionAim == EukrasianDosisIiiPvE)
+        {
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianDosisIiiPvE.CanUse(out act))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool DoEukrasianDosisIi(out IAction? act)
+    {
+        act = null;
+
+        if (_EukrasiaActionAim != null &&
+            _EukrasiaActionAim == EukrasianDosisIiPvE)
+        {
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianDosisIiPvE.CanUse(out act))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private bool DoEukrasianDosis(out IAction? act)
     {
         act = null;
 
-        if (_EukrasiaActionAim != null && (_EukrasiaActionAim == EukrasianDosisPvE || _EukrasiaActionAim == EukrasianDosisIiPvE || _EukrasiaActionAim == EukrasianDosisIiiPvE) && _EukrasiaActionAim.CanUse(out _))
+        if (_EukrasiaActionAim != null &&
+            _EukrasiaActionAim == EukrasianDosisPvE)
         {
-            if (EukrasiaPvE.CanUse(out act))
+            if (!HasEukrasia)
+            {
+                if (EukrasiaPvE.CanUse(out act))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            if (EukrasianDosisPvE.CanUse(out act))
             {
                 return true;
             }
-
-            act = _EukrasiaActionAim;
-            return true;
         }
         return false;
     }
@@ -557,10 +653,9 @@ public sealed class SGE_Reborn : SageRotation
     [RotationDesc(ActionID.PneumaPvE, ActionID.PrognosisPvE, ActionID.EukrasianPrognosisPvE, ActionID.EukrasianPrognosisIiPvE)]
     protected override bool HealAreaGCD(out IAction? act)
     {
-        act = null;
         if (IsLastAction(ActionID.SwiftcastPvE) && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise))
         {
-            return false;
+            return base.HealAreaGCD(out act);
         }
 
         bool tankBelowThreshold = false;
@@ -603,10 +698,9 @@ public sealed class SGE_Reborn : SageRotation
     [RotationDesc(ActionID.DiagnosisPvE, ActionID.EukrasianDiagnosisPvE)]
     protected override bool HealSingleGCD(out IAction? act)
     {
-        act = null;
         if (IsLastAction(ActionID.SwiftcastPvE) && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise))
         {
-            return false;
+            return base.HealSingleGCD(out act);
         }
 
         if (HasEukrasia && EukrasiaActionHeal && EukrasianDiagnosisPvE.CanUse(out act))
@@ -629,10 +723,14 @@ public sealed class SGE_Reborn : SageRotation
 
     protected override bool GeneralGCD(out IAction? act)
     {
-        act = null;
         if (IsLastAction(ActionID.SwiftcastPvE) && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise))
         {
-            return false;
+            return base.GeneralGCD(out act);
+        }
+
+        if (DoEukrasianPrognosisIi(out act))
+        {
+            return true;
         }
 
         if (DoEukrasianPrognosis(out act))
@@ -684,6 +782,16 @@ public sealed class SGE_Reborn : SageRotation
         }
 
         if (DyskrasiaPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        if (DoEukrasianDosisIii(out act))
+        {
+            return true;
+        }
+
+        if (DoEukrasianDosisIi(out act))
         {
             return true;
         }

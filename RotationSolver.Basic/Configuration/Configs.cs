@@ -159,14 +159,19 @@ internal partial class Configs : IPluginConfiguration
     private static readonly bool _useKnockback = true;
 
     [ConditionBool, UI("Automatically use HP Potions",
-    Description = "Enable to allow the plugin to use HP potions automatically. (Experimental feature)",
+    Description = "Enable to allow the plugin to use HP potions automatically.",
     Filter = AutoActionUsage)]
     private static readonly bool _useHpPotions = false;
 
     [ConditionBool, UI("Automatically use MP Potions",
-    Description = "Enable to allow the plugin to use MP potions automatically. (Experimental feature)",
+    Description = "Enable to allow the plugin to use MP potions automatically.",
     Filter = AutoActionUsage)]
     private static readonly bool _useMpPotions = false;
+
+    [ConditionBool, UI("Automatically use Phoenix Down",
+    Description = "Enable to allow the plugin to use Phoenix Down item. (Experimental feature)",
+    Filter = AutoActionUsage)]
+    private static readonly bool _usePhoenixDown = false;
 
     [ConditionBool, UI("Allow the use of AOEs against priority-marked targets.",
     Description = "Enable to allow AoE actions to hit targets with priority markers.",
@@ -314,6 +319,12 @@ internal partial class Configs : IPluginConfiguration
     /// </markdown>
     [ConditionBool, UI("Automatic Healing Thresholds", Filter = HealingActionCondition, Section = 1, Order = 1)]
     private static readonly bool _autoHeal = true;
+
+    /// <markdown file="Auto" name="Stop Healing Cast After Reaching Threshold" section="Healing Usage and Control" isSubsection="1">
+    /// When enabled, you can customize the healing thresholds for when healing will be cast occur on target(s).
+    /// </markdown>
+    [ConditionBool, UI("Stop healing after reaching threshold. (Experimental)", Filter = HealingActionCondition, Section = 1, Order = 2, Description = "If you have another healer on the team, their healing might put the target player(s) above the healing threshold and you'll waste MP. This interrupts the cast if it happens.")]
+    private static readonly bool _stopHealingAfterThresholdExperimental = false;
 
     /// <markdown file="Auto" name="Auto-use oGCD abilities" section="Action Usage and Control" isSubsection="1">
     /// Whether to use oGCD abilities or not at all.

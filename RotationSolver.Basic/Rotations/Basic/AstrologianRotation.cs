@@ -97,6 +97,11 @@ public partial class AstrologianRotation
     /// Able to execute Earthly Dominance Stellar Detonation.
     /// </summary>
     public static bool HasEarthlyDominance => Player.HasStatus(true, StatusID.EarthlyDominance);
+
+    /// <summary>
+    /// Has Synastry.
+    /// </summary>
+    public static bool HasSynastry => Player.HasStatus(true, StatusID.Synastry);
     #endregion
 
     #region Debug
@@ -249,7 +254,8 @@ public partial class AstrologianRotation
 
     static partial void ModifyAspectedBeneficPvE(ref ActionSetting setting)
     {
-        setting.StatusProvide = [StatusID.AspectedBenefic];
+        setting.TargetStatusProvide = [StatusID.AspectedBenefic];
+        setting.IsFriendly = true;
     }
 
     static partial void ModifyAspectedHeliosPvE(ref ActionSetting setting)
@@ -259,7 +265,7 @@ public partial class AstrologianRotation
         setting.IsFriendly = true;
         setting.CreateConfig = () => new ActionConfig()
         {
-            AoeCount = 1,
+            AoeCount = 2,
         };
     }
 
