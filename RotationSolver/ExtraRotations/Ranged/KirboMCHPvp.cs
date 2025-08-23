@@ -418,6 +418,8 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     // Checks amount of enemies targeting player
     private static bool EnemiesTargetingSelf(int numEnemies) => Svc.Objects.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Svc.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+
+    // check out the guard logic https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Autorotation/Utility/RolePvPUtility.cs#L60
     #endregion
 
     #region Limit Break
