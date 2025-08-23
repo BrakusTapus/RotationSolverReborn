@@ -343,6 +343,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         return false;
     }
 
+    // Purify logic
     private bool DoPurify(out IAction? action)
     {
         action = null;
@@ -414,6 +415,9 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         return battleChara.GetObjectKind() == ObjectKind.Player;
     }
+
+    // Checks amount of enemies targeting player
+    private static bool EnemiesTargetingSelf(int numEnemies) => Svc.Objects.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Svc.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
     #endregion
 
     #region Limit Break
