@@ -80,11 +80,12 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Use Purify")]
     public bool UsePurifyPvP { get; set; } = false;
 
-    [RotationConfig(CombatType.PvP, Name = "LB method picker")]
+    [RotationConfig(CombatType.PvP, Name = "LB method")]
     private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
     #endregion Rotation Config
 
     #region oGCD Logic
+    [RotationDesc(DescType.BurstActions)][RotationDesc(ActionID.WildfirePvP)]
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
         act = null;
@@ -174,6 +175,16 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         return base.DefenseSingleAbility(nextGCD, out action);
+    }
+
+    [RotationDesc(ActionID.RecuperatePvP)]
+    protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
+    {
+        if (EmergencyHealing && EmergencyLowHP(out act))
+        {
+            return true;
+        }
+        return base.HealSingleAbility(nextGCD, out act);
     }
     #endregion oGCD Logic
 
@@ -293,6 +304,8 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion GCD Logic
 
     #region Extra Methods
+
+    #region Common
     // TODO can prolly be removed
     private bool EmergencyLowHP(out IAction? act)
     {
@@ -330,6 +343,80 @@ public sealed class KirboMCHPvp : MachinistRotation
         return false;
     }
 
+    private bool DoPurify(out IAction? action)
+    {
+        action = null;
+
+        if (!UsePurifyPvP)
+        {
+            return false;
+        }
+
+        List<int> purifiableStatusesIDs = new()
+        {
+          //1343, // Stun (Gets cleansed right before debuff falls off. When Purify is used manually it can be used immediately after player gets stunned)
+            1344, // Heavy
+            1345, // Bind
+            1347, // Silence
+            3219, // Deep Freeze
+            3085  // Miracle of Nature
+        };
+
+        // Bail early if no purifiable status is present
+        if (!purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
+        {
+            return false;
+        }
+
+        // Basic resource info
+        uint currentHP = Player.CurrentHp;
+        uint maxHP = Player.MaxHp;
+        uint currentMP = Player.CurrentMp;
+        uint maxMP = Player.MaxMp;
+
+        const int purifyCost = 2500;
+        const int recuperateCost = 2500;
+
+        // HP % thresholds
+        double hpPercent = (double)currentHP / maxHP;
+
+        // Decision logic:
+        // 1. If HP < 40% and you don’t have enough MP for BOTH Purify + Recuperate → skip Purify, keep MP to heal
+        if (hpPercent < 0.40 && currentMP < recuperateCost * 2)
+        {
+            return false;
+        }
+
+        // 2. If HP is very low (<25%), always prioritize saving for Recuperate
+        if (hpPercent < 0.25 && currentMP < recuperateCost + purifyCost)
+        {
+            return false;
+        }
+
+        // 3. Only use Purify if MP >= Purify cost
+        if (currentMP < purifyCost)
+        {
+            return false;
+        }
+
+        // 4. If all checks pass, we can use Purify
+        return PurifyPvP.CanUse(out action);
+    }
+
+    // Checks if player has Guard
+    private static bool IsGuarded() => Player.HasStatus(true, StatusID.Guard);
+
+    // Checks if target has Guard
+    private static bool TargetHasGuard(IBattleChara target) => target.HasStatus(false, StatusID.Guard);
+
+    // Checks if an object is a player character
+    private static bool IsPlayerCharacter(IBattleChara battleChara)
+    {
+        return battleChara.GetObjectKind() == ObjectKind.Player;
+    }
+    #endregion
+
+    #region Limit Break
     private bool TryUseLB(out IAction? act)
     {
         act = default;
@@ -402,12 +489,6 @@ public sealed class KirboMCHPvp : MachinistRotation
         { JobRole.RangedPhysical, (17000, 30000) },
     };
 
-    // Checks if player has Guard
-    private static bool IsGuarded() => Player.HasStatus(true, StatusID.Guard);
-
-    // Checks if target has Guard
-    private static bool TargetHasGuard(IBattleChara target) => target.HasStatus(false, StatusID.Guard);
-
     // TODO compare with 'UseMCHLBNEW' to find out which method is better
     private bool UseMCHLB4(out IAction? action)
     {
@@ -449,6 +530,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         MarksmansSpitePvP.Target = new TargetResult(best, new[] { best }, best.Position);
         return true;
     }
+    #endregion
 
     // Eagle Eye Shot Logic
     private bool UseEagleEyeShot(out IAction? action)
@@ -534,72 +616,6 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         return false;
-    }
-
-    // Checks if an object is a player character
-    private static bool IsPlayerCharacter(IBattleChara battleChara)
-    {
-        return battleChara.GetObjectKind() == ObjectKind.Player;
-    }
-
-    private bool DoPurify(out IAction? action)
-    {
-        action = null;
-
-        if (!UsePurifyPvP)
-        {
-            return false;
-        }
-
-        List<int> purifiableStatusesIDs = new()
-        {
-          //1343, // Stun (Gets cleansed right before debuff falls off. When Purify is used manually it can be used immediately after player gets stunned)
-            1344, // Heavy
-            1345, // Bind
-            1347, // Silence
-            3219, // Deep Freeze
-            3085  // Miracle of Nature
-        };
-
-        // Bail early if no purifiable status is present
-        if (!purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
-        {
-            return false;
-        }
-
-        // Basic resource info
-        uint currentHP = Player.CurrentHp;
-        uint maxHP = Player.MaxHp;
-        uint currentMP = Player.CurrentMp;
-        uint maxMP = Player.MaxMp;
-
-        const int purifyCost = 2500;
-        const int recuperateCost = 2500;
-
-        // HP % thresholds
-        double hpPercent = (double)currentHP / maxHP;
-
-        // Decision logic:
-        // 1. If HP < 40% and you don’t have enough MP for BOTH Purify + Recuperate → skip Purify, keep MP to heal
-        if (hpPercent < 0.40 && currentMP < recuperateCost * 2)
-        {
-            return false;
-        }
-
-        // 2. If HP is very low (<25%), always prioritize saving for Recuperate
-        if (hpPercent < 0.25 && currentMP < recuperateCost + purifyCost)
-        {
-            return false;
-        }
-
-        // 3. Only use Purify if MP >= Purify cost
-        if (currentMP < purifyCost)
-        {
-            return false;
-        }
-
-        // 4. If all checks pass, we can use Purify
-        return PurifyPvP.CanUse(out action);
     }
 
     #endregion
