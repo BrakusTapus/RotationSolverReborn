@@ -302,27 +302,27 @@ public sealed class KirboMCHPvp : MachinistRotation
             return false;
         }
 
-        if (Player.CurrentHp <= 25000 && GuardPvP.CanUse(out _) && !Player.HasStatus(true, StatusID.Guard) && NumberOfHostilesInMaxRange >= 1)
-        {
-            return GuardPvP.CanUse(out act);
-        }
+        //if (Player.CurrentHp <= 25000 && GuardPvP.CanUse(out _) && !Player.HasStatus(true, StatusID.Guard) && NumberOfAllHostilesInMaxRange >= 1)
+        //{
+        //    return GuardPvP.CanUse(out act);
+        //}
 
-        if (Player.CurrentMp == Player.MaxMp && Player.CurrentHp <= 37500 && !Player.HasStatus(true, StatusID.Guard) && RecuperatePvP.CanUse(out _))
-        {
-            return RecuperatePvP.CanUse(out act);
-        }
-
-        if (Player.CurrentMp >= 7500 && Player.CurrentHp <= 37500 && !Player.HasStatus(true, StatusID.Guard) && RecuperatePvP.CanUse(out _))
+        if (Player.CurrentMp == Player.MaxMp && Player.CurrentHp <= 37500 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
 
-        if (Player.CurrentMp >= 5000 && Player.CurrentHp <= 32000 && !Player.HasStatus(true, StatusID.Guard) && RecuperatePvP.CanUse(out _))
+        if (Player.CurrentMp >= 7500 && Player.CurrentHp <= 37500 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
 
-        if (Player.CurrentMp >= 2500 && Player.CurrentHp <= 25000 && GuardPvP.Cooldown.IsCoolingDown && !Player.HasStatus(true, StatusID.Guard) && RecuperatePvP.CanUse(out _))
+        if (Player.CurrentMp >= 5000 && Player.CurrentHp <= 32000 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
+        {
+            return RecuperatePvP.CanUse(out act);
+        }
+
+        if (Player.CurrentMp >= 2500 && Player.CurrentHp <= 25000 /*&& GuardPvP.Cooldown.IsCoolingDown && !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
