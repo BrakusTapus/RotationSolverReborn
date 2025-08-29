@@ -3443,6 +3443,7 @@ public partial class RotationConfigWindow : Window
     private static unsafe void DrawDutyInfo()
     {
         ImGui.Spacing();
+        ImGui.Text($"DC State: {DataCenter.State}");
         ImGui.Text($"Your combat state: {DataCenter.InCombat}");
         ImGui.Text($"Combat Time: {DataCenter.CombatTimeRaw}");
         ImGui.Text($"TerritoryID: {DataCenter.TerritoryID}");

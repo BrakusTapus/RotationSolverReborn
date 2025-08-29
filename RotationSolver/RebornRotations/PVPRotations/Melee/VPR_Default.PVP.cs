@@ -64,12 +64,9 @@ public sealed class VPR_DefaultPvP : ViperRotation
             return true;
         }
 
-        if (SmitePvP.CanUse(out action))
+        if (SmitePvP.CanUse(out action) && SmitePvP.Target.Target.GetHealthRatio() <= SmitePvPPercent)
         {
-            if (CurrentTarget?.GetHealthRatio() <= SmitePvPPercent)
-            {
-                return true;
-            }
+            return false;
         }
 
         return base.EmergencyAbility(nextGCD, out action);

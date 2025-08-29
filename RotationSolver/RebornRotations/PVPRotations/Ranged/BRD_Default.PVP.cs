@@ -106,7 +106,7 @@ public sealed class BRD_DefaultPvP : BardRotation
             return base.GeneralGCD(out action);
         }
 
-        if (HarmonicArrowPvP_41964.CanUse(out action))
+        if (HarmonicArrowPvP.CanUse(out action))
         {
             return true;
         }

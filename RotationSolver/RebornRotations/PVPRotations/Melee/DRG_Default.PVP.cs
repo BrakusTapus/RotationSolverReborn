@@ -48,7 +48,7 @@ public sealed class DRG_DefaultPvP : DragoonRotation
             return true;
         }
 
-        if (SmitePvP.CanUse(out action) && CurrentTarget?.GetHealthRatio() <= SmitePvPPercent)
+        if (SmitePvP.CanUse(out action) && SmitePvP.Target.Target.GetHealthRatio() <= SmitePvPPercent)
         {
             return false;
         }

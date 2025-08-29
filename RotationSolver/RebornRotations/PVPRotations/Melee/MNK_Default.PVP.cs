@@ -58,9 +58,9 @@ public sealed class MNK_DefaultPvP : MonkRotation
             return true;
         }
 
-        if (SmitePvP.CanUse(out action) && CurrentTarget?.GetHealthRatio() <= SmitePvPPercent)
+        if (SmitePvP.CanUse(out action) && SmitePvP.Target.Target.GetHealthRatio() <= SmitePvPPercent)
         {
-            return true;
+            return false;
         }
 
         return base.EmergencyAbility(nextGCD, out action);

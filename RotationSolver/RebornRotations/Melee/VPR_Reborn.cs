@@ -291,7 +291,7 @@ public sealed class VPR_Reborn : ViperRotation
         }
 
         // Check if player meets Serpents Ire requirements, then check buff timers.
-        if (((SerpentsIrePvE.EnoughLevel && (!SerpentsIrePvE.Cooldown.ElapsedAfter(ReawakenDelayTimer) || SerpentOffering == 100)) || !SerpentsIrePvE.EnoughLevel)
+        if (((PreserveCombo && LiveComboTime > GCDTime(6)) || !PreserveCombo) && ((SerpentsIrePvE.EnoughLevel && (!SerpentsIrePvE.Cooldown.ElapsedAfter(ReawakenDelayTimer) || SerpentOffering == 100)) || !SerpentsIrePvE.EnoughLevel)
             && SwiftTime > SwiftTimer && HuntersTime > HuntersTimer)
         {
             // If all above conditions are met, attempt to use Reawaken.
