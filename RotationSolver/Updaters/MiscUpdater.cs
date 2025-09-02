@@ -173,12 +173,12 @@ internal static class MiscUpdater
             && minStatusTime < 5;
 
         bool shouldStopHealing =
-            Service.Config.StopHealingAfterThresholdExperimental
+            Service.Config.StopHealingAfterThresholdExperimental2
             && DataCenter.InCombat
             && !CustomRotation.HealingWhileDoingNothing
             && DataCenter.CommandNextAction?.AdjustedID != Player.Object.CastActionId
             && ((ActionID)Player.Object.CastActionId).GetActionFromID(true, RotationUpdater.CurrentRotationActions)
-                is IBaseAction { Setting.IsFriendly: true }
+                is IBaseAction { Setting.GCDSingleHeal: true }
             && (DataCenter.MergedStatus & (AutoStatus.HealAreaSpell | AutoStatus.HealSingleSpell)) == 0;
 
         if (_tarStopCastDelay.Delay(tarDead) || stopDueStatus || tarHasRaise || shouldStopHealing)
