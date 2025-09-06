@@ -279,11 +279,11 @@ public static class Watcher
 
             // Macro
             RegexOptions regexOptions = RegexOptions.Compiled | RegexOptions.IgnoreCase;
-            var events = Service.Config.Events?.ToArray() ?? [];
+            var eventsList = Service.Config.Events ?? [];
             var actionName = action.Value.Name.ExtractText() ?? string.Empty;
             if (!string.IsNullOrEmpty(actionName))
             {
-                foreach (ActionEventInfo item in events)
+                foreach (ActionEventInfo item in eventsList)
                 {
                     if (string.IsNullOrWhiteSpace(item.Name))
                     {

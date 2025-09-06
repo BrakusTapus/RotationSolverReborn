@@ -19,6 +19,11 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return base.EmergencyAbility(nextGCD, out action);
         }
 
+        if (Player.HasStatus(true, StatusID.HoningDance))
+        {
+            return base.EmergencyAbility(nextGCD, out action);
+        }
+
         if (PurifyPvP.CanUse(out action))
         {
             return true;
@@ -59,6 +64,11 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return base.HealAreaAbility(nextGCD, out action);
         }
 
+        if (Player.HasStatus(true, StatusID.HoningDance))
+        {
+            return base.HealAreaAbility(nextGCD, out action);
+        }
+
         if (CuringWaltzPvP.CanUse(out action))
         {
             return true;
@@ -86,6 +96,11 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return base.AttackAbility(nextGCD, out action);
         }
 
+        if (Player.HasStatus(true, StatusID.HoningDance))
+        {
+            return base.AttackAbility(nextGCD, out action);
+        }
+
         if (FanDancePvP.CanUse(out action))
         {
             return true;
@@ -108,6 +123,11 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return base.GeneralGCD(out action);
         }
 
+        if (Player.HasStatus(true, StatusID.HoningDance))
+        {
+            return base.GeneralGCD(out action);
+        }
+
         if (DanceOfTheDawnPvP.CanUse(out action))
         {
             return true;
@@ -118,7 +138,7 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return true;
         }
 
-        if (HoningDancePvP.CanUse(out action) && !Player.HasStatus(true, StatusID.EnAvant))
+        if (NumberOfHostilesInRangeOf(6) > 0 && HoningDancePvP.CanUse(out action) && !Player.HasStatus(true, StatusID.EnAvant))
         {
             return true;
         }

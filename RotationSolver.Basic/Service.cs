@@ -142,14 +142,24 @@ internal class Service : IDisposable
     {
         AddonAttribute? addon = AddonCache.GetOrAdd(typeof(T), t => t.GetCustomAttribute<AddonAttribute>());
 
-        if (addon is null || !addon.AddonIdentifiers.Any())
+        if (addon is null)
+        {
+            return [];
+        }
+
+        int identifierCount = 0;
+        foreach (var _ in addon.AddonIdentifiers)
+        {
+            identifierCount++;
+        }
+        if (identifierCount == 0)
         {
             return [];
         }
 
         // Use ArrayPool to minimize allocations
         var pool = ArrayPool<nint>.Shared;
-        var buffer = pool.Rent(addon.AddonIdentifiers.Count());
+        var buffer = pool.Rent(identifierCount);
         int count = 0;
 
         try
@@ -163,8 +173,12 @@ internal class Service : IDisposable
                 }
             }
 
-            // Return a copy with the correct length
-            return [.. buffer.Take(count)];
+            var result = new nint[count];
+            for (int i = 0; i < count; i++)
+            {
+                result[i] = buffer[i];
+            }
+            return result;
         }
         finally
         {

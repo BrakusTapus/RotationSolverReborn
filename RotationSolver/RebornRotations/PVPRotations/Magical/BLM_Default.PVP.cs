@@ -138,7 +138,7 @@ public class BLM_DefaultPVP : BlackMageRotation
             return true;
         }
 
-        if (BurstPvP.CanUse(out action))
+        if (NumberOfHostilesInRangeOf(6) > 0 && BurstPvP.CanUse(out action))
         {
             return true;
         }
