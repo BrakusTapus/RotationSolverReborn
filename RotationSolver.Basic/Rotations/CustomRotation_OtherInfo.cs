@@ -549,6 +549,12 @@ public partial class CustomRotation
         return false;
     }
 
+    /// <summary>
+    ///
+    /// </summary>
+    [Description("Is an enemy casting a multihit AOE party stack")]
+    public static bool IsCastingMultiHit => DataCenter.IsCastingMultiHit();
+
     #endregion
 
     #region Target

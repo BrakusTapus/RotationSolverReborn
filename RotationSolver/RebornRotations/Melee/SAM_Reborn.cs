@@ -144,7 +144,7 @@ public sealed class SAM_Reborn : SamuraiRotation
 
         if (!HasZanshinReady)
         {
-            if (!CombatElapsedLessGCD(2) && Kenki < 50 && IkishotenPvE.CanUse(out act))
+            if (!CombatElapsedLessGCD(2) && Kenki <= 50 && IkishotenPvE.CanUse(out act))
             {
                 return true;
             }

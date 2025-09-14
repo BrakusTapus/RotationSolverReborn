@@ -721,6 +721,17 @@ internal partial class Configs : IPluginConfiguration
     Filter = Extra)]
     private static readonly bool _removeCooldownDelay = false;
 
+    // Cactbot timeline integration
+    [ConditionBool, UI("Enable cactbot timeline integration (Extremely experimental)",
+        Description = "Connects to OverlayPlugin's WebSocket server and reacts to cactbot broadcast messages (raidwide, tankbuster, knockback, downtime/untargetable).",
+        Filter = Extra)]
+    private static readonly bool _enableCactbotTimeline = false;
+
+    [ConditionBool, UI("Show cactbot event toasts (debug)",
+    Description = "Show a toast when a cactbot broadcast is received and mapped to a RotationSolver special.",
+    Filter = Extra)]
+    private static readonly bool _showCactbotToasts = false;
+
     [JobConfig, UI("The HP for using Guard.",
         Filter = PvPSpecificControls)]
     [Range(0, 1, ConfigUnitType.Percent, 0.02f)]

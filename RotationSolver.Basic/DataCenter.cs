@@ -8,10 +8,10 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
-using System.Collections.Concurrent;
 using RotationSolver.Basic.Configuration;
 using RotationSolver.Basic.Configuration.Conditions;
 using RotationSolver.Basic.Rotations.Duties;
+using System.Collections.Concurrent;
 using Action = Lumina.Excel.Sheets.Action;
 using CharacterManager = FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterManager;
 using CombatRole = RotationSolver.Basic.Data.CombatRole;
@@ -1176,6 +1176,30 @@ internal static class DataCenter
             }
         }
         return false;
+    }
+
+    public static bool IsCastingMultiHit()
+    {
+        return IsCastingVfx([.. VfxDataQueue], s =>
+        {
+            if (!Player.AvailableThreadSafe)
+            {
+                return false;
+            }
+
+            // For x6fe, ignore target and player role checks.
+            if (s.Path.StartsWith("vfx/lockon/eff/com_share5a1"))
+            {
+                return true;
+            }
+
+            if (s.Path.StartsWith("vfx/lockon/eff/m0922trg_t2w"))
+            {
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public static bool IsCastingTankVfx()
