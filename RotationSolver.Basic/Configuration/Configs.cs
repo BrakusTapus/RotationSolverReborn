@@ -203,6 +203,18 @@ internal partial class Configs : IPluginConfiguration
     [ConditionBool, UI("Auto turn on manual mode when attacked.",
         Filter = BasicAutoSwitch, Section = 1)]
     private static readonly bool _startOnAttackedBySomeone = false;
+    
+    [ConditionBool, UI("Auto turn on auto mode when party is in combat.",
+         Filter = BasicAutoSwitch, Section = 1)]
+    private static readonly bool _startOnPartyIsInCombat = false;
+    
+    [ConditionBool, UI("Auto turn on auto mode when alliance is in combat.",
+         Filter = BasicAutoSwitch, Section = 1)]
+    private static readonly bool _startOnAllianceIsInCombat = false;
+    
+    [ConditionBool, UI("Auto turn on auto mode when in combat in Bozja/Eureka/Occult Fate/CE",
+         Filter = BasicAutoSwitch, Section = 1)]
+    private static readonly bool _startOnFieldOpInCombat = false;
 
     /// <markdown file="Auto" name="Use healing abilities when playing a non-healer role" section="Healing Usage and Control">
     /// Allow usage of healing abilities when not playing as a healer (such as Vercure, Bloodbath, etc.)

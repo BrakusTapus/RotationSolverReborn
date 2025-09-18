@@ -82,6 +82,8 @@ namespace RotationSolver.Commands
 
         public static void CycleStateManualAuto()
         {
+            if (!DataCenter.MasterEnabled)
+                return;
             // If currently Off, go to Manual
             if (!DataCenter.State)
             {
@@ -102,6 +104,8 @@ namespace RotationSolver.Commands
 
         public static void CycleStateAuto()
         {
+            if (!DataCenter.MasterEnabled)
+                return;
             // If currently Off, go to Auto
             if (!DataCenter.State)
             {
@@ -122,6 +126,8 @@ namespace RotationSolver.Commands
 
         public static void CycleStateManual()
         {
+            if (!DataCenter.MasterEnabled)
+                return;
             // If currently Off, go to Manual
             if (!DataCenter.State)
             {
@@ -142,6 +148,8 @@ namespace RotationSolver.Commands
 
         public static void CycleStateWithAllTargetTypes()
         {
+            if (!DataCenter.MasterEnabled)
+                return;
             // If currently Off, start with the first TargetType
             if (!DataCenter.State)
             {
@@ -187,6 +195,8 @@ namespace RotationSolver.Commands
 
         public static void CycleStateWithOneTargetTypes()
         {
+            if (!DataCenter.MasterEnabled)
+                return;
             // If currently Off, go to Auto using the highest TargetingIndex (last configured type)
             if (!DataCenter.State)
             {
