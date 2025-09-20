@@ -152,7 +152,7 @@ public partial class BlueMageRotation
     /// </summary>
     public BlueMageRotation()
     {
-        _ = SetBlueMageActions();
+        //_ = SetBlueMageActions(); disabled for now while i figure out what is causing it to crash to desktop
     }
 
     private uint[] _lastAppliedBluActions = Array.Empty<uint>();
@@ -166,7 +166,7 @@ public partial class BlueMageRotation
         try
         {
             // Config / state guards
-            if (!Service.Config.SetBluActions) return false;
+            if (!Service.Config.SetBluActions2) return false;
             if (!DataCenter.PlayerAvailable()) return false;
 
             var active = ActiveActions;

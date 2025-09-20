@@ -127,17 +127,21 @@ internal static class MajorUpdater
     {
         if (!_shouldRunThisCycle)
             return;
-      
-        if (!DataCenter.IsActivated())
-            return;
-      
+
+        var autoOnEnabled = Service.Config.StartOnAllianceIsInCombat 
+            || Service.Config.StartOnAttackedBySomeone 
+            || Service.Config.StartOnFieldOpInCombat 
+            || Service.Config.StartOnPartyIsInCombat;
+
         try
         {
-            //Always Update Targets so auto on has that information to use.
-            TargetUpdater.UpdateTargets();
-            if (!_isActivatedThisCycle)
+            if (autoOnEnabled)
+            {
+                TargetUpdater.UpdateTargets();
+            }
+            if (!DataCenter.IsActivated())
                 return;
-            
+
             bool canDoAction = ActionUpdater.CanDoAction();
             MovingUpdater.UpdateCanMove(canDoAction);
 
@@ -148,7 +152,10 @@ internal static class MajorUpdater
 
             MacroUpdater.UpdateMacro();
 
-            TargetUpdater.UpdateTargets();
+            if (!autoOnEnabled)
+            {
+                TargetUpdater.UpdateTargets();
+            }
 
             StateUpdater.UpdateState();
 

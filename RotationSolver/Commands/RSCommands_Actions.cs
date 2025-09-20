@@ -3,11 +3,9 @@ using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using RotationSolver.Basic.Configuration;
 using RotationSolver.Helpers;
 using RotationSolver.Updaters;
-using Serilog;
 
 namespace RotationSolver.Commands
 {
@@ -238,6 +236,13 @@ namespace RotationSolver.Commands
                     return;
                 }
 
+                // Precompute hostile target object IDs for O(1) lookup
+                var hostileTargetObjectIds = new HashSet<ulong>();
+                foreach (var ht in DataCenter.AllHostileTargets)
+                {
+                    if (ht != null) hostileTargetObjectIds.Add(ht.TargetObjectId);
+                }
+
                 // Combine conditions to reduce redundant checks
                 if (Svc.Condition[ConditionFlag.LoggingOut] ||
                     (Service.Config.AutoOffWhenDead && DataCenter.Territory != null && !DataCenter.Territory.IsPvP && Player.Object.CurrentHp == 0) ||
@@ -271,65 +276,56 @@ namespace RotationSolver.Commands
                     return;
                 }
 
-                
-
                 //PluginLog.Debug($"AllTargetsCount = {DataCenter.AllTargets.Count} && AllHostileTargets: {DataCenter.AllHostileTargets.Count} && PartyCount: {DataCenter.PartyMembers.Count} && DataCenter.State = {DataCenter.State} && StartOnPartyIsInCombat = {Service.Config.StartOnPartyIsInCombat} && StartOnAllianceIsInCombat = {Service.Config.StartOnAllianceIsInCombat} && StartOnFieldOpInCombat = {Service.Config.StartOnFieldOpInCombat}");
                 
-                
-                if (Service.Config.StartOnPartyIsInCombat && !DataCenter.State  && DataCenter.MasterEnabled && DataCenter.PartyMembers.Count > 1)
+                if (Service.Config.StartOnPartyIsInCombat && !DataCenter.State && DataCenter.PartyMembers.Count > 1)
                 {
                     foreach (var p in DataCenter.PartyMembers)
                     {
                         
-                        if (p != null  && p.InCombat())
+                        if (p != null && p.InCombat())
                         {
                             PluginLog.Debug($"StartOnPartyIsInCombat: {p.Name} InCombat: {p.InCombat()}.");
                             DoStateCommandType(StateCommandType.Auto);
                             return;
                         }
 
-                        foreach (var ht in DataCenter.AllHostileTargets)
+                        if (p != null && hostileTargetObjectIds.Contains(p.GameObjectId))
                         {
-                            if (ht != null && ht.TargetObjectId == p.GameObjectId)
-                            {
-                                PluginLog.Debug($"StartOnPartyIsInCombat: {p.Name} Is Targeted By Hostile: {ht.Name}.");
-                                DoStateCommandType(StateCommandType.Auto);
-                                return;
-                            }
+                            PluginLog.Debug($"StartOnPartyIsInCombat: {p.Name} Is Targeted By Hostile.");
+                            DoStateCommandType(StateCommandType.Auto);
+                            return;
                         }
                     }
                     
                 }
-                if ((Service.Config.StartOnAllianceIsInCombat && !DataCenter.State && DataCenter.AllianceMembers.Count > 1)  && !(DataCenter.IsInBozjanFieldOp || DataCenter.IsInBozjanFieldOpCE || DataCenter.IsInOccultCrescentOp || DataCenter.IsInOccultCrescentOpCE))
+
+                if ((Service.Config.StartOnAllianceIsInCombat && !DataCenter.State && DataCenter.AllianceMembers.Count > 1)  && !(DataCenter.IsInBozjanFieldOp || DataCenter.IsInBozjanFieldOpCE || DataCenter.IsInOccultCrescentOp))
                 {
                     foreach (var a in DataCenter.AllianceMembers)
                     {
                         
-                        if (a != null  && a.InCombat())
+                        if (a != null && a.InCombat())
                         {
                             PluginLog.Debug($"StartOnAllianceIsInCombat: {a.Name} InCombat: {a.InCombat()}.");
                             DoStateCommandType(StateCommandType.Auto);
                             return;
                         }
-                            
-                        foreach (var ht in DataCenter.AllHostileTargets)
+
+                        if (a != null && hostileTargetObjectIds.Contains(a.GameObjectId))
                         {
-                            if (ht != null && ht.TargetObjectId == a.GameObjectId)
-                            {
-                                PluginLog.Debug($"StartOnAllianceIsInCombat: {a.Name} Is Targeted By Hostile: {ht.Name}.");
-                                DoStateCommandType(StateCommandType.Auto);
-                                return;
-                            }
+                            PluginLog.Debug($"StartOnAllianceIsInCombat: {a.Name} Is Targeted By Hostile.");
+                            DoStateCommandType(StateCommandType.Auto);
+                            return;
                         }
                     }
                 }
 
-                if ((Service.Config.StartOnFieldOpInCombat && !DataCenter.State && DataCenter.MasterEnabled) && (DataCenter.IsInBozjanFieldOp || DataCenter.IsInBozjanFieldOpCE || DataCenter.IsInOccultCrescentOp || DataCenter.IsInOccultCrescentOpCE))
+                if (Service.Config.StartOnFieldOpInCombat && !DataCenter.State && (DataCenter.IsInBozjanFieldOp || DataCenter.IsInBozjanFieldOpCE || DataCenter.IsInOccultCrescentOp))
                 {
-                    
                     foreach (var t in TargetHelper.GetTargetsByRange(30f))
                     {
-                        if (t != null && DataCenter.AllHostileTargets.Contains(t)  && !ObjectHelper.IsDummy(t))
+                        if (t != null && DataCenter.AllHostileTargets.Contains(t) && !ObjectHelper.IsDummy(t))
                         {
                             continue;
                         }
@@ -344,19 +340,16 @@ namespace RotationSolver.Commands
                             DoStateCommandType(StateCommandType.Auto);
                             return;
                         }
-                        foreach (var ht in DataCenter.AllHostileTargets)
+                        if (t != null && hostileTargetObjectIds.Contains(t.GameObjectId))
                         {
-                            if (ht != null && ht.TargetObjectId == t.GameObjectId)
-                            {
-                                PluginLog.Debug($"StartOnFieldOpInCombat: {t.Name} Is Targeted By Hostile: {ht.Name}.");
-                                DoStateCommandType(StateCommandType.Auto);
-                                return;
-                            }
+                            PluginLog.Debug($"StartOnFieldOpInCombat: {t.Name} Is Targeted By Hostile.");
+                            DoStateCommandType(StateCommandType.Auto);
+                            return;
                         }
                     }
                 }
                 IBattleChara? target = null;
-                if (Service.Config.StartOnAttackedBySomeone && !DataCenter.State && DataCenter.MasterEnabled)
+                if (Service.Config.StartOnAttackedBySomeone && !DataCenter.State)
                 {
                     foreach (var t in DataCenter.AllHostileTargets)
                     {
@@ -371,6 +364,7 @@ namespace RotationSolver.Commands
                         DoStateCommandType(StateCommandType.Manual);
                     }
                 }
+
                 if (Service.Config.StartOnCountdown)
                 {
                     if (Service.CountDownTime > 0)
