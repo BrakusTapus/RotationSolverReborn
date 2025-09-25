@@ -583,12 +583,12 @@ public sealed class AST_Reborn : AstrologianRotation
             return base.HealAreaGCD(out act);
         }
 
-        if (HeliosConjunctionPvE.CanUse(out act))
+        if (HeliosConjunctionPvE.EnoughLevel && HeliosConjunctionPvE.CanUse(out act))
         {
             return true;
         }
 
-        if (AspectedHeliosPvE.CanUse(out act))
+        if (!HeliosConjunctionPvE.EnoughLevel && AspectedHeliosPvE.CanUse(out act))
         {
             return true;
         }

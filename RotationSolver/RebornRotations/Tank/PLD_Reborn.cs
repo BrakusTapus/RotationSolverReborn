@@ -170,9 +170,12 @@ public sealed class PLD_Reborn : PaladinRotation
                 return true;
             }
 
-            if (!HolyCirclePvE.EnoughLevel && (NumberOfHostilesInRange == 1 || (RequiescatPvE.Target.Target?.IsBossFromIcon() ?? false)) && RequiescatPvE.CanUse(out act, skipAoeCheck: true, usedUp: true))
+            if (RequiescatPvE.CanUse(out act, skipAoeCheck: true, usedUp: true))
             {
-                return true;
+                if (!HolyCirclePvE.EnoughLevel && (NumberOfHostilesInRange == 1 || RequiescatPvE.Target.Target.IsBossFromIcon()))
+                {
+                    return true;
+                }
             }
         }
 

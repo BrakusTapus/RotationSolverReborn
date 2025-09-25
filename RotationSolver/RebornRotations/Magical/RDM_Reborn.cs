@@ -49,9 +49,20 @@ public sealed class RDM_Reborn : RedMageRotation
         }
 
         //Remove Swift
-        StatusHelper.StatusOff(StatusID.Dualcast);
-        StatusHelper.StatusOff(StatusID.Acceleration);
-        StatusHelper.StatusOff(StatusID.Swiftcast);
+        if (HasDualcast && remainTime < 0f)
+        {
+            StatusHelper.StatusOff(StatusID.Dualcast);
+        }
+
+        if (HasAccelerate && remainTime < 0f)
+        {
+            StatusHelper.StatusOff(StatusID.Acceleration);
+        }
+
+        if (HasSwift && remainTime < 0f)
+        {
+            StatusHelper.StatusOff(StatusID.Swiftcast);
+        }
 
         return base.CountDownAction(remainTime);
     }

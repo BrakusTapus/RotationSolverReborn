@@ -161,10 +161,9 @@ public sealed class MCH_Reborn : MachinistRotation
                 {
                     if (WeaponRemain < (GCDTime(1) / 2) && nextGCD.IsTheSameTo(false, FullMetalFieldPvE))
                     {
-                        var IsTargetBoss = WildfirePvE.Target.Target?.IsBossFromIcon() ?? false;
-                        if ((IsTargetBoss && WildfireBoss) || !WildfireBoss)
+                        if (WildfirePvE.CanUse(out act))
                         {
-                            if (WildfirePvE.CanUse(out act))
+                            if ((WildfirePvE.Target.Target.IsBossFromIcon() && WildfireBoss) || !WildfireBoss)
                             {
                                 return true;
                             }
@@ -178,10 +177,9 @@ public sealed class MCH_Reborn : MachinistRotation
                 {
                     if (WeaponRemain < (GCDTime(1) / 2))
                     {
-                        var IsTargetBoss = WildfirePvE.Target.Target?.IsBossFromIcon() ?? false;
-                        if ((IsTargetBoss && WildfireBoss) || !WildfireBoss)
+                        if (WildfirePvE.CanUse(out act))
                         {
-                            if (WildfirePvE.CanUse(out act))
+                            if ((WildfirePvE.Target.Target.IsBossFromIcon() && WildfireBoss) || !WildfireBoss)
                             {
                                 return true;
                             }

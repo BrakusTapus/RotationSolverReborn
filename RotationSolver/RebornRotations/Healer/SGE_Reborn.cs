@@ -429,7 +429,10 @@ public sealed class SGE_Reborn : SageRotation
         {
             _lastEukrasiaActionAim = _EukrasiaActionAim;
             _EukrasiaActionAim = null;
-            StatusHelper.StatusOff(StatusID.Eukrasia); // Remove Eukrasia status
+            if (HasEukrasia)
+            {
+                StatusHelper.StatusOff(StatusID.Eukrasia);
+            }
         }
     }
 

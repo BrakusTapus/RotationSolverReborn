@@ -55,6 +55,7 @@ public static class StatusHelper
     public static StatusID[] AreaHots { get; } =
     [
         StatusID.AspectedHelios,
+        StatusID.HeliosConjunction,
         StatusID.MedicaIi,
         StatusID.TrueMedicaIi,
         StatusID.PhysisIi,
