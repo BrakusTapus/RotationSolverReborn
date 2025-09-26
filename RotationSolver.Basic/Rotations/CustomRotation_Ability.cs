@@ -562,6 +562,11 @@ public partial class CustomRotation
         {
             return true;
         }
+
+        if (DataCenter.IsPvP && RecuperatePvP.CanUse(out act) && !Player.HasStatus(true, StatusID.Guard))
+        {
+            return true;
+        }
         #endregion
 
         act = null;
@@ -692,11 +697,6 @@ public partial class CustomRotation
         if (DataCenter.MergedStatus.HasFlag(AutoStatus.NoCasting))
         {
             act = null;
-        }
-
-        if (DataCenter.IsPvP && RecuperatePvP.CanUse(out act) && !Player.HasStatus(true, StatusID.Guard))
-        {
-            return true;
         }
 
         act = null;

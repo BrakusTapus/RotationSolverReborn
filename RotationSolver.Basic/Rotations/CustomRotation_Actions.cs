@@ -125,6 +125,7 @@ public partial class CustomRotation
     {
         //Recuperate will knock off Guard, likely killing you.
         setting.ActionCheck = () => Player.MaxHp - Player.CurrentHp > 15000 && Player.TimeAlive() > 5;
+        setting.TargetType = TargetType.Self;
         setting.IsFriendly = true;
     }
 

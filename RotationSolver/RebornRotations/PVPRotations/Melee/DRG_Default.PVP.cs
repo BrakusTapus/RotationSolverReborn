@@ -7,9 +7,6 @@ public sealed class DRG_DefaultPvP : DragoonRotation
 {
     #region Configurations
 
-    [RotationConfig(CombatType.PvP, Name = "Use Purify")]
-    public bool UsePurifyPvP { get; set; } = true;
-
     [RotationConfig(CombatType.PvP, Name = "Stop attacking while in Guard.")]
     public bool RespectGuard { get; set; } = true;
 

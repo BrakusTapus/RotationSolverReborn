@@ -310,36 +310,6 @@ internal static class DataCenter
         }
     }
 
-    public static ulong[] TreasureCharas
-    {
-        get
-        {
-            List<ulong> charas = new(5);
-            //60687 - 60691 For treasure hunt.
-            for (int i = 60687; i <= 60691; i++)
-            {
-                IBattleChara? b = null;
-                for (int j = 0; j < AllTargets.Count; j++)
-                {
-                    IBattleChara battleChara = AllTargets[j];
-                    if (battleChara.GetNamePlateIcon() == i)
-                    {
-                        b = battleChara;
-                        break;
-                    }
-                }
-                if (b == null || b.CurrentHp == 0)
-                {
-                    continue;
-                }
-
-                charas.Add(b.GameObjectId);
-            }
-
-            return [.. charas];
-        }
-    }
-
     private static float _avgTTK = 0f;
     public static float AverageTTK
     {

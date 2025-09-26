@@ -1975,43 +1975,6 @@ public struct ActionTargetInfo(IBaseAction action)
                 }
             }
 
-            // Handle treasure characters
-            if (DataCenter.TreasureCharas != null && DataCenter.TreasureCharas.Length > 0)
-            {
-                IBattleChara? treasureChara = null;
-                foreach (var b in battleChara)
-                {
-                    if (b.GameObjectId == DataCenter.TreasureCharas[0])
-                    {
-                        treasureChara = b;
-                        break;
-                    }
-                }
-                if (treasureChara != null)
-                {
-                    return treasureChara;
-                }
-
-                var tempList = new List<IBattleChara>();
-                foreach (var b in battleChara)
-                {
-                    bool found = false;
-                    foreach (var id in DataCenter.TreasureCharas)
-                    {
-                        if (b.GameObjectId == id)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        tempList.Add(b);
-                    }
-                }
-                battleChara = tempList;
-            }
-
             // Filter high priority hostiles
             var highPriorityHostiles = new List<IBattleChara>();
             foreach (var b in battleChara)

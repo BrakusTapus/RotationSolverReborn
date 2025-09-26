@@ -613,15 +613,6 @@ internal partial class Configs : IPluginConfiguration
     [Range(1, 20, ConfigUnitType.Seconds, 1f)]
     public float SpecialDuration { get; set; } = 3;
 
-    /// <markdown file="Basic" name="Action Execution Delay">
-    /// Random time in seconds to wait before RSR can take another action.
-    /// (RSR will not take actions during window).
-    /// </markdown>
-    [UI("Action Execution Delay.\n(RSR will not take actions during window).",
-        Filter = BasicTimer)]
-    [Range(0, 1, ConfigUnitType.Seconds, 0.002f)]
-    public Vector2 WeaponDelay { get; set; } = new(0, 0);
-
     [UI("Random range of delay for RSR to stop attacking when the target is dead or immune to damage.",
         Parent = nameof(UseStopCasting))]
     [Range(0, 3, ConfigUnitType.Seconds, 0.002f)]

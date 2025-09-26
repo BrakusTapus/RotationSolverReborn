@@ -26,6 +26,8 @@ public static class ObjectHelper
     private static readonly EventHandlerContent[] _eventType =
     [
         EventHandlerContent.TreasureHuntDirector,
+        EventHandlerContent.BattleLeveDirector,
+        EventHandlerContent.CompanyLeveDirector,
         EventHandlerContent.Quest,
     ];
 
@@ -740,13 +742,15 @@ public static class ObjectHelper
 
         uint icon = battleChara.GetNamePlateIcon();
 
-        // Hunt bill, Relic weapon, and Leve target
-        if (Service.Config.TargetHuntingRelicLevePriority && (icon == 60092 || icon == 60096 || icon == 71244))
+        if (Service.Config.TargetHuntingRelicLevePriority && (icon == 60092 || icon == 60094 || icon == 60096 || icon == 60097 || icon == 60098 || icon == 71244))
         {
             return true;
         }
-        //60092 Hunt Target
+        //60092 Hunt Log
+        //60094 Treasure Mob
         //60096 Relic Weapon
+        //60097 Hunt Bill
+        //60098 Crescent
         //71244 Leve Target
 
         // Quest

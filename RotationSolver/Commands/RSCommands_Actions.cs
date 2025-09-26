@@ -125,7 +125,7 @@ namespace RotationSolver.Commands
                     DataCenter.HostileTarget = target;
                     if (!DataCenter.IsManual &&
                         (Service.Config.SwitchTargetFriendly || ((Svc.Targets.Target?.IsEnemy() ?? true)
-                        || Svc.Targets.Target?.GetObjectKind() == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Treasure)))
+                        || Svc.Targets.Target.GetObjectKind() == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Treasure)))
                     {
                         Svc.Targets.Target = target;
                     }
