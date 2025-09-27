@@ -14,20 +14,19 @@ namespace RotationSolver.Basic.Helpers
                 throw new InvalidOperationException("SystemWarnings dictionary is not initialized.");
             }
 
-            lock (systemWarnings)
+lock (systemWarnings)
             {
-                if (!systemWarnings.ContainsKey(warning))
+                try
                 {
-                    try
+                    if (systemWarnings.TryAdd(warning, DateTime.Now))
                     {
-                        systemWarnings.Add(warning, DateTime.Now);
                         return true;
                     }
-                    catch (Exception ex)
-                    {
-                        // Log the exception
-                        PluginLog.Error($"Failed to add system warning: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception
+                    PluginLog.Error($"Failed to add system warning: {ex.Message}");
                 }
             }
             return false;

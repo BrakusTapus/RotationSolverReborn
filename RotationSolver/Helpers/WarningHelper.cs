@@ -6,12 +6,9 @@ public static class WarningHelper
     {
         DataCenter.SystemWarnings ??= [];
         var dict = DataCenter.SystemWarnings;
-        lock (dict)
+lock (dict)
         {
-            if (!dict.ContainsKey(message))
-            {
-                dict[message] = DateTime.Now;
-            }
+            _ = dict.TryAdd(message, DateTime.Now);
         }
     }
 }

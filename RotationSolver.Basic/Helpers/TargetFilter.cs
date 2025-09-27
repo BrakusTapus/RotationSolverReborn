@@ -8,6 +8,36 @@ namespace RotationSolver.Basic.Helpers;
 /// </summary>
 public static class TargetFilter
 {
+    private static Dictionary<JobRole, HashSet<byte>>? _roleJobs;
+    private static readonly object _roleJobsLock = new();
+
+    private static Dictionary<JobRole, HashSet<byte>> GetRoleMap()
+    {
+        var map = _roleJobs;
+        if (map != null) return map;
+        lock (_roleJobsLock)
+        {
+            if (_roleJobs != null) return _roleJobs;
+            var sheet = Service.GetSheet<ClassJob>();
+            var dict = new Dictionary<JobRole, HashSet<byte>>();
+            if (sheet != null)
+            {
+                foreach (var job in sheet)
+                {
+                    var role = job.GetJobRole();
+                    if (!dict.TryGetValue(role, out var set))
+                    {
+                        set = new HashSet<byte>();
+                        dict[role] = set;
+                    }
+                    set.Add((byte)job.RowId);
+                }
+            }
+            _roleJobs = dict;
+            return _roleJobs;
+        }
+    }
+
     #region Find one target
     /// <summary>
     /// Get the dead ones in the list.
@@ -60,28 +90,20 @@ public static class TargetFilter
     /// <param name="objects">The list of objects.</param>
     /// <param name="roles">The roles to filter by.</param>
     /// <returns>The objects that match the roles.</returns>
-    public static IEnumerable<IBattleChara> GetJobCategory(this IEnumerable<IBattleChara> objects, params JobRole[] roles)
+public static IEnumerable<IBattleChara> GetJobCategory(this IEnumerable<IBattleChara> objects, params JobRole[] roles)
     {
         if (objects == null || roles == null || roles.Length == 0)
         {
             return [];
         }
 
+        var map = GetRoleMap();
         HashSet<byte> validJobs = [];
-        Lumina.Excel.ExcelSheet<ClassJob> classJobs = Service.GetSheet<ClassJob>();
-        if (classJobs == null)
+        foreach (var role in roles)
         {
-            return [];
-        }
-
-        foreach (JobRole role in roles)
-        {
-            foreach (ClassJob job in classJobs)
+            if (map.TryGetValue(role, out var set) && set != null)
             {
-                if (role == job.GetJobRole())
-                {
-                    _ = validJobs.Add((byte)job.RowId);
-                }
+                foreach (var j in set) validJobs.Add(j);
             }
         }
 
@@ -103,29 +125,15 @@ public static class TargetFilter
     /// <param name="battleChara">The game object.</param>
     /// <param name="role">The role to check.</param>
     /// <returns>True if the object is of the specified role, otherwise false.</returns>
-    public static bool IsJobCategory(this IBattleChara battleChara, JobRole role)
+public static bool IsJobCategory(this IBattleChara battleChara, JobRole role)
     {
         if (battleChara == null)
         {
             return false;
         }
 
-        HashSet<byte> validJobs = [];
-        Lumina.Excel.ExcelSheet<ClassJob> classJobs = Service.GetSheet<ClassJob>();
-        if (classJobs == null)
-        {
-            return false;
-        }
-
-        foreach (ClassJob job in classJobs)
-        {
-            if (role == job.GetJobRole())
-            {
-                _ = validJobs.Add((byte)job.RowId);
-            }
-        }
-
-        return battleChara.IsJobs(validJobs);
+        var map = GetRoleMap();
+        return map.TryGetValue(role, out var set) && battleChara.IsJobs(set);
     }
 
     /// <summary>

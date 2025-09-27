@@ -492,118 +492,63 @@ public static class StatusHelper
     /// <param name="isFromSelf">Whether the statuses are from self.</param>
     /// <param name="statusIDs">The status IDs to look for.</param>
     /// <returns>An enumerable of statuses.</returns>
-    private static List<Status> GetStatus(this IBattleChara battleChara, bool isFromSelf, params StatusID[] statusIDs)
+private static IEnumerable<Status> GetStatus(this IBattleChara battleChara, bool isFromSelf, params StatusID[] statusIDs)
     {
         if (battleChara == null)
         {
-            return [];
+            yield break;
         }
 
+        StatusList statusList;
         try
         {
-            if (battleChara.StatusList == null)
+            statusList = battleChara.StatusList;
+            if (statusList == null)
             {
-                return [];
+                yield break;
             }
         }
         catch
         {
             // StatusList threw, treat as unavailable
-            return [];
+            yield break;
         }
 
-        List<Status> allStatuses = battleChara.GetAllStatus(isFromSelf);
-        if (allStatuses == null)
+        // Linear membership check to avoid HashSet allocation (statusIDs is small in practice)
+        static bool ContainsId(uint id, StatusID[] ids)
         {
-            return [];
-        }
-
-        // Build HashSet<uint> without LINQ
-        HashSet<uint> newEffects = [];
-        foreach (StatusID id in statusIDs)
-        {
-            _ = newEffects.Add((uint)id);
-        }
-
-        List<Status> result = [];
-
-        try
-        {
-            foreach (Status status in allStatuses)
+            for (int i = 0; i < ids.Length; i++)
             {
-                if (status != null && newEffects.Contains(status.StatusId))
-                {
-                    result.Add(status);
-                }
+                if ((uint)ids[i] == id) return true;
             }
-        }
-        catch (Exception ex)
-        {
-            PluginLog.Error($"Failed to retrieve statuses for GameObjectId: {battleChara.GameObjectId}. Exception: {ex.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// Get all statuses of the specified object.
-    /// </summary>
-    /// <param name="battleChara">The object to get the statuses from.</param>
-    /// <param name="isFromSelf">Whether the statuses are from self.</param>
-    /// <returns>An enumerable of all statuses.</returns>
-    private static List<Status> GetAllStatus(this IBattleChara battleChara, bool isFromSelf)
-    {
-        if (battleChara == null)
-        {
-            return [];
-        }
-
-        if (!battleChara.IsValid())
-        {
-            return [];
-        }
-
-        try
-        {
-            if (battleChara.StatusList == null)
-            {
-                return [];
-            }
-        }
-        catch
-        {
-            // StatusList threw, treat as unavailable
-            return [];
+            return false;
         }
 
         ulong playerId = Player.Object.GameObjectId;
-        List<Status> result = [];
-
-        StatusList statusList = battleChara.StatusList;
-        if (statusList == null || statusList.Length == 0)
-        {
-            PluginLog.Information($"No statuses found for GameObjectId: {battleChara.GameObjectId}.");
-            return [];
-        }
 
         for (int i = 0; i < statusList.Length; i++)
         {
             Status? status = statusList[i];
-            if (status == null || status.StatusId <= 0)
+            if (status == null || status.StatusId == 0)
             {
                 continue;
             }
 
-            if (!isFromSelf ||
-                status.SourceId == playerId ||
-                (status.SourceObject?.OwnerId == playerId))
+            if (isFromSelf)
             {
-                result.Add(status);
+                if (status.SourceId != playerId && status.SourceObject?.OwnerId != playerId)
+                {
+                    continue;
+                }
+            }
+
+            if (ContainsId(status.StatusId, statusIDs))
+            {
+                yield return status;
             }
         }
-
-        return result;
     }
+
 
     /// <summary>
     /// Check if the status is invincible.

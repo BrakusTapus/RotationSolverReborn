@@ -101,8 +101,8 @@ namespace RotationSolver.Basic.Helpers
         /// <returns>The filtered characters.</returns>
         internal static unsafe IEnumerable<IBattleChara> FilterStopCharacters(IEnumerable<IBattleChara> charas)
         {
-            long[] stopTargets = GetStopTargets();
-            HashSet<long> ids = [];
+long[] stopTargets = GetStopTargets();
+            HashSet<long> ids = new(stopTargets.Length);
             for (int i = 0; i < stopTargets.Length; i++)
             {
                 if (stopTargets[i] != 0)
@@ -111,7 +111,8 @@ namespace RotationSolver.Basic.Helpers
                 }
             }
 
-            List<IBattleChara> result = [];
+            int capacity = (charas as ICollection<IBattleChara>)?.Count ?? 0;
+            List<IBattleChara> result = capacity > 0 ? new List<IBattleChara>(capacity) : [];
             foreach (IBattleChara b in charas)
             {
                 // Keep all player characters even if they are marked with stop markers

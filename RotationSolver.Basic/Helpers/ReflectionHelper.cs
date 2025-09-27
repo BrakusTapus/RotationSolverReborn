@@ -3,19 +3,27 @@
     /// <summary>
     /// Helper class for reflection-related operations.
     /// </summary>
-    internal static class ReflectionHelper
+internal static class ReflectionHelper
     {
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<(Type type, Type ofT), PropertyInfo[]> s_staticPropsCache = new();
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, MethodInfo[]> s_methodsCache = new();
+
         /// <summary>
         /// Gets the static properties of a specified type.
         /// </summary>
         /// <typeparam name="T">The type of the properties to get.</typeparam>
         /// <param name="type">The type to get the properties from.</param>
         /// <returns>An array of static properties of the specified type.</returns>
-        internal static PropertyInfo[] GetStaticProperties<T>(this Type? type)
+internal static PropertyInfo[] GetStaticProperties<T>(this Type? type)
         {
             if (type == null)
             {
                 return [];
+            }
+
+            if (s_staticPropsCache.TryGetValue((type, typeof(T)), out var cached))
+            {
+                return cached;
             }
 
             PropertyInfo[] allProperties = type.GetProperties(BindingFlags.Static | BindingFlags.Public);
@@ -39,6 +47,7 @@
                 Array.Copy(baseProperties, 0, result, filteredProperties.Count, baseProperties.Length);
             }
 
+            s_staticPropsCache[(type, typeof(T))] = result;
             return result;
         }
 
@@ -47,11 +56,16 @@
         /// </summary>
         /// <param name="type">The type to get the methods from.</param>
         /// <returns>An enumerable of method information.</returns>
-        internal static IEnumerable<MethodInfo> GetAllMethodInfo(this Type? type)
+internal static IEnumerable<MethodInfo> GetAllMethodInfo(this Type? type)
         {
             if (type == null)
             {
                 return [];
+            }
+
+            if (s_methodsCache.TryGetValue(type, out var cached))
+            {
+                return cached;
             }
 
             MethodInfo[] allMethods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -74,6 +88,7 @@
                 baseMethods.ToArray().CopyTo(result, filteredMethods.Count);
             }
 
+            s_methodsCache[type] = result;
             return result;
         }
 

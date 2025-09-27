@@ -1,6 +1,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ECommons.Logging;
 using RotationSolver.Basic.Tweaks;
+using System.Diagnostics;
 
 namespace RotationSolver.Basic.Helpers;
 
@@ -30,10 +31,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
     /// </summary>
     public CooldownDelayTweak CooldownDelayTweak => _cooldownTweak;
 
-    private readonly ActionManager* _actionManager;
+private readonly ActionManager* _actionManager;
     private uint _lastActionSequence;
     private float _lastAnimationLock;
-    private DateTime _lastFrameTime = DateTime.Now;
+    private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
     
     private ActionManagerEx()
     {
@@ -48,9 +49,8 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         if (_actionManager == null) return;
         
-        var currentTime = DateTime.Now;
-        var deltaTime = (float)(currentTime - _lastFrameTime).TotalSeconds;
-        _lastFrameTime = currentTime;
+var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
+        _stopwatch.Restart();
         
         var currentAnimLock = _actionManager->AnimationLock;
         
@@ -87,8 +87,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // Record current state for tweaks
         var prevAnimLock = _actionManager->AnimationLock;
         var prevCooldown = GetRemainingCooldown(actionId);
-        var currentTime = DateTime.Now;
-        var deltaTime = (float)(currentTime - _lastFrameTime).TotalSeconds;
+var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
         
         // Start cooldown adjustment if enabled
         if (Service.Config.RemoveCooldownDelay)
@@ -140,8 +139,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // Record current state for tweaks
         var prevAnimLock = _actionManager->AnimationLock;
         var prevCooldown = GetRemainingCooldown(actionId);
-        var currentTime = DateTime.Now;
-        var deltaTime = (float)(currentTime - _lastFrameTime).TotalSeconds;
+var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
         
         // Start cooldown adjustment if enabled
         if (Service.Config.RemoveCooldownDelay)
@@ -194,8 +192,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
             // Apply the reduction to the current animation lock
             if (reduction > 0)
             {
-                _actionManager->AnimationLock = Math.Max(0, currentAnimLock - reduction);
-                PluginLog.Debug($"[ActionManagerEx] Reduced animation lock by {reduction:f3}s (delay: {delay:f3}s)");
+_actionManager->AnimationLock = Math.Max(0, currentAnimLock - reduction);
+                if (Service.Config.InDebug)
+                {
+                    PluginLog.Debug($"[ActionManagerEx] Reduced animation lock by {reduction:f3}s (delay: {delay:f3}s)");
+                }
             }
         }
         
@@ -204,7 +205,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
         {
             // Note: In a full implementation, we would need to adjust specific action cooldowns
             // This is a simplified version that demonstrates the concept
-            PluginLog.Debug($"[ActionManagerEx] Cooldown adjustment: {_cooldownTweak.Adjustment:f3}s");
+if (Service.Config.InDebug)
+            {
+                PluginLog.Debug($"[ActionManagerEx] Cooldown adjustment: {_cooldownTweak.Adjustment:f3}s");
+            }
             _cooldownTweak.StopAdjustment();
         }
     }

@@ -841,8 +841,8 @@ public static class ObjectHelper
     /// <summary>
     /// List of NameIds that Undead enemies in Occult Crecent.
     /// </summary>
-    public static uint[] IsOCUndeadList { get; } =
-    [
+private static readonly HashSet<uint> IsOCUndeadSet = new()
+    {
         13741, //Lifereaper
         13924, //Armor
         13922, //Ghost
@@ -851,21 +851,21 @@ public static class ObjectHelper
         13925, //Troubadour
         13923, //Geshunpest
         13927, //Dullahan
-    ];
+    };
 
     /// <summary>
     /// Check to see if Occult Crecent target is Undead.
     /// </summary>
     public static bool IsOCUndeadTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCUndeadList, battleChara.NameId) >= 0;
+        return IsOCUndeadSet.Contains(battleChara.NameId);
     }
 
     /// <summary>
     /// List of NameIds that are immune to OC Slowga.
     /// </summary>
-    public static uint[] IsOCSlowgaImmuneList { get; } =
-    [
+    private static readonly HashSet<uint> IsOCSlowgaImmuneSet = new()
+    {
         13933, //Marolith
         13893, //AnimatedDoll
         13894, //AnimatedDoll
@@ -882,21 +882,21 @@ public static class ObjectHelper
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    ];
+    };
 
     /// <summary>
     /// Check to see if target is immune to Slowga.
     /// </summary>
     public static bool IsOCSlowgaImmuneTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCSlowgaImmuneList, battleChara.NameId) >= 0;
+        return IsOCSlowgaImmuneSet.Contains(battleChara.NameId);
     }
 
     /// <summary>
     /// List of NameIds that are immune to OC Doom.
     /// </summary>
-    public static uint[] IsOCDoomImmuneList { get; } =
-    [
+    private static readonly HashSet<uint> IsOCDoomImmuneSet = new()
+    {
         13893, //AnimatedDoll
         13894, //AnimatedDoll
         13917, //Sculpture
@@ -919,21 +919,21 @@ public static class ObjectHelper
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    ];
+    };
 
     /// <summary>
     /// Check to see if target is immune to Phantom Doom.
     /// </summary>
     public static bool IsOCDoomImmuneTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCDoomImmuneList, battleChara.NameId) >= 0;
+        return IsOCDoomImmuneSet.Contains(battleChara.NameId);
     }
 
     /// <summary>
     /// List of NameIds that are immune to OC Stun.
     /// </summary>
-    public static uint[] IsOCStunImmuneList { get; } =
-    [
+    private static readonly HashSet<uint> IsOCStunImmuneSet = new()
+    {
         13873, //Tormentor
         13891, //LionStatant
         13916, //Brachiosaur
@@ -950,21 +950,21 @@ public static class ObjectHelper
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    ];
+    };
 
     /// <summary>
     /// Check to see if target is immune to Stun.
     /// </summary>
     public static bool IsOCStunImmuneTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCStunImmuneList, battleChara.NameId) >= 0;
+        return IsOCStunImmuneSet.Contains(battleChara.NameId);
     }
 
     /// <summary>
     /// List of NameIds that are immune to OC Freeze.
     /// </summary>
-    public static uint[] IsOCFreezeImmuneList { get; } =
-    [
+    private static readonly HashSet<uint> IsOCFreezeImmuneSet = new()
+    {
         13876, //Fan
         13917, //Sculpture
         13916, //Brachiosaur
@@ -983,21 +983,21 @@ public static class ObjectHelper
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    ];
+    };
 
     /// <summary>
     /// Check to see if target is immune to Freeze.
     /// </summary>
     public static bool IsOCFreezeImmuneTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCFreezeImmuneList, battleChara.NameId) >= 0;
+        return IsOCFreezeImmuneSet.Contains(battleChara.NameId);
     }
 
     /// <summary>
     /// List of NameIds that are immune to OC Blind.
     /// </summary>
-    public static uint[] IsOCBlindImmuneList { get; } =
-    [
+    private static readonly HashSet<uint> IsOCBlindImmuneSet = new()
+    {
         13931, //Chaochu
         13874, //Snapweed
         13932, //Leshy
@@ -1014,21 +1014,21 @@ public static class ObjectHelper
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    ];
+    };
 
     /// <summary>
     /// Check to see if target is immune to Blind.
     /// </summary>
     public static bool IsOCBlindImmuneTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCBlindImmuneList, battleChara.NameId) >= 0;
+        return IsOCBlindImmuneSet.Contains(battleChara.NameId);
     }
 
     /// <summary>
     /// List of NameIds that are immune to OC Paralysis.
     /// </summary>
-    public static uint[] IsOCParalysisImmuneList { get; } =
-    [
+    private static readonly HashSet<uint> IsOCParalysisImmuneSet = new()
+    {
         13931, //Chaochu
         13874, //Snapweed
         13932, //Leshy
@@ -1051,14 +1051,14 @@ public static class ObjectHelper
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    ];
+    };
 
     /// <summary>
     /// Check to see if target is immune to Paralysis.
     /// </summary>
     public static bool IsOCParalysisImmuneTarget(this IBattleChara battleChara)
     {
-        return System.Array.IndexOf(IsOCParalysisImmuneList, battleChara.NameId) >= 0;
+        return IsOCParalysisImmuneSet.Contains(battleChara.NameId);
     }
 
     internal static unsafe uint GetNamePlateIcon(this IBattleChara battleChara)
@@ -1907,11 +1907,16 @@ public static class ObjectHelper
     }
 
     private static readonly Dictionary<ulong, Vector3> LastPositions = [];
-    internal static bool IsTargetMoving(this IBattleChara battleChara)
+internal static bool IsTargetMoving(this IBattleChara battleChara)
     {
         if (battleChara == null)
         {
             return false;
+        }
+
+        if (Svc.Condition[ConditionFlag.BetweenAreas] || LastPositions.Count > 4096)
+        {
+            LastPositions.Clear();
         }
 
         ulong id = battleChara.GameObjectId;
@@ -1940,7 +1945,7 @@ public static class ObjectHelper
     /// <returns>
     /// The estimated time to kill the battle character in seconds, or <see cref="float.NaN"/> if the calculation cannot be performed.
     /// </returns>
-    internal static float GetTTK(this IBattleChara battleChara, bool wholeTime = false)
+internal static float GetTTK(this IBattleChara battleChara, bool wholeTime = false)
     {
         if (battleChara == null)
         {
@@ -1952,26 +1957,36 @@ public static class ObjectHelper
             return 999.99f;
         }
 
+        const int movingAverageWindow = 5;
+        ulong objId = battleChara.GameObjectId;
+
         DateTime startTime = DateTime.MinValue;
-        float initialHpRatio = 0;
+        float initialHpRatio = 0f;
 
-        (DateTime time, Dictionary<ulong, float> hpRatios)[] recordedHPCopy = [.. DataCenter.RecordedHP];
+        // Small fixed-size window for last ratios without copying the whole queue
+        float[] window = new float[movingAverageWindow];
+        int wCount = 0;
 
-        const int movingAverageWindow = 5; 
-        if (recordedHPCopy.Length == 0)
+        foreach ((DateTime time, Dictionary<ulong, float> hpRatiosDict) in DataCenter.RecordedHP)
         {
-            return float.NaN;
-        }
-
-        List<float> hpRatios = new(movingAverageWindow);
-
-        foreach ((DateTime time, Dictionary<ulong, float> hpRatiosDict) in recordedHPCopy)
-        {
-            if (hpRatiosDict != null && hpRatiosDict.TryGetValue(battleChara.GameObjectId, out float ratio) && ratio != 1)
+            if (hpRatiosDict != null && hpRatiosDict.TryGetValue(objId, out float ratio) && ratio != 1f)
             {
-                startTime = time;
-                initialHpRatio = ratio;
-                break;
+                if (startTime == DateTime.MinValue)
+                {
+                    startTime = time;
+                    initialHpRatio = ratio;
+                }
+
+                if (wCount < movingAverageWindow)
+                {
+                    window[wCount++] = ratio;
+                }
+                else
+                {
+                    // shift left by one; window is very small so this is cheap
+                    Array.Copy(window, 1, window, 0, movingAverageWindow - 1);
+                    window[movingAverageWindow - 1] = ratio;
+                }
             }
         }
 
@@ -1980,33 +1995,15 @@ public static class ObjectHelper
             return float.NaN;
         }
 
-        if (recordedHPCopy.Length > movingAverageWindow)
-        {
-            recordedHPCopy = recordedHPCopy[^movingAverageWindow..];
-        }
-
-        foreach ((_, Dictionary<ulong, float> hpRatiosDict) in recordedHPCopy)
-        {
-            if (hpRatiosDict != null && hpRatiosDict.TryGetValue(battleChara.GameObjectId, out float ratio) && ratio != 1)
-            {
-                hpRatios.Add(ratio);
-            }
-        }
-
         float currentHealthRatio = battleChara.GetHealthRatio();
         if (float.IsNaN(currentHealthRatio))
         {
             return float.NaN;
         }
 
-        float sum = 0;
-        int count = 0;
-        foreach (float r in hpRatios)
-        {
-            sum += r;
-            count++;
-        }
-        float avg = count > 0 ? sum / count : 0;
+        float sum = 0f;
+        for (int i = 0; i < wCount; i++) sum += window[i];
+        float avg = wCount > 0 ? sum / wCount : 0f;
 
         float hpRatioDifference = initialHpRatio - avg;
         if (hpRatioDifference <= 0)
@@ -2101,7 +2098,7 @@ public static class ObjectHelper
         {
             if (id == battleChara.GameObjectId)
             {
-                return now - time >= TimeSpan.FromSeconds(1);
+return now - time <= TimeSpan.FromSeconds(1);
             }
         }
         return false;

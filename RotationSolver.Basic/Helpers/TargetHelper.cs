@@ -11,6 +11,8 @@ namespace RotationSolver.Basic.Helpers
     /// </summary>
     public static class TargetHelper
     {
+        private static readonly HashSet<long> s_emptyStopTargets = new();
+
         /// <summary>
         /// Retrieves a collection of valid battle characters that can be targeted based on the specified criteria.
         /// </summary>
@@ -23,7 +25,6 @@ namespace RotationSolver.Basic.Helpers
         {
             if (DataCenter.AllTargets == null) return [];
 
-            List<IBattleChara> targets = [];
             float searchRange = range;
 
             // Build a non-colliding cache key without mutating input range
@@ -35,33 +36,50 @@ namespace RotationSolver.Basic.Helpers
                 return cachedTargets;
             }
 
+            // Pre-size target list based on expected source set
+            int capacity = getFriendly == true
+                ? (DataCenter.PartyMembers?.Count ?? 0)
+                : getFriendly == false
+                    ? (DataCenter.AllHostileTargets?.Count ?? 0)
+                    : (DataCenter.AllTargets?.Count ?? 0);
+            List<IBattleChara> targets = capacity > 0 ? new List<IBattleChara>(capacity) : [];
+
             var blacklisted = new HashSet<uint>(DataCenter.BlacklistedNameIds);
-            var stopTargets = Service.Config.FilterStopMark
+            HashSet<long> stopTargets = Service.Config.FilterStopMark
                 ? [.. MarkingHelper.GetStopTargets()]
-                : new HashSet<long>();
+                : s_emptyStopTargets;
 
             if (getFriendly == true)
             {
-                foreach (IBattleChara target in DataCenter.PartyMembers.GetObjectInRadius(searchRange))
+                if (DataCenter.PartyMembers != null)
                 {
-                    if (!ValidityCheck(target, blacklisted, stopTargets)) continue;
-                    targets.Add(target);
+                    foreach (IBattleChara target in DataCenter.PartyMembers.GetObjectInRadius(searchRange))
+                    {
+                        if (!ValidityCheck(target, blacklisted, stopTargets)) continue;
+                        targets.Add(target);
+                    }
                 }
             }
             else if (getFriendly == false)
             {
-                foreach (IBattleChara target in DataCenter.AllHostileTargets.GetObjectInRadius(searchRange))
+                if (DataCenter.AllHostileTargets != null)
                 {
-                    if (!ValidityCheck(target, blacklisted, stopTargets)) continue;
-                    targets.Add(target);
+                    foreach (IBattleChara target in DataCenter.AllHostileTargets.GetObjectInRadius(searchRange))
+                    {
+                        if (!ValidityCheck(target, blacklisted, stopTargets)) continue;
+                        targets.Add(target);
+                    }
                 }
             }
             else
             {
-                foreach (IBattleChara target in DataCenter.AllTargets.GetObjectInRadius(searchRange))
+                if (DataCenter.AllTargets != null)
                 {
-                    if (!ValidityCheck(target, blacklisted, stopTargets)) continue;
-                    targets.Add(target);
+                    foreach (IBattleChara target in DataCenter.AllTargets.GetObjectInRadius(searchRange))
+                    {
+                        if (!ValidityCheck(target, blacklisted, stopTargets)) continue;
+                        targets.Add(target);
+                    }
                 }
             }
 

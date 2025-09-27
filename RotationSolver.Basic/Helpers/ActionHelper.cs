@@ -1,4 +1,5 @@
 ﻿using ECommons.GameHelpers;
+using ECommons.ExcelServices;
 using System.Collections.Concurrent;
 using Action = Lumina.Excel.Sheets.Action;
 
@@ -58,7 +59,7 @@ internal static class ActionHelper
         return group == 0 ? GCDCooldownGroup : group;
     }
 
-    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> PropertyCache = new();
+private static readonly ConcurrentDictionary<Job, PropertyInfo?> JobPropertyCache = new();
 
     /// <summary>
     /// Determines whether the specified action is in the current job.
@@ -70,13 +71,19 @@ internal static class ActionHelper
         Lumina.Excel.Sheets.ClassJobCategory? cate = action.ClassJobCategory.ValueNullable;
         if (cate != null)
         {
-            string jobName = DataCenter.Job.ToString();
-            PropertyInfo? property = PropertyCache.GetOrAdd((cate.GetType(), jobName), key => key.Item1.GetProperty(key.Item2));
+PropertyInfo? property = JobPropertyCache.GetOrAdd(DataCenter.Job, job =>
+            {
+                // Cache the property info for this job once
+                var t = cate.GetType();
+                return t.GetProperty(job.ToString());
+            });
 
             if (property != null)
             {
-                bool? inJob = (bool?)property.GetValue(cate);
-                return inJob.GetValueOrDefault(true);
+                object? val = property.GetValue(cate);
+                if (val is bool b) return b;
+                if (val is byte by) return by != 0;
+                return true;
             }
         }
 
