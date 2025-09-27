@@ -283,7 +283,7 @@ public partial class DarkKnightRotation
     static partial void ModifyShadowstridePvE(ref ActionSetting setting)
     {
         setting.UnlockedByQuestID = 67597;
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
     }
 
     static partial void ModifyAbyssalDrainPvE(ref ActionSetting setting)
@@ -483,7 +483,7 @@ public partial class DarkKnightRotation
     }
     static partial void ModifyPlungePvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyScarletDeliriumPvP(ref ActionSetting setting)

@@ -19,7 +19,7 @@ public sealed class WAR_Reborn : WarriorRotation
     [RotationConfig(CombatType.PvE, Name = "Use both stacks of Onslaught during burst while standing still")]
     public bool YEETBurst { get; set; } = true;
 
-    [RotationConfig(CombatType.PvE, Name = "Use a stack of Onslaught during when its about to overcap while standing still")]
+    [RotationConfig(CombatType.PvE, Name = "Use a stack of Onslaught when its about to overcap while standing still")]
     public bool YEETCooldown { get; set; } = false;
 
     [RotationConfig(CombatType.PvE, Name = "Use Primal Rend while moving (Dangerous)")]

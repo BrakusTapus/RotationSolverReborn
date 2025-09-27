@@ -184,7 +184,7 @@ public partial class DragoonRotation
 
     static partial void ModifyWingedGlidePvE(ref ActionSetting setting)
     {
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
         setting.UnlockedByQuestID = 66607;
     }
 
@@ -406,7 +406,7 @@ public partial class DragoonRotation
 
     static partial void ModifyHighJumpPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyElusiveJumpPvP(ref ActionSetting setting)

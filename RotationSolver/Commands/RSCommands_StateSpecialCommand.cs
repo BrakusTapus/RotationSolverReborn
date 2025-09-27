@@ -307,7 +307,7 @@ namespace RotationSolver.Commands
             UpdateToast();
         }
 
-        private static void DoSpecialCommandType(SpecialCommandType specialType, bool sayout = true)
+        public static void DoSpecialCommandType(SpecialCommandType specialType, bool sayout = true)
         {
             DoOneCommandType((type, role) => type.ToSpecialString(role), role =>
             {

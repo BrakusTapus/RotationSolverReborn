@@ -3,7 +3,7 @@
 /// <summary>
 /// The variant action.
 /// </summary>
-[DutyTerritory(263, 264)] // 263: Emanation, 264: Emanation Extreme
+[DutyTerritory(719, 720)]
 public abstract class EmanationRotation : DutyRotation
 {
 }
@@ -17,6 +17,7 @@ public partial class DutyRotation
     static partial void ModifyVrilPvE(ref ActionSetting setting)
     {
         setting.StatusFromSelf = true;
+        setting.TargetType = TargetType.Self;
         setting.TargetStatusProvide = [StatusID.Vril];
     }
 
@@ -27,6 +28,7 @@ public partial class DutyRotation
     static partial void ModifyVrilPvE_9345(ref ActionSetting setting)
     {
         setting.StatusFromSelf = true;
+        setting.TargetType = TargetType.Self;
         setting.TargetStatusProvide = [StatusID.Vril];
     }
 }

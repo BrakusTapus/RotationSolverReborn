@@ -90,11 +90,7 @@ internal static partial class TargetUpdater
                 FFXIVClientStructs.FFXIV.Client.Game.Character.Character* character = member.Character();
                 if (character == null) continue;
 
-                byte status = character->CharacterData.OnlineStatus;
-                if (status != 15 && status != 5 && member.IsTargetable)
-                {
-                    members.Add(member);
-                }
+                members.Add(member);
             }
             catch (Exception ex)
             {

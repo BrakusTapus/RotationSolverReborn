@@ -202,7 +202,7 @@ public static class ObjectHelper
 
             if (isInCE)
             {
-                if (!battleChara.IsBozjanCEMob())
+                if (!battleChara.IsBozjanCEMob() && battleChara.GetBattleNPCSubKind() != BattleNpcSubKind.BattleNpcPart)
                 {
                     return false;
                 }
@@ -411,6 +411,28 @@ public static class ObjectHelper
         }
 
         if (ActionManager.CanUseActionOnTarget((uint)ActionID.BlizzardPvE, obj.Struct()))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    internal static uint TargetCharaCondition(this IBattleChara obj)
+    {
+        uint statusId = obj.OnlineStatus.RowId;
+        if (statusId != 0)
+        {
+            return statusId;
+        }
+
+        return 0;
+    }
+
+    internal static bool IsConditionCannotTarget(this IBattleChara obj)
+    {
+        uint statusId = obj.OnlineStatus.RowId;
+        if (statusId == 15 || statusId == 5)
         {
             return true;
         }

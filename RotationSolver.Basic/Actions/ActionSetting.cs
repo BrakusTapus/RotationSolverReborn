@@ -23,7 +23,17 @@ public enum SpecialActionType : byte
     /// <summary>
     /// 
     /// </summary>
-    MovingForward,
+    HostileMovingForward,
+
+    /// <summary>
+    /// 
+    /// </summary>
+    FriendlyMovingForward,
+
+    /// <summary>
+    /// 
+    /// </summary>
+    HostileFriendlyMovingForward,
 }
 
 /// <summary>

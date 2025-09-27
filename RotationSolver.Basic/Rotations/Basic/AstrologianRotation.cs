@@ -618,7 +618,7 @@ public partial class AstrologianRotation
 
     static partial void ModifyEpicyclePvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.IsFriendly = true;
     }
 

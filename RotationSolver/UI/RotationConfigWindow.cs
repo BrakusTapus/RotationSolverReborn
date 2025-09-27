@@ -476,6 +476,7 @@ public partial class RotationConfigWindow : Window
                         var _ when DataCenter.IsInOccultCrescentOp => $"Duty - {DutyRotation.ActivePhantomJob}",
                         var _ when DataCenter.InVariantDungeon => "Duty - Variant",
                         var _ when DataCenter.IsInBozja => "Duty - Bozja",
+                        var _ when DataCenter.InMonsterHunterDuty => "Duty - Monster Hunter",
                         _ => "Duty",
                     };
                 }
@@ -3599,6 +3600,7 @@ public partial class RotationConfigWindow : Window
             ImGui.Spacing();
             ImGui.Text($"NamePlate Icon ID: {battleChara.GetNamePlateIcon()}");
             ImGui.Text($"Event Type: {battleChara.GetEventType()}");
+            ImGui.Text($"TargetCharaCondition: {battleChara.TargetCharaCondition()}");
             //ImGui.Text($"GetMarkerNumber: {MarkingHelper.GetMarkerNumber((long)battleChara.GameObjectId)}");
             ImGui.Text($"Name Id: {battleChara.NameId}");
             ImGui.Text($"Data Id: {battleChara.DataId}");

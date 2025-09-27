@@ -171,6 +171,16 @@ public partial class DutyRotation : IDisposable
     /// <summary>
     /// 
     /// </summary>
+    public static bool RathalosEX => DataCenter.RathalosEX;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool RathalosNormal => DataCenter.RathalosNormal;
+
+    /// <summary>
+    /// 
+    /// </summary>
     public static bool SildihnSubterrane => DataCenter.SildihnSubterrane;
 
     /// <summary>

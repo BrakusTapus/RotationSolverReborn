@@ -88,6 +88,12 @@ public enum SpecialCommandType : byte
     /// </summary>
     [Description("Open a window to do not use the casting action.")]
     NoCasting,
+
+    /// <summary>
+    /// Intercepting action.
+    /// </summary>
+    [Description("Indicator for when RSR is intercepting action.")]
+    Intercepting,
 }
 
 /// <summary>

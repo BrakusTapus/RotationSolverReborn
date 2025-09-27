@@ -26,13 +26,6 @@ public sealed class RDM_Reborn : RedMageRotation
 
     [RotationConfig(CombatType.PvE, Name = "Use Displacement after Engagement (use at own risk).")]
     public bool SuicideByDumber { get; set; } = false;
-
-    [RotationConfig(CombatType.PvE, Name = "Use Corps-a-corps when standing still (use at own risk). (Ignores the below setting)")]
-    public bool SuicideByDumb { get; set; } = false;
-
-    [Range(0, 25, ConfigUnitType.Yalms)]
-    [RotationConfig(CombatType.PvE, Name = "Distance to target to use Corps-a-corps automatically")]
-    public float CorpsDistance { get; set; } = 3f;
     #endregion
 
     private static BaseAction VeraeroPvEStartUp { get; } = new BaseAction(ActionID.VeraeroPvE, false);
@@ -232,15 +225,7 @@ public sealed class RDM_Reborn : RedMageRotation
             return true;
         }
 
-        if (CorpsacorpsPvE.CanUse(out act, usedUp: HasEmbolden || !EmboldenPvE.EnoughLevel || CorpsacorpsPvE.Cooldown.WillHaveXChargesGCD(2, 1)))
-        {
-            if (CorpsacorpsPvE.Target.Target != null && CorpsacorpsPvE.Target.Target.DistanceToPlayer() <= CorpsDistance)
-            {
-                return true;
-            }
-        }
-
-        if (SuicideByDumb && !IsMoving && CorpsacorpsPvE.CanUse(out act, usedUp: HasEmbolden || !EmboldenPvE.EnoughLevel || CorpsacorpsPvE.Cooldown.WillHaveXChargesGCD(2, 1)))
+        if (!IsMoving && CorpsacorpsPvE.CanUse(out act, usedUp: HasEmbolden || !EmboldenPvE.EnoughLevel || CorpsacorpsPvE.Cooldown.WillHaveXChargesGCD(2, 1)))
         {
             return true;
         }

@@ -185,9 +185,12 @@ public partial class CustomRotation
                 if (DataCenter.CurrentDutyRotation?.HealAreaGCD(out act) == true)
                     return act;
 
-                if (HealAreaGCD(out IAction? action))
+                if (!Player.HasStatus(false, StatusID.Scalebound))
                 {
-                    return action;
+                    if (HealAreaGCD(out IAction? action))
+                    {
+                        return action;
+                    }
                 }
                 IBaseAction.AutoHealCheck = false;
             }
@@ -202,9 +205,12 @@ public partial class CustomRotation
 
                 if (CanHealAreaSpell)
                 {
-                    if (HealAreaGCD(out IAction? action))
+                    if (!Player.HasStatus(false, StatusID.Scalebound))
                     {
-                        return action;
+                        if (HealAreaGCD(out IAction? action))
+                        {
+                            return action;
+                        }
                     }
                 }
 
@@ -217,9 +223,12 @@ public partial class CustomRotation
                 if (DataCenter.CurrentDutyRotation?.HealSingleGCD(out act) == true)
                     return act;
 
-                if (HealSingleGCD(out IAction? action))
+                if (!Player.HasStatus(false, StatusID.Scalebound))
                 {
-                    return action;
+                    if (HealSingleGCD(out IAction? action))
+                    {
+                        return action;
+                    }
                 }
                 IBaseAction.AutoHealCheck = false;
             }
@@ -237,9 +246,12 @@ public partial class CustomRotation
 
                 if (CanHealSingleSpell)
                 {
-                    if (HealSingleGCD(out IAction? action))
+                    if (!Player.HasStatus(false, StatusID.Scalebound))
                     {
-                        return action;
+                        if (HealSingleGCD(out IAction? action))
+                        {
+                            return action;
+                        }
                     }
                 }
 

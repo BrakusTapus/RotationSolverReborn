@@ -177,7 +177,7 @@ public partial class SageRotation
 
     static partial void ModifyIcarusPvE(ref ActionSetting setting)
     {
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.HostileFriendlyMovingForward;
     }
 
     static partial void ModifyDruocholePvE(ref ActionSetting setting)
@@ -434,7 +434,7 @@ public partial class SageRotation
 
     static partial void ModifyIcarusPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyToxikonPvP(ref ActionSetting setting)

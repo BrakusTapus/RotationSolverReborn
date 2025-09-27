@@ -235,7 +235,7 @@ public partial class RedMageRotation
 
     static partial void ModifyCorpsacorpsPvE(ref ActionSetting setting)
     {
-        
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
     }
 
     static partial void ModifyVeraeroPvE(ref ActionSetting setting)
@@ -557,6 +557,7 @@ public partial class RedMageRotation
     static partial void ModifyCorpsacorpsPvP(ref ActionSetting setting)
     {
         setting.TargetStatusProvide = [StatusID.Monomachy_3242];
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
     }
 
     static partial void ModifyDisplacementPvP(ref ActionSetting setting)

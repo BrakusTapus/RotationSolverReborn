@@ -3,6 +3,7 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using RotationSolver.Commands;
 
 namespace RotationSolver.Updaters
 {
@@ -185,8 +186,17 @@ namespace RotationSolver.Updaters
         {
             try
             {
+                // Abandoned idea
+                //if (matchingAction is IBaseAction baseAction && baseAction.Setting.SpecialType == SpecialActionType.HostileMovingForward)
+                //{
+                //    RSCommands.DoSpecialCommandType(SpecialCommandType.Intercepting);
+                //    DataCenter.AddCommandAction(matchingAction, Service.Config.InterceptActionTime);
+                //    return; // Do not queue the original action; open the special window instead
+                //}
+
                 // Use DataCenter.AddCommandAction directly instead of going through RSCommands.DoActionCommand
                 // This avoids the string parsing overhead and potential format issues
+                RSCommands.DoSpecialCommandType(SpecialCommandType.Intercepting);
                 DataCenter.AddCommandAction(matchingAction, Service.Config.InterceptActionTime);
 
                 PluginLog.Debug($"[ActionQueueManager] Intercepted and queued action: {matchingAction.Name} (OriginalID: {actionID}, AdjustedID: {matchingAction.AdjustedID})");

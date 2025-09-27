@@ -322,7 +322,7 @@ public partial class PaladinRotation
 
     static partial void ModifyIntervenePvE(ref ActionSetting setting)
     {
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
     }
 
     static partial void ModifyAtonementPvE(ref ActionSetting setting)
@@ -507,7 +507,7 @@ public partial class PaladinRotation
 
     static partial void ModifyIntervenePvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyBladeOfFaithPvP(ref ActionSetting setting)

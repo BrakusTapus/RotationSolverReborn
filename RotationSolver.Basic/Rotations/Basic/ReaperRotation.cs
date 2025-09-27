@@ -497,7 +497,7 @@ public partial class ReaperRotation
 
     static partial void ModifyHellsIngressPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.IsFriendly = true;
     }
 

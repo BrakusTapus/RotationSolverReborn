@@ -469,6 +469,27 @@ internal static class DataCenter
     public static bool InVariantDungeon => AloaloIsland || MountRokkon || SildihnSubterrane;
     #endregion
 
+    #region Misc Duty Info
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool RathalosNormal => IsInTerritory(761);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool RathalosEX => IsInTerritory(762);
+
+    //public static bool ArkveldNormal => IsInTerritory(?);
+
+    //public static bool ArkveldEX => IsInTerritory(?);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool InMonsterHunterDuty => RathalosNormal || RathalosEX;
+    #endregion
+
     #region Job Info
     public static Job Job => Player.Job;
 

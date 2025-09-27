@@ -669,7 +669,7 @@ public partial class NinjaRotation
 
     static partial void ModifyShukuchiPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
     #endregion
 

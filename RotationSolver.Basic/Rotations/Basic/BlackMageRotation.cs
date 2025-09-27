@@ -329,7 +329,7 @@ public partial class BlackMageRotation
 
     static partial void ModifyAetherialManipulationPvE(ref ActionSetting setting)
     {
-        setting.TargetType = TargetType.FriendMove;
+        setting.SpecialType = SpecialActionType.FriendlyMovingForward;
     }
 
     static partial void ModifyFlarePvE(ref ActionSetting setting)
@@ -530,7 +530,7 @@ public partial class BlackMageRotation
 
     static partial void ModifyAetherialManipulationPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.FriendlyMovingForward;
     }
 
     static partial void ModifyElementalWeavePvP(ref ActionSetting setting)

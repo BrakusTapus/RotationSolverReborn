@@ -139,6 +139,8 @@ namespace RotationSolver.Basic.Helpers
 
             if (!battleChara.IsTargetable) return false;
 
+            if (!battleChara.IsEnemy() && battleChara.IsConditionCannotTarget()) return false;
+
             try
             {
                 if (battleChara.StatusList == null) return false;

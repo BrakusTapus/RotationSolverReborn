@@ -290,7 +290,7 @@ public partial class BlueMageRotation
 
     static partial void ModifyFlyingFrenzyPvE(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 3,
@@ -317,7 +317,7 @@ public partial class BlueMageRotation
 
     static partial void ModifyLoomPvE(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.IsFriendly = true;
         setting.CreateConfig = () => new ActionConfig()
         {

@@ -242,7 +242,7 @@ public partial class WarriorRotation
 
     static partial void ModifyOnslaughtPvE(ref ActionSetting setting)
     {
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
     }
 
     static partial void ModifyUpheavalPvE(ref ActionSetting setting)
@@ -296,6 +296,7 @@ public partial class WarriorRotation
 
     static partial void ModifyPrimalRendPvE(ref ActionSetting setting)
     {
+        //setting.SpecialType = SpecialActionType.HostileMovingForward;
         setting.StatusNeed = [StatusID.PrimalRendReady];
         setting.StatusProvide = [StatusID.PrimalRuinationReady];
         setting.MPOverride = () => 0;
@@ -364,7 +365,7 @@ public partial class WarriorRotation
 
     static partial void ModifyPrimalRendPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 1,
@@ -383,12 +384,12 @@ public partial class WarriorRotation
 
     static partial void ModifyBlotaPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyOnslaughtPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyFellCleavePvP(ref ActionSetting setting)

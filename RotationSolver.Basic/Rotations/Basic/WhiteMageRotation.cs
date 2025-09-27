@@ -183,7 +183,7 @@ public partial class WhiteMageRotation
 
     static partial void ModifyAetherialShiftPvE(ref ActionSetting setting)
     {
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.TargetType = TargetType.Move;
         setting.IsFriendly = true;
     }
 
@@ -406,7 +406,7 @@ public partial class WhiteMageRotation
 
     static partial void ModifySeraphStrikePvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.CreateConfig = () => new ActionConfig()
         {
             AoeCount = 1,

@@ -126,9 +126,12 @@ public partial class CustomRotation
             {
                 return true;
             }
-            if (HealAreaAbility(nextGCD, out act))
+            if (!Player.HasStatus(false, StatusID.Scalebound))
             {
-                return true;
+                if (HealAreaAbility(nextGCD, out act))
+                {
+                    return true;
+                }
             }
             IBaseAction.AllEmpty = false;
             IBaseAction.ShouldEndSpecial = false;
@@ -141,9 +144,12 @@ public partial class CustomRotation
             {
                 return true;
             }
-            if (HealAreaAbility(nextGCD, out act))
+            if (!Player.HasStatus(false, StatusID.Scalebound))
             {
-                return true;
+                if (HealAreaAbility(nextGCD, out act))
+                {
+                    return true;
+                }
             }
             IBaseAction.AutoHealCheck = false;
         }
@@ -156,9 +162,12 @@ public partial class CustomRotation
             {
                 return true;
             }
-            if (HealSingleAbility(nextGCD, out act))
+            if (!Player.HasStatus(false, StatusID.Scalebound))
             {
-                return true;
+                if (HealSingleAbility(nextGCD, out act))
+                {
+                    return true;
+                }
             }
             IBaseAction.AllEmpty = false;
             IBaseAction.ShouldEndSpecial = false;
@@ -171,9 +180,12 @@ public partial class CustomRotation
             {
                 return true;
             }
-            if (HealSingleAbility(nextGCD, out act))
+            if (!Player.HasStatus(false, StatusID.Scalebound))
             {
-                return true;
+                if (HealSingleAbility(nextGCD, out act))
+                {
+                    return true;
+                }
             }
             IBaseAction.AutoHealCheck = false;
         }

@@ -291,7 +291,7 @@ public partial class GunbreakerRotation
 
     static partial void ModifyTrajectoryPvE(ref ActionSetting setting)
     {
-        //setting.SpecialType = SpecialActionType.MovingForward;
+        setting.SpecialType = SpecialActionType.HostileMovingForward;
     }
 
     static partial void ModifyGnashingFangPvE(ref ActionSetting setting)
@@ -510,7 +510,7 @@ public partial class GunbreakerRotation
 
     static partial void ModifyRoughDividePvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
     }
 
     static partial void ModifyBlastingZonePvP(ref ActionSetting setting)

@@ -366,6 +366,7 @@ public partial class DancerRotation
 
     static partial void ModifyEnAvantPvE(ref ActionSetting setting)
     {
+        setting.TargetType = TargetType.Move;
         setting.IsFriendly = true;
     }
 
@@ -578,14 +579,11 @@ public partial class DancerRotation
         setting.StatusProvide = [StatusID.ClosedPosition];
         setting.TargetStatusProvide = [StatusID.DancePartner];
         setting.TargetType = TargetType.DancePartner;
-        setting.CreateConfig = () => new ActionConfig()
-        {
-        };
     }
 
     static partial void ModifyEnAvantPvP(ref ActionSetting setting)
     {
-        setting.SpecialType = SpecialActionType.MovingForward;
+        //setting.SpecialType = SpecialActionType.MovingForward;
         setting.IsFriendly = true;
         setting.StatusProvide = [StatusID.EnAvant];
         setting.CreateConfig = () => new ActionConfig()
