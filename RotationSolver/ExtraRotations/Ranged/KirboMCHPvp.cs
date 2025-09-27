@@ -2,7 +2,6 @@
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using RotationSolver.UI;
 using System.ComponentModel;
 
@@ -628,23 +627,23 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     #region MCH LB
     private static IBaseAction MarksmansSpitePvP { get; } = new BaseAction((ActionID)29415);
-    private IBaseAction MarksmansSpitePvP2 => _MarksmansSpitePvPCreator.Value;
-    private readonly Lazy<IBaseAction> _MarksmansSpitePvPCreator = new Lazy<IBaseAction>(delegate
-    {
-        IBaseAction action40 = new BaseAction((ActionID)29415);
-        ActionSetting setting40 = action40.Setting;
-        setting40.RotationCheck = () =>
-        CurrentLimitBreakLevel == 1 &&
-        action40.Target.Target.CurrentHp <= 30000 &&
-            (
-                action40.Target.Target.IsJobCategory(JobRole.RangedMagical) ||
-                action40.Target.Target.IsJobCategory(JobRole.RangedPhysical) ||
-                action40.Target.Target.IsJobCategory(JobRole.Healer)
-            );
-        setting40.TargetType = TargetType.LowHP;
-        action40.Setting = setting40;
-        return action40;
-    });
+    //private IBaseAction MarksmansSpitePvP2 => _MarksmansSpitePvPCreator.Value;
+    //private readonly Lazy<IBaseAction> _MarksmansSpitePvPCreator = new Lazy<IBaseAction>(delegate
+    //{
+    //    IBaseAction action40 = new BaseAction((ActionID)29415);
+    //    ActionSetting setting40 = action40.Setting;
+    //    setting40.RotationCheck = () =>
+    //    CurrentLimitBreakLevel == 1 &&
+    //    action40.Target.Target.CurrentHp <= 30000 &&
+    //        (
+    //            action40.Target.Target.IsJobCategory(JobRole.RangedMagical) ||
+    //            action40.Target.Target.IsJobCategory(JobRole.RangedPhysical) ||
+    //            action40.Target.Target.IsJobCategory(JobRole.Healer)
+    //        );
+    //    setting40.TargetType = TargetType.LowHP;
+    //    action40.Setting = setting40;
+    //    return action40;
+    //});
     #endregion
 
     #region Status Display
