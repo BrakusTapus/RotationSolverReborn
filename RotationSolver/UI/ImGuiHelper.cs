@@ -123,7 +123,7 @@ internal static class ImGuiHelper
 
         string searchingKey = searchTxt;
 
-        List<(T, string)> members = new();
+        List<(T, string)> members = [];
         foreach (T? item in items)
         {
             members.Add((item, getSearchName(item)));
@@ -402,63 +402,69 @@ internal static class ImGuiHelper
         drawList.AddText(pos, White, text);
     }
 
+    // Cached overlay cover textures (resolved once, reused each frame)
+    private static IDalamudTextureWrap? _coverFrame;
+    private static IDalamudTextureWrap? _coverRecast;
+    private static IDalamudTextureWrap? _coverRecast2;
+    private static bool _coversInitialized;
+
+    private static void EnsureCovers()
+    {
+        if (_coversInitialized) return;
+        _coversInitialized = true;
+        _ = IconSet.GetTexture("ui/uld/icona_frame_hr1.tex", out _coverFrame);
+        _ = IconSet.GetTexture("ui/uld/icona_recast_hr1.tex", out _coverRecast);
+        _ = IconSet.GetTexture("ui/uld/icona_recast2_hr1.tex", out _coverRecast2);
+    }
+
     internal static void DrawActionOverlay(Vector2 cursor, float width, float percent)
     {
-        float pixPerUnit = width / 82;
+        EnsureCovers();
+        float pixPerUnit = width / 82f;
 
-        if (percent < 0)
+        if (percent < 0f)
         {
-            if (IconSet.GetTexture("ui/uld/icona_frame_hr1.tex", out IDalamudTextureWrap? cover) && cover?.Handle != null)
+            if (_coverFrame?.Handle != null)
             {
                 ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 4));
-
-                Vector2 start = new(((96f * 0) + 4f) / cover.Width, 96f * 2 / cover.Height);
-
-                ImGui.Image(cover.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    start, start + new Vector2(88f / cover.Width, 94f / cover.Height));
+                Vector2 start = new(4f / _coverFrame.Width, 96f * 2 / _coverFrame.Height);
+                ImGui.Image(_coverFrame.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                    start, start + new Vector2(88f / _coverFrame.Width, 94f / _coverFrame.Height));
             }
+            return;
         }
-        else if (percent < 1)
+
+        if (percent < 1f)
         {
-            if (IconSet.GetTexture("ui/uld/icona_recast_hr1.tex", out IDalamudTextureWrap? cover) && cover?.Handle != null)
+            if (_coverRecast?.Handle != null)
             {
-                ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 0));
-
-                int P = (int)(percent * 81);
-
-                Vector2 step = new(88f / cover.Width, 96f / cover.Height);
-                Vector2 start = new(P % 9 * step.X, P / 9 * step.Y);
-
-                ImGui.Image(cover.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    start, start + new Vector2(88f / cover.Width, 94f / cover.Height));
+                ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, 0));
+                int P = (int)(percent * 81f);
+                Vector2 step = new(88f / _coverRecast.Width, 96f / _coverRecast.Height);
+                Vector2 start = new((P % 9) * step.X, (P / 9) * step.Y);
+                ImGui.Image(_coverRecast.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                    start, start + new Vector2(88f / _coverRecast.Width, 94f / _coverRecast.Height));
             }
         }
         else
         {
-            if (IconSet.GetTexture("ui/uld/icona_frame_hr1.tex", out IDalamudTextureWrap? cover) && cover?.Handle != null)
+            if (_coverFrame?.Handle != null)
             {
                 ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 4));
-
-                ImGui.Image(cover.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    new Vector2(4f / cover.Width, 0f / cover.Height),
-                    new Vector2(92f / cover.Width, 94f / cover.Height));
+                ImGui.Image(_coverFrame.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                    new Vector2(4f / _coverFrame.Width, 0f / _coverFrame.Height),
+                    new Vector2(92f / _coverFrame.Width, 94f / _coverFrame.Height));
             }
         }
 
-        if (percent > 1)
+        if (percent > 1f && _coverRecast2?.Handle != null)
         {
-            if (IconSet.GetTexture("ui/uld/icona_recast2_hr1.tex", out IDalamudTextureWrap? cover) && cover?.Handle != null)
-            {
-                ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 0));
-
-                int P = (int)(percent % 1 * 81);
-
-                Vector2 step = new(88f / cover.Width, 96f / cover.Height);
-                Vector2 start = new(((P % 9) + 9) * step.X, P / 9 * step.Y);
-
-                ImGui.Image(cover.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    start, start + new Vector2(88f / cover.Width, 94f / cover.Height));
-            }
+            ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, 0));
+            int P = (int)(percent % 1f * 81f);
+            Vector2 step = new(88f / _coverRecast2.Width, 96f / _coverRecast2.Height);
+            Vector2 start = new(((P % 9) + 9) * step.X, (P / 9) * step.Y);
+            ImGui.Image(_coverRecast2.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                start, start + new Vector2(88f / _coverRecast2.Width, 94f / _coverRecast2.Height));
         }
     }
     #endregion
@@ -495,12 +501,9 @@ internal static class ImGuiHelper
 
     public static void PrepareGroup(string key, string command, Action reset)
     {
-        if (reset == null)
-        {
-            throw new ArgumentNullException(nameof(reset));
-        }
+        ArgumentNullException.ThrowIfNull(reset);
 
-        DrawHotKeysPopup(key, command, ("Reset to Default Value.", reset, new string[] { "Backspace" }));
+        DrawHotKeysPopup(key, command, ("Reset to Default Value.", reset, stringArray));
     }
 
     public static void ReactPopup(string key, string command, Action reset, bool showHand = true)
@@ -566,6 +569,8 @@ internal static class ImGuiHelper
     }
 
     private static readonly SortedList<string, bool> _lastChecked = [];
+    internal static readonly string[] stringArray = ["Backspace"];
+
     private static void ExecuteHotKeys(Action action, params VirtualKey[] keys)
     {
         if (action == null)
@@ -573,10 +578,7 @@ internal static class ImGuiHelper
             return;
         }
 
-        if (keys == null)
-        {
-            throw new ArgumentNullException(nameof(keys));
-        }
+        ArgumentNullException.ThrowIfNull(keys);
 
         string name = string.Join(' ', keys);
 

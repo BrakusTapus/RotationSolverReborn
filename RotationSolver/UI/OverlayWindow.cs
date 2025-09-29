@@ -3,6 +3,7 @@ using Dalamud.Interface.Windowing;
 using ECommons.DalamudServices;
 using ECommons.Logging;
 using RotationSolver.UI.HighlightTeachingMode;
+using System.Diagnostics;
 
 namespace RotationSolver.UI;
 
@@ -18,6 +19,12 @@ internal class OverlayWindow : Window
     | ImGuiWindowFlags.NoFocusOnAppearing
     | ImGuiWindowFlags.NoInputs
     | ImGuiWindowFlags.NoNav;
+
+    // Async update support and throttling for sync path
+    private volatile Task<IDrawing2D[]>? _updateTask;
+    private IDrawing2D[]? _elements;
+    private readonly Stopwatch _throttle = Stopwatch.StartNew();
+    private const int SyncUpdateMs = 33; // ~30 FPS updates in sync mode
 
     public OverlayWindow()
         : base(nameof(OverlayWindow), BaseFlags, true)
@@ -43,25 +50,49 @@ internal class OverlayWindow : Window
             return;
         }
 
+        // Save and disable AA fill for performance of large overlays
+        bool prevAAFill = ImGui.GetStyle().AntiAliasedFill;
         ImGui.GetStyle().AntiAliasedFill = false;
 
         try
         {
-            UpdateDrawingElementsAsync().GetAwaiter().GetResult();
-
-            if (HotbarHighlightManager._drawingElements2D != null)
+            if (HotbarHighlightManager.UseTaskToAccelerate)
             {
-                ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-                if (drawList.Handle == null)
+                if (_updateTask == null || _updateTask.IsCompleted)
                 {
-                    PluginLog.Warning($"{nameof(OverlayWindow)}: Window draw list is null.");
-                    return;
+                    _updateTask = Task.Run(HotbarHighlightManager.To2DAsync);
                 }
+                if (_updateTask.IsCompletedSuccessfully)
+                {
+                    var result = _updateTask.Result ?? [];
+                    var list = new List<IDrawing2D>(result);
+                    list.Sort((a, b) => GetDrawingOrder(a).CompareTo(GetDrawingOrder(b)));
+                    _elements = [.. list];
+                }
+            }
+            else
+            {
+                if (_throttle.ElapsedMilliseconds >= SyncUpdateMs)
+                {
+                    var result = HotbarHighlightManager.To2DAsync().GetAwaiter().GetResult() ?? [];
+                    var list = new List<IDrawing2D>(result);
+                    list.Sort((a, b) => GetDrawingOrder(a).CompareTo(GetDrawingOrder(b)));
+                    _elements = [.. list];
+                    _throttle.Restart();
+                }
+            }
 
-                IDrawing2D[] elements = HotbarHighlightManager._drawingElements2D;
-                List<IDrawing2D> sortedElements = new(elements);
-                sortedElements.Sort((a, b) => GetDrawingOrder(a).CompareTo(GetDrawingOrder(b)));
-                foreach (IDrawing2D item in sortedElements)
+            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+            if (drawList.Handle == null)
+            {
+                PluginLog.Warning($"{nameof(OverlayWindow)}: Window draw list is null.");
+                return;
+            }
+
+            var elements = _elements;
+            if (elements != null)
+            {
+                foreach (IDrawing2D item in elements)
                 {
                     item.Draw();
                 }
@@ -71,17 +102,13 @@ internal class OverlayWindow : Window
         {
             PluginLog.Warning($"{nameof(OverlayWindow)} failed to draw on Screen. {ex.Message}");
         }
-    }
-
-    private async Task UpdateDrawingElementsAsync()
-    {
-        if (!HotbarHighlightManager.UseTaskToAccelerate)
+        finally
         {
-            HotbarHighlightManager._drawingElements2D = await HotbarHighlightManager.To2DAsync();
+            ImGui.GetStyle().AntiAliasedFill = prevAAFill;
         }
     }
 
-    private int GetDrawingOrder(object drawing)
+    private static int GetDrawingOrder(object drawing)
     {
         return drawing switch
         {

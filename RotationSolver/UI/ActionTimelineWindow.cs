@@ -3,7 +3,6 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ECommons.GameHelpers;
 using RotationSolver.ActionTimeline;
-using RotationSolver.Data;
 
 namespace RotationSolver.UI;
 
@@ -19,13 +18,16 @@ internal class ActionTimelineWindow : Window
                                         | ImGuiWindowFlags.NoScrollWithMouse;
 
     // Timeline display settings
-    private float SizePerSecond = 60f;
-    private float TimeOffset = 2f;
-    private bool IsHorizontal = true;
-    private int GCDIconSize = 40;
-    private int OGCDIconSize = 30;
-    private float GCDHeightLow = 0.5f;
-    private float GCDHeightHigh = 0.8f;
+    private readonly float SizePerSecond = 60f;
+    private readonly float TimeOffset = 2f;
+    private readonly bool IsHorizontal = true;
+    private readonly int GCDIconSize = 40;
+    private readonly int OGCDIconSize = 30;
+    private readonly float GCDHeightLow = 0.5f;
+    private readonly float GCDHeightHigh = 0.8f;
+
+    // Reusable buffers to reduce per-frame allocations
+    private static readonly List<TimelineItem> _filterBuffer = new(128);
 
     public ActionTimelineWindow() : base(nameof(ActionTimelineWindow), BaseFlags)
     {
@@ -111,11 +113,11 @@ internal class ActionTimelineWindow : Window
 
         foreach (var item in items)
         {
-            DrawTimelineItem(drawList, pos, size, now, item, timelineLength, heightLength);
+            DrawTimelineItem(drawList, pos, now, item, timelineLength, heightLength);
         }
     }
 
-    private void DrawTimelineItem(ImDrawListPtr drawList, Vector2 pos, Vector2 size, DateTime now, TimelineItem item, float timelineLength, float heightLength)
+    private void DrawTimelineItem(ImDrawListPtr drawList, Vector2 pos, DateTime now, TimelineItem item, float timelineLength, float heightLength)
     {
         // Calculate position on timeline
         var timeSinceStart = (float)(now - item.StartTime).TotalSeconds;
@@ -189,9 +191,13 @@ internal class ActionTimelineWindow : Window
         var drawList = ImGui.GetWindowDrawList();
         var timelineLength = IsHorizontal ? size.X : size.Y;
         var gridColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.3f, 0.3f, 0.3f));
-        
-        // Draw vertical lines every second
-        for (int i = 0; i < (int)(timelineLength / SizePerSecond); i++)
+
+        // Determine step so we don't draw too many lines/labels per frame.
+        float secondsVisible = MathF.Max(1f, timelineLength / SizePerSecond);
+        int maxLines = 24;
+        int stepSeconds = Math.Max(1, (int)MathF.Ceiling(secondsVisible / maxLines));
+
+        for (int i = 0; i <= (int)secondsVisible; i += stepSeconds)
         {
             var x = pos.X + timelineLength - (i * SizePerSecond);
             if (x >= pos.X && x <= pos.X + timelineLength)
@@ -200,8 +206,7 @@ internal class ActionTimelineWindow : Window
                     new Vector2(x, pos.Y),
                     new Vector2(x, pos.Y + size.Y),
                     gridColor);
-                
-                // Draw time labels
+
                 var timeText = $"{i}s";
                 drawList.AddText(
                     new Vector2(x + 2, pos.Y + 2),
@@ -226,7 +231,7 @@ internal class ActionTimelineWindow : Window
     private static List<TimelineItem> FilterItems(List<TimelineItem> items)
     {
         var config = Service.Config;
-        var filteredItems = new List<TimelineItem>();
+        _filterBuffer.Clear();
 
         foreach (var item in items)
         {
@@ -242,10 +247,10 @@ internal class ActionTimelineWindow : Window
                 continue;
             }
 
-            filteredItems.Add(item);
+            _filterBuffer.Add(item);
         }
 
-        return filteredItems;
+        return _filterBuffer;
     }
 
 }

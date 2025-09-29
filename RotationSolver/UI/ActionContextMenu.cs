@@ -10,11 +10,18 @@ internal static class ActionContextMenu
     private static IContextMenu? contextMenu;
     private static BaseAction? currentContextAction;
     private static uint currentHoveredActionId;
+    private static bool _initialized;
 
     public static void Init()
     {
+        if (_initialized) return;
+        _initialized = true;
+
         contextMenu = Svc.ContextMenu;
-        contextMenu.OnMenuOpened += AddActionMenu;
+        if (contextMenu != null)
+        {
+            contextMenu.OnMenuOpened += AddActionMenu;
+        }
 
         // Subscribe to hover events once
         Svc.GameGui.HoveredActionChanged += OnHoveredActionChanged;
@@ -23,6 +30,9 @@ internal static class ActionContextMenu
 
     public static void Dispose()
     {
+        if (!_initialized) return;
+        _initialized = false;
+
         if (contextMenu != null)
         {
             contextMenu.OnMenuOpened -= AddActionMenu;
@@ -81,9 +91,9 @@ internal static class ActionContextMenu
         }
 
         Svc.Log.Debug(
-            $"Menu attempted spawned from {contextAction.Name}/{currentHoveredActionId},{Svc.GameGui.HoveredItem}, {args.AddonName}, {args.AddonPtr}, {args.AgentPtr}, {args.EventInterfaces}, {args.MenuType}, {args.Target}");
+            $"Menu attempted spawned from {contextAction.Name}/{currentHoveredActionId},{Svc.GameGui.HoveredItem}, {args.AddonName}, {args.MenuType}, {args.Target}");
 
-        if (string.IsNullOrEmpty(args.AddonName) || !args.AddonName.Contains("ActionBar"))
+        if (string.IsNullOrEmpty(args.AddonName) || !args.AddonName.Contains("Action"))
         {
             return;
         }
