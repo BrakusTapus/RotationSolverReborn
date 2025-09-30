@@ -159,7 +159,7 @@ public sealed class KirboMCHPve : MachinistRotation
             {
                 if (Heat >= 50 || HasHypercharged)
                 {
-                    if (WeaponRemain < (GCDTime(1) / 2) && nextGCD.IsTheSameTo(false, FullMetalFieldPvE))
+                    if (WeaponRemain < (GCDTime(1) / 2) && nextGCD.IsTheSameTo(false, FullMetalFieldPvE)) //TODO maybe change weaponremain to check against wildfire's animation lock
                     {
                         if (WildfirePvE.CanUse(out act))
                         {
@@ -296,7 +296,7 @@ public sealed class KirboMCHPve : MachinistRotation
         }
 
         // Drill AOE
-        if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.CanUse(out act, usedUp: true))
+        if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.Target.Target.GetTTK() > 15 && BioblasterPvE.Target.Target.GetHealthRatio() > 0.5f && BioblasterPvE.Target.Target != null && BioblasterPvE.CanUse(out act, usedUp: true))
         {
             return true;
         }
