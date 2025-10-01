@@ -1483,6 +1483,7 @@ public struct ActionTargetInfo(IBaseAction action)
                 foreach (IBattleChara member in DataCenter.PartyMembers)
                 {
                     if (member == Player.Object) continue;
+                    if (member.IsConditionCannotTarget()) continue;
                     if (member.IsJobs(job) && !member.IsDead && !member.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath, StatusID.DancePartner, StatusID.ClosedPosition))
                     {
                         PluginLog.Debug($"FindDancePartner: {member.Name} selected target.");
@@ -1495,6 +1496,7 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara member in DataCenter.PartyMembers)
                 {
+                    if (member.IsConditionCannotTarget()) continue;
                     if (member == Player.Object) continue;
                     if (member.IsJobs(job) && !member.IsDead && !member.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath))
                     {
@@ -1519,7 +1521,7 @@ public struct ActionTargetInfo(IBaseAction action)
 
         IBattleChara? FindTheSpear()
         {
-            // The Spear priority based on the info from The Balance Discord for Level 100 Dance Partner
+            // The Spear priority based on the info from The Balance Discord (user-configurable)
             List<Job> TheSpearPriority = OtherConfiguration.TheSpearPriority;
 
             if (!Player.Object.IsJobs(Job.AST))
@@ -1537,33 +1539,49 @@ public struct ActionTargetInfo(IBaseAction action)
                 return Player.Object;
             }
 
+            // Build filtered candidate list
+            List<IBattleChara> candidates = [];
+            foreach (IBattleChara m in DataCenter.PartyMembers)
+            {
+                if (m == null) continue;
+                if (m == Player.Object) continue; // never card self
+                if (m.IsDead) continue;
+                if (m.IsConditionCannotTarget()) continue;
+                if (StatusHelper.IsStatusCapped(m)) continue; // cannot receive more statuses
+                if (m.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath)) continue; // poor target value
+                if (m.HasStatus(false, StatusID.TheBalance_3887, StatusID.TheSpear_3889)) continue; // already has a card
+                candidates.Add(m);
+            }
+
+            // Primary: user-configured priority order
             foreach (Job job in TheSpearPriority)
             {
-                foreach (IBattleChara member in DataCenter.PartyMembers)
+                foreach (IBattleChara member in candidates)
                 {
-                    if (member.IsJobs(job) && !member.IsDead)
+                    if (member.IsJobs(job))
                     {
-                        PluginLog.Debug($"FindTheSpear: {member.Name} selected target.");
+                        PluginLog.Debug($"FindTheSpear: {member.Name} selected by priority list.");
                         return member;
                     }
                 }
             }
 
+            // Fallback: prefer ranged for Spear, then other DPS buckets (aligns with 6% on ranged/healer)
             IBattleChara? result = null;
-            result = RandomRangeTarget(battleChara);
+            result = RandomRangeTarget(candidates);
             if (result != null) return result;
-            result = RandomMeleeTarget(battleChara);
+            result = RandomMeleeTarget(candidates);
             if (result != null) return result;
-            result = RandomMagicalTarget(battleChara);
+            result = RandomMagicalTarget(candidates);
             if (result != null) return result;
-            result = RandomPhysicalTarget(battleChara);
+            result = RandomPhysicalTarget(candidates);
             if (result != null) return result;
             return null;
         }
 
         IBattleChara? FindTheBalance()
         {
-            // The Balance priority based on the info from The Balance Discord for Level 100 Dance Partner
+            // The Balance priority based on the info from The Balance Discord (user-configurable)
             List<Job> TheBalancePriority = OtherConfiguration.TheBalancePriority;
 
             if (!Player.Object.IsJobs(Job.AST))
@@ -1581,25 +1599,42 @@ public struct ActionTargetInfo(IBaseAction action)
                 return Player.Object;
             }
 
+            // Build filtered candidate list
+            List<IBattleChara> candidates = [];
+            foreach (IBattleChara m in DataCenter.PartyMembers)
+            {
+                if (m == null) continue;
+                if (m == Player.Object) continue; // never card self
+                if (m.IsDead) continue;
+                if (m.IsConditionCannotTarget()) continue;
+                if (StatusHelper.IsStatusCapped(m)) continue; // cannot receive more statuses
+                if (m.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath)) continue; // poor target value
+                if (m.HasStatus(false, StatusID.TheBalance_3887, StatusID.TheSpear_3889)) continue; // already has a card
+                candidates.Add(m);
+            }
+
+            // Primary: user-configured priority order
             foreach (Job job in TheBalancePriority)
             {
-                foreach (IBattleChara member in DataCenter.PartyMembers)
+                foreach (IBattleChara member in candidates)
                 {
-                    if (member.IsJobs(job) && !member.IsDead)
+                    if (member.IsJobs(job))
                     {
-                        PluginLog.Debug($"FindTheBalance: {member.Name} selected target.");
+                        PluginLog.Debug($"FindTheBalance: {member.Name} selected by priority list.");
                         return member;
                     }
                 }
             }
 
-            IBattleChara? result = RandomMeleeTarget(battleChara);
+            // Fallback: prefer melee for Balance, then other DPS buckets (aligns with 6% on melee/tank)
+            IBattleChara? result = null;
+            result = RandomMeleeTarget(candidates);
             if (result != null) return result;
-            result = RandomRangeTarget(battleChara);
+            result = RandomRangeTarget(candidates);
             if (result != null) return result;
-            result = RandomMagicalTarget(battleChara);
+            result = RandomMagicalTarget(candidates);
             if (result != null) return result;
-            result = RandomPhysicalTarget(battleChara);
+            result = RandomPhysicalTarget(candidates);
             if (result != null) return result;
             return null;
         }
@@ -1627,7 +1662,7 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara m in DataCenter.PartyMembers)
                 {
-                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead)
+                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead && !m.IsConditionCannotTarget())
                     {
                         // 1. Tanks with tank stance and without Kardion
                         if (m.HasStatus(false, StatusHelper.TankStanceStatus) && !m.HasStatus(false, StatusID.Kardion))
@@ -1643,7 +1678,7 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara m in DataCenter.PartyMembers)
                 {
-                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead)
+                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead && !m.IsConditionCannotTarget())
                     {
                         // 2. Tanks with tank stance (regardless of Kardion)
                         if (m.HasStatus(false, StatusHelper.TankStanceStatus))
@@ -1659,7 +1694,7 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara m in DataCenter.PartyMembers)
                 {
-                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead)
+                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead && !m.IsConditionCannotTarget())
                     {
                         // 3. Any alive tank in priority order
                         PluginLog.Debug($"FindKardia 3: {m.Name} is a tank fallback.");
@@ -1937,7 +1972,10 @@ public struct ActionTargetInfo(IBaseAction action)
                 List<IBattleChara> healerTars = [];
                 foreach (var o in healingNeededObjs)
                 {
-                    if (TargetFilter.GetJobCategory([o], JobRole.Healer).Any())
+                    var enumHealer = TargetFilter.GetJobCategory([o], JobRole.Healer).GetEnumerator();
+                    bool isHealer = enumHealer.MoveNext();
+                    enumHealer.Dispose();
+                    if (isHealer)
                     {
                         healerTars.Add(o);
                     }
@@ -1946,7 +1984,10 @@ public struct ActionTargetInfo(IBaseAction action)
                 List<IBattleChara> tankTars = [];
                 foreach (var o in healingNeededObjs)
                 {
-                    if (TargetFilter.GetJobCategory([o], JobRole.Tank).Any())
+                    var enumTank = TargetFilter.GetJobCategory([o], JobRole.Tank).GetEnumerator();
+                    bool isTank = enumTank.MoveNext();
+                    enumTank.Dispose();
+                    if (isTank)
                     {
                         tankTars.Add(o);
                     }
@@ -2438,6 +2479,7 @@ public struct ActionTargetInfo(IBaseAction action)
             IBattleChara? tar = RandomPickByJobs(tars, role.ToJobs());
             if (tar != null)
             {
+                if (tar.IsConditionCannotTarget()) continue;
                 return tar;
             }
         }
@@ -2449,6 +2491,7 @@ public struct ActionTargetInfo(IBaseAction action)
         List<IBattleChara> targets = [];
         foreach (var t in tars)
         {
+            if (t.IsConditionCannotTarget()) continue;
             if (t.IsJobs(jobs))
             {
                 targets.Add(t);
@@ -2459,11 +2502,19 @@ public struct ActionTargetInfo(IBaseAction action)
 
     private static IBattleChara? RandomObject(IEnumerable<IBattleChara> objs)
     {
-        return objs.Any() ? objs.ElementAt(new Random().Next(objs.Count())) : null;
-        //Random ran = new(DateTime.Now.Millisecond);
-        //var count = objs.Count();
-        //if (count == 0) return null;
-        //return objs.ElementAt(ran.Next(count));
+        List<IBattleChara> list = [];
+        foreach (var o in objs)
+        {
+            if (o == null) continue;
+            if (o.IsConditionCannotTarget()) continue;
+            list.Add(o);
+        }
+
+        int count = list.Count;
+        if (count == 0) return null;
+
+        int index = new Random().Next(count);
+        return list[index];
     }
 
     #endregion

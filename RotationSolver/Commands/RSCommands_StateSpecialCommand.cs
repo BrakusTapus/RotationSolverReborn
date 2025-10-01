@@ -33,7 +33,7 @@ namespace RotationSolver.Commands
             _lastToastMessage = currentMessage;
         }
 
-        public static unsafe void DoStateCommandType(StateCommandType stateType, int index = -1)
+        public static void DoStateCommandType(StateCommandType stateType, int index = -1)
         {
             DoOneCommandType((type, role) => type.ToStateString(role), role =>
             {
@@ -46,11 +46,11 @@ namespace RotationSolver.Commands
             });
         }
 
-        public static unsafe void DoAutodutyStateCommandType(StateCommandType stateType, TargetingType targetingType)
+        public static void DoAutodutyStateCommandType(StateCommandType stateType, TargetingType targetingType)
         {
             DoOneCommandType((type, role) => type.ToStateString(role), role =>
             {
-                UpdateState(stateType, role);
+                AutodutyUpdateState(stateType, role, targetingType);
                 return stateType;
             });
         }
@@ -89,7 +89,7 @@ namespace RotationSolver.Commands
                 return;
             }
 
-            // If currently in Manual mode, turn Off
+            // If currently in Manual mode, switch to Auto
             if (DataCenter.IsManual)
             {
                 DoStateCommandType(StateCommandType.Auto);
@@ -110,14 +110,14 @@ namespace RotationSolver.Commands
             }
 
             // If currently in Auto mode, turn Off
-            if (DataCenter.State)
+            if (DataCenter.State && !DataCenter.IsManual)
             {
                 DoStateCommandType(StateCommandType.Off);
                 return;
             }
 
-            // If currently On but not Auto, switch to Auto
-            DoStateCommandType(StateCommandType.Manual);
+            // If currently On but not Auto (i.e., Manual), switch to Auto
+            DoStateCommandType(StateCommandType.Auto);
         }
 
         public static void CycleStateManual()
@@ -221,11 +221,19 @@ namespace RotationSolver.Commands
 
         private static void UpdateTargetingIndex(ref int index)
         {
+            int count = Service.Config.TargetingTypes.Count;
+            if (count == 0)
+            {
+                index = 0;
+                Service.Config.TargetingIndex = 0;
+                return;
+            }
+
             if (index == -1)
             {
                 index = Service.Config.TargetingIndex + 1;
             }
-            index %= Service.Config.TargetingTypes.Count;
+            index %= count;
             Service.Config.TargetingIndex = index;
         }
 

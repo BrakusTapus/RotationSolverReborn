@@ -235,19 +235,25 @@ public readonly struct ActionBasicInfo
             return false;
         }
 
-        // 2. Basic requirements: not disabled, enough level, enough MP, spell unlocked
-        if (IsActionDisabled() || !EnoughLevel || !HasEnoughMP() || !IsQuestUnlocked())
+        if (!IsQuestUnlocked())
+        {
+            BasicWarningHelper.AddSystemWarning($"Do your class quests, action not unlocked: {Name}");
+            return false;
+        }
+
+        // 2. Basic requirements: not disabled, enough level, enough MP
+        if (IsActionDisabled() || !EnoughLevel || !HasEnoughMP())
         {
             return false;
         }
 
-        // 3. Status checks: need or provide
+        // Status checks: need or provide
         if (IsStatusNeeded(skipStatusNeed) || IsStatusProvided(skipStatusProvideCheck))
         {
             return false;
         }
 
-        // 4. Combo and role checks
+        // Combo and role checks
         if (!IsComboValid(skipComboCheck))
         {
             return false;

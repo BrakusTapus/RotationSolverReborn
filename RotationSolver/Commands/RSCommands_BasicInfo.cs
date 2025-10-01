@@ -117,19 +117,11 @@ namespace RotationSolver.Commands
                 return false;
             }
 
-            // Match only the first token exactly (case-insensitive).
+            // Parse only the first token (case-insensitive).
             int spaceIdx = command.IndexOf(' ');
             string token = spaceIdx >= 0 ? command[..spaceIdx] : command;
 
-            foreach (T c in Enum.GetValues<T>())
-            {
-                if (string.Equals(token, c.ToString(), StringComparison.OrdinalIgnoreCase))
-                {
-                    type = c;
-                    return true;
-                }
-            }
-            return false;
+            return Enum.TryParse(token, ignoreCase: true, out type);
         }
 
         internal static string GetCommandStr(this Enum command, string extraCommand = "")

@@ -293,7 +293,6 @@ public static partial class RSCommands
 
     private static Enum GetNextEnumValue(Enum currentEnumValue)
     {
-        // Remove LINQ: .Cast<Enum>().ToArray()
         Array values = Enum.GetValues(currentEnumValue.GetType());
         Enum[] enumValues = new Enum[values.Length];
         for (int i = 0; i < values.Length; i++)
@@ -309,11 +308,9 @@ public static partial class RSCommands
     {
         string trimStr = str.Trim();
 
-        // Combine both regular and duty actions, avoiding duplicates by reference
         var rotationActions = RotationUpdater.CurrentRotationActions ?? [];
         var dutyActions = DataCenter.CurrentDutyRotation?.AllActions ?? [];
 
-        // Manual concat and deduplication
         int totalLength = rotationActions.Length + dutyActions.Length;
         List<IAction> allActionsList = new(totalLength);
         HashSet<IAction> seen = [];
@@ -383,11 +380,9 @@ public static partial class RSCommands
 
         if (double.TryParse(timeStr, out double time))
         {
-            // Combine both regular and duty actions, avoiding duplicates by reference
             var rotationActions = RotationUpdater.CurrentRotationActions ?? [];
             var dutyActions = DataCenter.CurrentDutyRotation?.AllActions ?? [];
 
-            // Manual concat and deduplication
             int totalLength = rotationActions.Length + dutyActions.Length;
             List<IAction> allActionsList = new(totalLength);
             HashSet<IAction> seen = [];

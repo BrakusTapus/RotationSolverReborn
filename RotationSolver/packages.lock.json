@@ -10,15 +10,15 @@
       },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
-        "requested": "[1.2.25, )",
-        "resolved": "1.2.25",
-        "contentHash": "xCXiw7BCxHJ8pF6wPepRUddlh2dlQlbr81gXA72hdk4FLHkKXas7EH/n+fk5UCA/YfMqG1Z6XaPiUjDbUNBUzg=="
+        "requested": "[1.2.39, )",
+        "resolved": "1.2.39",
+        "contentHash": "fcFN01tDTIQqDuTwr1jUQK/geofiwjG5DycJQOnC72i1SsLAk1ELe+apBOuZ11UMQG8YKFZG1FgvjZPbqHyatg=="
       },
       "ECommons": {
         "type": "Direct",
-        "requested": "[3.0.1.16, )",
-        "resolved": "3.0.1.16",
-        "contentHash": "5Zn4UtbKqJKZY6ETbjFFgURudDKblWGcRPOrNqmX3Nrla5+ldgH9KzhU+VVXpz38r8UnyshEKUjLihFE07VWqw=="
+        "requested": "[3.0.1.17, )",
+        "resolved": "3.0.1.17",
+        "contentHash": "kveqxdys4A7tt8EkzQmN4XPXe9Rz/k+c/+6U2yyk5hWAeBynTFo0dGkWeFfp2I+mnfUviJrvhEAee+t+jhFVPg=="
       },
       "ExCSS": {
         "type": "Transitive",
@@ -92,7 +92,7 @@
       "RotationSolverReborn.Basic": {
         "type": "Project",
         "dependencies": {
-          "ECommons": "[3.0.1.16, )",
+          "ECommons": "[3.0.1.17, )",
           "RotationSolver.SourceGenerators": "[1.0.0, )",
           "Svg": "[3.4.7, )",
           "System.Drawing.Common": "[9.0.9, )"

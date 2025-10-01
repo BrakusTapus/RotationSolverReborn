@@ -14,7 +14,7 @@ namespace RotationSolver.Basic.Helpers
                 throw new InvalidOperationException("SystemWarnings dictionary is not initialized.");
             }
 
-lock (systemWarnings)
+            lock (systemWarnings)
             {
                 try
                 {

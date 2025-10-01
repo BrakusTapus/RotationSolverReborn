@@ -2,87 +2,96 @@ namespace RotationSolver.ExtraRotations.Melee;
 
 [Rotation("DSRViper by freddersly", CombatType.PvE, GameVersion = "7.31")]
 [SourceCode(Path = "main/ExtraRotations/Melee/DSRViper.cs")]
-
 public sealed class DSRViper : ViperRotation
 {
     #region Config Options
 
-    [RotationConfig(CombatType.PvE, Name = "Use Standard Double Reawaken burst (vs Immediate)")]
-    public bool StandardDoubleReawaken { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "Use Uncoiled Fury for movement optimization")]
+    public bool UFMovementOptimization { get; set; } = true;
 
     [RotationConfig(CombatType.PvE, Name = "Early Tincture timing (5s before Serpent's Ire)")]
     public bool EarlyTincture { get; set; } = true;
 
-    [RotationConfig(CombatType.PvE, Name = "Force buff refresh before burst windows")]
-    public bool ForceBurstBuffRefresh { get; set; } = true;
-
-    [RotationConfig(CombatType.PvE, Name = "Save 50 Offerings for 2min burst windows")]
-    public bool SaveOfferingsForBurst { get; set; } = true;
-
-    [RotationConfig(CombatType.PvE, Name = "Use Uncoiled Fury for movement optimization")]
-    public bool UFMovementOptimization { get; set; } = true;
-
-    [Range(3, 10, ConfigUnitType.None, 1)]
-    [RotationConfig(CombatType.PvE, Name = "Start dual wield only combos X seconds before Serpent's Ire")]
-    public int DualWieldPrepTime { get; set; } = 10;
-
-    [Range(35, 45, ConfigUnitType.None, 1)]
+    [Range(10, 30, ConfigUnitType.None, 1)]
     [RotationConfig(CombatType.PvE, Name = "Minimum buff time for safe Reawaken usage")]
-    public int MinBuffTimeForReawaken { get; set; } = 40;
+    public int MinBuffTimeForReawaken { get; set; } = 15;
+
+    [Range(1, 3, ConfigUnitType.None, 1)]
+    [RotationConfig(CombatType.PvE, Name = "Max Rattling Coils before forced UF")]
+    public int MaxCoilsBeforeUF { get; set; } = 2;
+    
+    [RotationConfig(CombatType.PvE, Name = "Prioritize buff alternation over timers")]
+    public bool AlternateBuffs { get; set; } = true;
     #endregion
 
-    #region Tracking Properties
-    private bool IsPoolingForBurst()
+    #region Tracking Variables
+    private static bool LastUsedHunters { get; set; } = false;
+    private static bool LastUsedSwiftskins { get; set; } = false;
+    #endregion
+
+    #region Status Display
+    public override void DisplayRotationStatus()
     {
-        return SaveOfferingsForBurst && SerpentsIrePvE.EnoughLevel && 
-               SerpentsIrePvE.Cooldown.RecastTimeRemainOneCharge <= DualWieldPrepTime &&
-               SerpentOffering < 100;
+        ImGui.Text($"Buff Time Safe: {IsBuffTimeSafeForReawaken()}");
+        ImGui.Text($"Ready to Reawaken: {CanUseReawaken()}");
+        ImGui.Text($"Rattling Coils: {RattlingCoilStacks}");
+        ImGui.Text($"Serpent Offerings: {SerpentOffering}");
+        ImGui.Text($"Last Hunter's: {LastUsedHunters} | Last Swift's: {LastUsedSwiftskins}");
     }
 
     private bool IsBuffTimeSafeForReawaken()
     {
         return SwiftTime > MinBuffTimeForReawaken && HuntersTime > MinBuffTimeForReawaken;
     }
-
-    private bool ShouldRefreshBuffsBeforeBurst()
+    
+    private bool CanUseReawaken()
     {
-        return ForceBurstBuffRefresh && SerpentsIrePvE.Cooldown.RecastTimeRemainOneCharge <= DualWieldPrepTime &&
-               (SwiftTime <= 50 || HuntersTime <= 50);
+        // More intelligent Reawaken usage
+        return (HasReadyToReawaken || SerpentOffering >= 50) && 
+               IsBuffTimeSafeForReawaken() &&
+               RattlingCoilStacks <= 1 && // Don't waste coils
+               !DreadActive && !PitActive && // Not mid-combo
+               !HasPoisedFang && !HasPoisedBlood && // No Uncoiled follow-ups pending
+               !HasHunterVenom && !HasSwiftVenom && // No Dread follow-ups pending
+               !HasFellHuntersVenom && !HasFellSkinsVenom; // No AOE Dread follow-ups pending
     }
-
-    public override void DisplayRotationStatus()
+    
+    private bool ShouldAlternateToHunters()
     {
-        ImGui.Text($"Pooling for Burst: {IsPoolingForBurst()}");
-        ImGui.Text($"Buff Time Safe: {IsBuffTimeSafeForReawaken()}");
-        ImGui.Text($"Should Refresh Buffs: {ShouldRefreshBuffsBeforeBurst()}");
-        ImGui.Text($"Standard vs Immediate: {(StandardDoubleReawaken ? "Standard" : "Immediate")}");
+        if (!AlternateBuffs) return false;
+        
+        // Force Hunter's if Swift was used last and we have both buffs
+        if (LastUsedSwiftskins && HasHunterAndSwift) return true;
+        
+        // Use Hunter's if we don't have it
+        if (!IsHunter && IsSwift) return true;
+        
+        return false;
+    }
+    
+    private bool ShouldAlternateToSwiftskins()
+    {
+        if (!AlternateBuffs) return false;
+        
+        // Force Swiftskin's if Hunter's was used last and we have both buffs
+        if (LastUsedHunters && HasHunterAndSwift) return true;
+        
+        // Use Swiftskin's if we don't have it
+        if (!IsSwift && IsHunter) return true;
+        
+        return false;
     }
     #endregion
 
-    #region Additional oGCD Logic
+    #region oGCD Logic
     [RotationDesc]
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
-        // Priority 1: Uncoiled Fury follow-ups - Highest Priority
-        switch ((HasPoisedFang, HasPoisedBlood))
-        {
-            case (true, _):
-                if (UncoiledTwinfangPvE.CanUse(out act))
-                    return true;
-                break;
-            case (_, true):
-                if (UncoiledTwinbloodPvE.CanUse(out act))
-                    return true;
-                break;
-            case (false, false):
-                if (TimeSinceLastAction.TotalSeconds < 2)
-                    break;
-                if (UncoiledTwinfangPvE.CanUse(out act))
-                    return true;
-                if (UncoiledTwinbloodPvE.CanUse(out act))
-                    return true;
-                break;
-        }
+        // Priority 1: Uncoiled Fury follow-ups - Always highest priority
+        if (HasPoisedFang && UncoiledTwinfangPvE.CanUse(out act))
+            return true;
+        if (HasPoisedBlood && UncoiledTwinbloodPvE.CanUse(out act))
+            return true;
 
         // Priority 2: Reawaken Legacy abilities
         if (HasReawakenedActive)
@@ -93,58 +102,27 @@ public sealed class DSRViper : ViperRotation
             if (FourthLegacyPvE.CanUse(out act)) return true;
         }
 
-        // Priority 3: Single Target Dread follow-ups
-        switch ((HasHunterVenom, HasSwiftVenom))
-        {
-            case (true, _):
-                if (TwinfangBitePvE.CanUse(out act))
-                    return true;
-                break;
-            case (_, true):
-                if (TwinbloodBitePvE.CanUse(out act))
-                    return true;
-                break;
-            case (false, false):
-                if (TimeSinceLastAction.TotalSeconds < 2)
-                    break;
-                if (TwinfangBitePvE.CanUse(out act))
-                    return true;
-                if (TwinbloodBitePvE.CanUse(out act))
-                    return true;
-                break;
-        }
+        // Priority 3: Dread follow-ups (Single Target) - Use immediately
+        if (HasHunterVenom && TwinfangBitePvE.CanUse(out act))
+            return true;
+        if (HasSwiftVenom && TwinbloodBitePvE.CanUse(out act))
+            return true;
 
-        // Priority 4: AOE Dread follow-ups
-        switch ((HasFellHuntersVenom, HasFellSkinsVenom))
-        {
-            case (true, _):
-                if (TwinfangThreshPvE.CanUse(out act, skipAoeCheck: true))
-                    return true;
-                break;
-            case (_, true):
-                if (TwinbloodThreshPvE.CanUse(out act, skipAoeCheck: true))
-                    return true;
-                break;
-            case (false, false):
-                if (TimeSinceLastAction.TotalSeconds < 2)
-                    break;
-                if (TwinfangThreshPvE.CanUse(out act, skipAoeCheck: true))
-                    return true;
-                if (TwinbloodThreshPvE.CanUse(out act, skipAoeCheck: true))
-                    return true;
-                break;
-        }
+        // Priority 4: Dread follow-ups (AOE) - Use immediately
+        if (HasFellHuntersVenom && TwinfangThreshPvE.CanUse(out act, skipAoeCheck: true))
+            return true;
+        if (HasFellSkinsVenom && TwinbloodThreshPvE.CanUse(out act, skipAoeCheck: true))
+            return true;
 
         // Priority 5: Serpent Tail abilities
         if (LastLashPvE.CanUse(out act, skipAoeCheck: true))
             return true;
-
         if (DeathRattlePvE.CanUse(out act))
             return true;
 
-        // Priority 6: Early Tincture timing (based on Balance guide)
+        // Priority 6: Early Tincture timing
         if (EarlyTincture && NoAbilityReady && SerpentsIrePvE.EnoughLevel && 
-            SerpentsIrePvE.Cooldown.ElapsedAfter(115) && SerpentsIrePvE.Cooldown.RecastTimeRemainOneCharge <= 5 &&
+            SerpentsIrePvE.Cooldown.ElapsedAfter(115) && SerpentsIrePvE.Cooldown.RecastTimeRemain <= 5 &&
             UseBurstMedicine(out act))
         {
             return true;
@@ -153,9 +131,10 @@ public sealed class DSRViper : ViperRotation
         return base.EmergencyAbility(nextGCD, out act);
     }
 
+    [RotationDesc]
     protected override bool AttackAbility(IAction nextGCD, out IAction? act)
     {
-        // Use Serpent's Ire on cooldown for 2min burst alignment
+        // Use Serpent's Ire on cooldown for burst windows
         if (IsBurst && SerpentsIrePvE.CanUse(out act))
         {
             return true;
@@ -168,249 +147,194 @@ public sealed class DSRViper : ViperRotation
     #region GCD Logic
     protected override bool GeneralGCD(out IAction? act)
     {
-        // Priority 1: Reawaken Combo - Always highest priority
+        // Priority 1: Always complete Reawaken combo when active
         if (OuroborosPvE.CanUse(out act)) return true;
         if (FourthGenerationPvE.CanUse(out act)) return true;
         if (ThirdGenerationPvE.CanUse(out act)) return true;
         if (SecondGenerationPvE.CanUse(out act)) return true;
         if (FirstGenerationPvE.CanUse(out act)) return true;
 
-        // Priority 2: Reawaken usage (based on Balance guide conditions)
-        if (SerpentOffering >= 50 && IsBuffTimeSafeForReawaken() && 
-            IsBurst && ReawakenPvE.CanUse(out act, skipComboCheck: true))
+        // Priority 2: Use Reawaken intelligently
+        if (CanUseReawaken())
         {
-            return true;
+            if (ReawakenPvE.CanUse(out act, skipComboCheck: true))
+                return true;
         }
 
-        // Priority 3: Resource management outside pooling periods
-        if (!IsPoolingForBurst())
+        // Priority 3: Resource Management - Uncoiled Fury
+        // Use at lower stacks to avoid overcapping
+        if (RattlingCoilStacks >= MaxCoilsBeforeUF && NoAbilityReady)
         {
-            // Uncoiled Fury usage for movement and overcap protection
-            if (UFMovementOptimization && !HasHostilesInRange && RattlingCoilStacks > 0 && 
-                !HasReadyToReawaken && NoAbilityReady)
-            {
-                if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
-                    return true;
-            }
-
-            // Overcap protection
-            if (RattlingCoilStacks == 3 && !HasReadyToReawaken && NoAbilityReady)
-            {
-                if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
-                    return true;
-            }
-
-            // Post-burst UF spending (within 30s of Serpent's Ire)
-            if (RattlingCoilStacks > 1 && SerpentsIrePvE.Cooldown.JustUsedAfter(30) && 
-                !HasReadyToReawaken && NoAbilityReady)
-            {
-                if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
-                    return true;
-            }
-
-            // Tincture window optimization - use all UF under Medicated
-            if (Player.HasStatus(true, StatusID.Medicated) && RattlingCoilStacks > 0 && 
-                !HasReadyToReawaken && NoAbilityReady)
-            {
-                if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
-                    return true;
-            }
+            if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
+                return true;
         }
 
-        // Priority 4: AOE Dread Combo logic
+        // Movement optimization with Uncoiled Fury
+        if (UFMovementOptimization && !HasHostilesInRange && RattlingCoilStacks > 0 && NoAbilityReady)
+        {
+            if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
+                return true;
+        }
+
+        // Priority 4: Twinblade Combos (Vicewinder/Vicepit chains)
+        
+        // AOE Dread Combos - Alternate buffs properly
         if (PitActive)
         {
             if (HasHunterAndSwift)
             {
-                // Prioritize buffs about to expire
-                if (WillSwiftEnd && SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                    return true;
-                if (WillHunterEnd && HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                    return true;
-
-                // Standard priority based on timer
-                switch (HunterOrSwiftEndsFirst)
+                // Critical timer checks first
+                if (SwiftTime <= 3 && SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
                 {
-                    case "Hunter":
-                        if (HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                            return true;
-                        break;
-                    case "Swift":
-                        if (SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                            return true;
-                        break;
-                    default:
-                        if (HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                            return true;
-                        if (SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                            return true;
-                        break;
+                    LastUsedSwiftskins = true;
+                    LastUsedHunters = false;
+                    return true;
+                }
+                if (HuntersTime <= 3 && HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
+                {
+                    LastUsedHunters = true;
+                    LastUsedSwiftskins = false;
+                    return true;
+                }
+                
+                // Alternation logic
+                if (ShouldAlternateToHunters() && HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
+                {
+                    LastUsedHunters = true;
+                    LastUsedSwiftskins = false;
+                    return true;
+                }
+                if (ShouldAlternateToSwiftskins() && SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
+                {
+                    LastUsedSwiftskins = true;
+                    LastUsedHunters = false;
+                    return true;
                 }
             }
             else
             {
+                // Use whichever buff we don't have
                 if (!IsSwift && SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
+                {
+                    LastUsedSwiftskins = true;
+                    LastUsedHunters = false;
                     return true;
+                }
                 if (!IsHunter && HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
+                {
+                    LastUsedHunters = true;
+                    LastUsedSwiftskins = false;
                     return true;
+                }
             }
         }
 
-        if (!PitActive)
-        {
-            if (SwiftskinsDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                return true;
-            if (HuntersDenPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true, skipAoeCheck: true))
-                return true;
-        }
-
-        // Priority 5: Single Target Dread Combo logic with positional optimization
+        // Single Target Dread Combos - Alternate buffs properly
         if (DreadActive)
         {
             if (HasHunterAndSwift)
             {
-                // Prioritize buffs about to expire
-                if (WillSwiftEnd && SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                if (WillHunterEnd && HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-
-                // Positional optimization - prioritize hittable positionals
-                if (HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true) && 
-                    HuntersCoilPvE.Target.Target != null && CanHitPositional(EnemyPositional.Flank, HuntersCoilPvE.Target.Target))
-                    return true;
-                if (SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true) && 
-                    SwiftskinsCoilPvE.Target.Target != null && CanHitPositional(EnemyPositional.Rear, SwiftskinsCoilPvE.Target.Target))
-                    return true;
-
-                // Fallback to timer priority
-                switch (HunterOrSwiftEndsFirst)
+                // Critical timer checks first
+                if (SwiftTime <= 3 && SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
                 {
-                    case "Hunter":
-                        if (HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                    case "Swift":
-                        if (SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                    default:
-                        if (HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        if (SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
+                    LastUsedSwiftskins = true;
+                    LastUsedHunters = false;
+                    return true;
+                }
+                if (HuntersTime <= 3 && HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                {
+                    LastUsedHunters = true;
+                    LastUsedSwiftskins = false;
+                    return true;
+                }
+                
+                // Alternation logic with positional awareness
+                if (ShouldAlternateToHunters())
+                {
+                    if (HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                    {
+                        LastUsedHunters = true;
+                        LastUsedSwiftskins = false;
+                        return true;
+                    }
+                }
+                if (ShouldAlternateToSwiftskins())
+                {
+                    if (SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                    {
+                        LastUsedSwiftskins = true;
+                        LastUsedHunters = false;
+                        return true;
+                    }
                 }
             }
             else
             {
-                // Use available Coils
+                // Use whichever buff we don't have
                 if (!IsSwift && SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                {
+                    LastUsedSwiftskins = true;
+                    LastUsedHunters = false;
                     return true;
+                }
                 if (!IsHunter && HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                {
+                    LastUsedHunters = true;
+                    LastUsedSwiftskins = false;
                     return true;
+                }
             }
         }
 
-        // Non-Dread Coil usage
-        if (!DreadActive)
+        // Priority 5: Vicewinder/Vicepit usage - Maintain buffs, don't spam
+        if (!DreadActive && !PitActive)
         {
-            if (HuntersCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                return true;
-            if (SwiftskinsCoilPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                return true;
-        }
-
-        // Priority 6: Vicewinder/Vicepit charge management
-        if (IsSwift)
-        {
-            // Avoid overcapping charges
-            if (VicewinderPvE.Cooldown.CurrentCharges == 2 ||
-                (VicewinderPvE.Cooldown.CurrentCharges == 1 && VicewinderPvE.Cooldown.RecastTimeRemainOneCharge < 10))
+            // Use Vicewinder/Vicepit to maintain buffs or when buffs are low
+            bool needBuffRefresh = SwiftTime <= 10 || HuntersTime <= 10 || (!IsSwift && !IsHunter);
+            
+            if (needBuffRefresh || (VicewinderPvE.Cooldown.CurrentCharges >= 2) || (VicepitPvE.Cooldown.CurrentCharges >= 2))
             {
                 if (VicewinderPvE.CanUse(out act, usedUp: true))
                     return true;
-            }
-
-            if (VicepitPvE.Cooldown.CurrentCharges == 2 ||
-                (VicepitPvE.Cooldown.CurrentCharges == 1 && VicepitPvE.Cooldown.RecastTimeRemainOneCharge < 10))
-            {
                 if (VicepitPvE.CanUse(out act, usedUp: true))
                     return true;
             }
         }
 
-        // Priority 7: AOE Serpent combo finishers
-        switch ((HasGrimHunter, HasGrimSkin))
-        {
-            case (true, _):
-                if (JaggedMawPvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                break;
-            case (_, true):
-                if (BloodiedMawPvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                break;
-            case (false, false):
-                if (JaggedMawPvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                if (BloodiedMawPvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                break;
-        }
+        // Priority 6: Dual Wield Combo Finishers
+        
+        // AOE finishers - Use based on what venom we have
+        if (HasGrimHunter && JaggedMawPvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: true, skipComboCheck: true))
+            return true;
+        if (HasGrimSkin && BloodiedMawPvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: true, skipComboCheck: true))
+            return true;
 
-        // Priority 8: Single Target Serpent combo finishers (optimized order)
-        switch ((HasHindstung, HasHindsbane, HasFlankstung, HasFlanksbane))
-        {
-            case (true, _, _, _):
-                if (HindstingStrikePvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                break;
-            case (_, true, _, _):
-                if (HindsbaneFangPvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                break;
-            case (_, _, true, _):
-                if (FlankstingStrikePvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                break;
-            case (_, _, _, true):
-                if (FlanksbaneFangPvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                break;
-            case (false, false, false, false):
-                // Follow standard rotation order from Balance guide
-                if (HindstingStrikePvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                if (FlankstingStrikePvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                if (HindsbaneFangPvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                if (FlanksbaneFangPvE.CanUse(out act, skipStatusProvideCheck: true))
-                    return true;
-                break;
-        }
+        // Single Target finishers - Use based on positional buffs
+        if (HasHindstung && HindstingStrikePvE.CanUse(out act, skipStatusProvideCheck: true))
+            return true;
+        if (HasHindsbane && HindsbaneFangPvE.CanUse(out act, skipStatusProvideCheck: true))
+            return true;
+        if (HasFlankstung && FlankstingStrikePvE.CanUse(out act, skipStatusProvideCheck: true))
+            return true;
+        if (HasFlanksbane && FlanksbaneFangPvE.CanUse(out act, skipStatusProvideCheck: true))
+            return true;
 
-        // Priority 9: AOE Serpent combo second hits
+        // Priority 7: Dual Wield Combo Second Hits
+
+        // AOE second hits - Maintain buff alternation
         if (SwiftskinsBitePvE.EnoughLevel)
         {
             if (HasHunterAndSwift)
             {
-                switch (HunterOrSwiftEndsFirst)
-                {
-                    case "Hunter":
-                        if (HuntersBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                    case "Swift":
-                        if (SwiftskinsBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                    default:
-                        if (SwiftskinsBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                }
+                if (ShouldAlternateToHunters() && HuntersBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                    return true;
+                if (ShouldAlternateToSwiftskins() && SwiftskinsBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                    return true;
+                // Fallback to whichever is available
+                if (HuntersBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                    return true;
+                if (SwiftskinsBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                    return true;
             }
             else
             {
@@ -420,44 +344,26 @@ public sealed class DSRViper : ViperRotation
                     return true;
             }
         }
+        else
+        {
+            if (HuntersBitePvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                return true;
+        }
 
-        // Priority 10: Single Target Serpent combo second hits with positional optimization
+        // Single Target second hits - Use based on positionals
         if (SwiftskinsStingPvE.EnoughLevel)
         {
-            if (HasHunterAndSwift)
-            {
-                // Use specific Stings based on positional buffs (Hind/Flank)
-                if (HasHind && SwiftskinsStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                if (HasFlank && HuntersStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                
-                // Fallback when no positional buffs
-                switch (HunterOrSwiftEndsFirst)
-                {
-                    case "Hunter":
-                        if (HuntersStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                    case "Swift":
-                    default:
-                        if (SwiftskinsStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                            return true;
-                        break;
-                }
-            }
-            else
-            {
-                // Prioritize based on available buffs
-                if (HasHind && SwiftskinsStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                if (HasFlank && HuntersStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                if (!IsSwift && SwiftskinsStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-                if (!IsHunter && HuntersStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
-                    return true;
-            }
+            // Prioritize based on positional buffs
+            if (HasHind && SwiftskinsStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                return true;
+            if (HasFlank && HuntersStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                return true;
+            
+            // Fallback to buff maintenance
+            if (!IsSwift && SwiftskinsStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                return true;
+            if (!IsHunter && HuntersStingPvE.CanUse(out act, skipStatusProvideCheck: true, skipComboCheck: true))
+                return true;
         }
         else
         {
@@ -465,44 +371,36 @@ public sealed class DSRViper : ViperRotation
                 return true;
         }
 
-        // Priority 11: Combo starters with buff optimization
-        switch ((HasSteel, HasReavers))
+        // Priority 8: Combo Starters - Natural flow
+        if (HasSteel)
         {
-            case (true, _):
-                if (SteelFangsPvE.CanUse(out act))
-                    return true;
-                if (SteelMawPvE.CanUse(out act))
-                    return true;
-                break;
-            case (_, true):
-                if (ReavingFangsPvE.CanUse(out act))
-                    return true;
-                if (ReavingMawPvE.CanUse(out act))
-                    return true;
-                break;
-            case (false, false):
-                // Prefer Reaving/Steel based on upcoming burst prep
-                if (ShouldRefreshBuffsBeforeBurst())
-                {
-                    if (ReavingFangsPvE.CanUse(out act))
-                        return true;
-                    if (ReavingMawPvE.CanUse(out act))
-                        return true;
-                }
-                else
-                {
-                    if (SteelFangsPvE.CanUse(out act))
-                        return true;
-                    if (SteelMawPvE.CanUse(out act))
-                        return true;
-                }
-                break;
+            if (SteelFangsPvE.CanUse(out act))
+                return true;
+            if (SteelMawPvE.CanUse(out act))
+                return true;
         }
-
-        // Priority 12: Ranged options
-        if (UFMovementOptimization && !HasHostilesInRange)
+        if (HasReavers)
         {
-            if (UncoiledFuryPvE.CanUse(out act, usedUp: true))
+            if (ReavingFangsPvE.CanUse(out act))
+                return true;
+            if (ReavingMawPvE.CanUse(out act))
+                return true;
+        }
+        
+        // Start new combo chain
+        if (ReavingFangsPvE.CanUse(out act))
+            return true;
+        if (SteelFangsPvE.CanUse(out act))
+            return true;
+        if (ReavingMawPvE.CanUse(out act))
+            return true;
+        if (SteelMawPvE.CanUse(out act))
+            return true;
+
+        // Priority 9: Ranged options when out of melee range
+        if (!HasHostilesInRange)
+        {
+            if (RattlingCoilStacks > 0 && UncoiledFuryPvE.CanUse(out act, usedUp: true))
                 return true;
             if (WrithingSnapPvE.CanUse(out act))
                 return true;

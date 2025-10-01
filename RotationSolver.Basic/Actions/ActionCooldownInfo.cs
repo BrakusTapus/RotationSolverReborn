@@ -44,7 +44,7 @@ public readonly struct ActionCooldownInfo : ICooldown
     /// <summary>
     /// Gets the remaining recast time.
     /// </summary>
-    private float RecastTimeRemain => RecastTime - RecastTimeElapsedRaw;
+    public float RecastTimeRemain => RecastTime - RecastTimeElapsedRaw;
 
     /// <summary>
     /// Gets a value indicating whether the action has at least one charge.
