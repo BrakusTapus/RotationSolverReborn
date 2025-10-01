@@ -369,14 +369,14 @@ public sealed class KirboMCHPve : MachinistRotation
         {
             if (ScattergunPvE.EnoughLevel)
             {
-                if (ScattergunPvE.CanUse(out act))
+                if (ScattergunPvE.Target.AffectedTargets.Length >= 5 && ScattergunPvE.CanUse(out act))
                 {
                     return true;
                 }
             }
             if (!ScattergunPvE.EnoughLevel)
             {
-                if (SpreadShotPvE.CanUse(out act))
+                if (SpreadShotPvE.Target.AffectedTargets.Length >= 5 && SpreadShotPvE.CanUse(out act))
                 {
                     return true;
                 }
