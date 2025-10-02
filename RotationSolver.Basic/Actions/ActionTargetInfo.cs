@@ -1547,9 +1547,9 @@ public struct ActionTargetInfo(IBaseAction action)
                 if (m == Player.Object) continue; // never card self
                 if (m.IsDead) continue;
                 if (m.IsConditionCannotTarget()) continue;
-                if (StatusHelper.IsStatusCapped(m)) continue; // cannot receive more statuses
+                //if (StatusHelper.IsStatusCapped(m)) continue; // cannot receive more statuses
                 if (m.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath)) continue; // poor target value
-                if (m.HasStatus(false, StatusID.TheBalance_3887, StatusID.TheSpear_3889)) continue; // already has a card
+                if (m.HasStatus(false, StatusID.TheSpear_3889)) continue; // already has a card
                 candidates.Add(m);
             }
 
@@ -1607,9 +1607,9 @@ public struct ActionTargetInfo(IBaseAction action)
                 if (m == Player.Object) continue; // never card self
                 if (m.IsDead) continue;
                 if (m.IsConditionCannotTarget()) continue;
-                if (StatusHelper.IsStatusCapped(m)) continue; // cannot receive more statuses
+                //if (StatusHelper.IsStatusCapped(m)) continue; // cannot receive more statuses
                 if (m.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath)) continue; // poor target value
-                if (m.HasStatus(false, StatusID.TheBalance_3887, StatusID.TheSpear_3889)) continue; // already has a card
+                if (m.HasStatus(false, StatusID.TheBalance_3887)) continue; // already has a card
                 candidates.Add(m);
             }
 

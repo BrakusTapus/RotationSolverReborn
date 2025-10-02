@@ -2098,7 +2098,7 @@ internal static float GetTTK(this IBattleChara battleChara, bool wholeTime = fal
         {
             if (id == battleChara.GameObjectId)
             {
-return now - time <= TimeSpan.FromSeconds(1);
+                return now - time >= TimeSpan.FromSeconds(1);
             }
         }
         return false;

@@ -2,6 +2,7 @@ namespace RotationSolver.ExtraRotations.Melee;
 
 [Rotation("DSRViper by freddersly", CombatType.PvE, GameVersion = "7.31")]
 [SourceCode(Path = "main/ExtraRotations/Melee/DSRViper.cs")]
+[ExtraRotation]
 public sealed class DSRViper : ViperRotation
 {
     #region Config Options

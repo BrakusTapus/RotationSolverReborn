@@ -168,7 +168,7 @@ internal static class StateUpdater
             bool attacked = false;
             if (tarOnMeCount != 0)
             {
-                attacked = attackedCount / tarOnMeCount > 0.7f;
+                attacked = attackedCount / tarOnMeCount > 0f;
             }
 
             if (tarOnMeCount >= Service.Config.AutoDefenseNumber
