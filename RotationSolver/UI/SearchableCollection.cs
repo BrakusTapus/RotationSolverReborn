@@ -9,7 +9,7 @@ internal readonly record struct SearchPair(UIAttribute Attribute, ISearchable Se
 internal class SearchableCollection
 {
     private readonly List<SearchPair> _items;
-    private static readonly char[] _splitChar = { ' ', ',', '、', '.', '。' };
+    private static readonly char[] _splitChar = [' ', ',', '、', '.', '。'];
     private const int MaxResultLength = 20;
 
     public SearchableCollection()
@@ -68,17 +68,19 @@ internal class SearchableCollection
     public void DrawItems(string filter)
     {
         bool isFirst = true;
-        Dictionary<byte, List<SearchPair>> filteredItems = new();
+        Dictionary<byte, List<SearchPair>> filteredItems = [];
 
         foreach (SearchPair item in _items)
         {
             if (item.Attribute.Filter == filter)
             {
-                if (!filteredItems.ContainsKey(item.Attribute.Section))
+                if (!filteredItems.TryGetValue(item.Attribute.Section, out List<SearchPair>? value))
                 {
-                    filteredItems[item.Attribute.Section] = [];
+                    value = [];
+                    filteredItems[item.Attribute.Section] = value;
                 }
-                filteredItems[item.Attribute.Section].Add(item);
+
+                value.Add(item);
             }
         }
 
@@ -116,10 +118,10 @@ internal class SearchableCollection
     {
         if (string.IsNullOrEmpty(searchingText))
         {
-            return Array.Empty<ISearchable>();
+            return [];
         }
 
-        HashSet<ISearchable> results = new();
+        HashSet<ISearchable> results = [];
         List<ISearchable> finalResults = new(MaxResultLength);
 
         foreach (SearchPair pair in _items)
@@ -144,7 +146,7 @@ internal class SearchableCollection
             }
         }
 
-        return finalResults.ToArray();
+        return [.. finalResults];
     }
 
     private static ISearchable? CreateSearchable(PropertyInfo property)

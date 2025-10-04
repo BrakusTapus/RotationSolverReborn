@@ -436,9 +436,6 @@ internal partial class Configs : IPluginConfiguration
     [ConditionBool, UI("Record knockback actions", Filter = List2)]
     private static readonly bool _recordKnockbackies = false;
 
-    [UI("Use additional conditions", Filter = BasicParams)]
-    public bool UseAdditionalConditions { get; set; } = false;
-
     [ConditionBool, UI("Set Blue Mage Actions Automatically", Description = "When using a Blue Mage Rotation, RSR can automatically set your spell book to the spells required by that rotation.", Filter = Extra)]
     private static readonly bool _setBluActions2 = false;
 

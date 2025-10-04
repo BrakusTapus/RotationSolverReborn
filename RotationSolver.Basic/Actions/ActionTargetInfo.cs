@@ -1483,11 +1483,18 @@ public struct ActionTargetInfo(IBaseAction action)
                 foreach (IBattleChara member in DataCenter.PartyMembers)
                 {
                     if (member == Player.Object) continue;
-                    if (member.IsConditionCannotTarget()) continue;
                     if (member.IsJobs(job) && !member.IsDead && !member.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath, StatusID.DancePartner, StatusID.ClosedPosition))
                     {
-                        PluginLog.Debug($"FindDancePartner: {member.Name} selected target.");
-                        return member;
+                        if (member.IsConditionCannotTarget())
+                        {
+                            PluginLog.Debug($"FindDancePartner: {member.Name} selected target.");
+                            return null;
+                        }
+                        if (!member.IsConditionCannotTarget())
+                        {
+                            PluginLog.Debug($"FindDancePartner: {member.Name} selected target.");
+                            return member;
+                        }
                     }
                 }
             }
@@ -1496,12 +1503,19 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara member in DataCenter.PartyMembers)
                 {
-                    if (member.IsConditionCannotTarget()) continue;
                     if (member == Player.Object) continue;
                     if (member.IsJobs(job) && !member.IsDead && !member.HasStatus(false, StatusID.DamageDown_2911, StatusID.DamageDown, StatusID.Weakness, StatusID.BrinkOfDeath))
                     {
-                        PluginLog.Debug($"FindDancePartner: {member.Name} secondary logic target.");
-                        return member;
+                        if (member.IsConditionCannotTarget())
+                        {
+                            PluginLog.Debug($"FindDancePartner: {member.Name} secondary logic target.");
+                            return null;
+                        }
+                        if (!member.IsConditionCannotTarget())
+                        {
+                            PluginLog.Debug($"FindDancePartner: {member.Name} secondary logic target.");
+                            return member;
+                        }
                     }
                 }
             }
@@ -1553,17 +1567,53 @@ public struct ActionTargetInfo(IBaseAction action)
                 candidates.Add(m);
             }
 
-            // Primary: user-configured priority order
-            foreach (Job job in TheSpearPriority)
+            // Primary: find the highest-priority match across the whole party
+            IBattleChara? best = null;
+            int bestIndex = int.MaxValue;
+            for (int i = 0; i < candidates.Count; i++)
             {
-                foreach (IBattleChara member in candidates)
+                var member = candidates[i];
+                int idx = -1;
+                for (int j = 0; j < TheSpearPriority.Count; j++)
                 {
-                    if (member.IsJobs(job))
+                    if (member.IsJobs(TheSpearPriority[j]))
                     {
-                        PluginLog.Debug($"FindTheSpear: {member.Name} selected by priority list.");
-                        return member;
+                        idx = j;
+                        break;
                     }
                 }
+                if (idx >= 0)
+                {
+                    if (idx < bestIndex || best == null)
+                    {
+                        bestIndex = idx;
+                        best = member;
+                    }
+                    else if (idx == bestIndex)
+                    {
+                        // Tie-breakers: higher MaxHp, then higher CurrentHp
+                        uint bestMaxHp = best?.MaxHp ?? 0;
+                        uint memMaxHp = member.MaxHp;
+                        if (memMaxHp > bestMaxHp)
+                        {
+                            best = member;
+                        }
+                        else if (memMaxHp == bestMaxHp)
+                        {
+                            uint bestHp = best?.CurrentHp ?? 0;
+                            uint memHp = member.CurrentHp;
+                            if (memHp > bestHp)
+                            {
+                                best = member;
+                            }
+                        }
+                    }
+                }
+            }
+            if (best != null)
+            {
+                PluginLog.Debug($"FindTheSpear: {best.Name} selected by priority index {bestIndex} with tie-breakers.");
+                return best;
             }
 
             // Fallback: prefer ranged for Spear, then other DPS buckets (aligns with 6% on ranged/healer)
@@ -1613,17 +1663,53 @@ public struct ActionTargetInfo(IBaseAction action)
                 candidates.Add(m);
             }
 
-            // Primary: user-configured priority order
-            foreach (Job job in TheBalancePriority)
+            // Primary: find the highest-priority match across the whole party
+            IBattleChara? best = null;
+            int bestIndex = int.MaxValue;
+            for (int i = 0; i < candidates.Count; i++)
             {
-                foreach (IBattleChara member in candidates)
+                var member = candidates[i];
+                int idx = -1;
+                for (int j = 0; j < TheBalancePriority.Count; j++)
                 {
-                    if (member.IsJobs(job))
+                    if (member.IsJobs(TheBalancePriority[j]))
                     {
-                        PluginLog.Debug($"FindTheBalance: {member.Name} selected by priority list.");
-                        return member;
+                        idx = j;
+                        break;
                     }
                 }
+                if (idx >= 0)
+                {
+                    if (idx < bestIndex || best == null)
+                    {
+                        bestIndex = idx;
+                        best = member;
+                    }
+                    else if (idx == bestIndex)
+                    {
+                        // Tie-breakers: higher MaxHp, then higher CurrentHp
+                        uint bestMaxHp = best?.MaxHp ?? 0;
+                        uint memMaxHp = member.MaxHp;
+                        if (memMaxHp > bestMaxHp)
+                        {
+                            best = member;
+                        }
+                        else if (memMaxHp == bestMaxHp)
+                        {
+                            uint bestHp = best?.CurrentHp ?? 0;
+                            uint memHp = member.CurrentHp;
+                            if (memHp > bestHp)
+                            {
+                                best = member;
+                            }
+                        }
+                    }
+                }
+            }
+            if (best != null)
+            {
+                PluginLog.Debug($"FindTheBalance: {best.Name} selected by priority index {bestIndex} with tie-breakers.");
+                return best;
             }
 
             // Fallback: prefer melee for Balance, then other DPS buckets (aligns with 6% on melee/tank)
@@ -1662,13 +1748,21 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara m in DataCenter.PartyMembers)
                 {
-                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead && !m.IsConditionCannotTarget())
+                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead)
                     {
                         // 1. Tanks with tank stance and without Kardion
                         if (m.HasStatus(false, StatusHelper.TankStanceStatus) && !m.HasStatus(false, StatusID.Kardion))
                         {
-                            PluginLog.Debug($"FindKardia 1: {m.Name} is a tank with TankStanceStatus and without Kardion.");
-                            return m;
+                            if (m.IsConditionCannotTarget())
+                            {
+                                PluginLog.Debug($"FindKardia 1: {m.Name} is a tank with TankStanceStatus and without Kardion.");
+                                return null;
+                            }
+                            if (!m.IsConditionCannotTarget())
+                            {
+                                PluginLog.Debug($"FindKardia 1: {m.Name} is a tank with TankStanceStatus and without Kardion.");
+                                return m;
+                            }
                         }
                     }
                 }
@@ -1678,13 +1772,21 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara m in DataCenter.PartyMembers)
                 {
-                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead && !m.IsConditionCannotTarget())
+                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead)
                     {
                         // 2. Tanks with tank stance (regardless of Kardion)
                         if (m.HasStatus(false, StatusHelper.TankStanceStatus))
                         {
-                            PluginLog.Debug($"FindKardia 2: {m.Name} is a tank with TankStanceStatus.");
-                            return m;
+                            if (m.IsConditionCannotTarget())
+                            {
+                                PluginLog.Debug($"FindKardia 2: {m.Name} is a tank with TankStanceStatus.");
+                                return null;
+                            }
+                            if (!m.IsConditionCannotTarget())
+                            {
+                                PluginLog.Debug($"FindKardia 2: {m.Name} is a tank with TankStanceStatus.");
+                                return m;
+                            }
                         }
                     }
                 }
@@ -1694,11 +1796,19 @@ public struct ActionTargetInfo(IBaseAction action)
             {
                 foreach (IBattleChara m in DataCenter.PartyMembers)
                 {
-                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead && !m.IsConditionCannotTarget())
+                    if (m.IsJobCategory(JobRole.Tank) && m.IsJobs(job) && !m.IsDead)
                     {
                         // 3. Any alive tank in priority order
-                        PluginLog.Debug($"FindKardia 3: {m.Name} is a tank fallback.");
-                        return m;
+                        if (m.IsConditionCannotTarget())
+                        {
+                            PluginLog.Debug($"FindKardia 3: {m.Name} is a tank fallback.");
+                            return null;
+                        }
+                        if (!m.IsConditionCannotTarget())
+                        {
+                            PluginLog.Debug($"FindKardia 3: {m.Name} is a tank fallback.");
+                            return m;
+                        }
                     }
                 }
             }

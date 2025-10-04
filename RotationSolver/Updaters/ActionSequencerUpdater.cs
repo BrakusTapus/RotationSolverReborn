@@ -6,70 +6,10 @@ internal class ActionSequencerUpdater
 {
     private static string? _actionSequencerFolder;
 
-    // Cache: map action ID to action for the current rotation set, rebuild only when actions array ref changes.
-    private static Dictionary<uint, IAction>? _actionsByIdCache;
-    private static IAction[]? _lastActionsRef;
-
     public static void UpdateActionSequencerAction()
     {
-        if (DataCenter.ConditionSets == null)
-        {
-            return;
-        }
-
-        ICustomRotation? customRotation = DataCenter.CurrentRotation;
-        if (customRotation == null)
-        {
-            return;
-        }
-
-        IAction[] allActions = RotationUpdater.CurrentRotationActions;
-
-        MajorConditionValue? set = DataCenter.CurrentConditionValue;
-        if (set == null)
-        {
-            return;
-        }
-
-        // Build or reuse a lookup dictionary of actions by ID, rebuilding only when the action array reference changes.
-        if (!ReferenceEquals(_lastActionsRef, allActions) || _actionsByIdCache == null)
-        {
-            var newMap = new Dictionary<uint, IAction>(allActions.Length);
-            for (int i = 0; i < allActions.Length; i++)
-            {
-                IAction a = allActions[i];
-                newMap.TryAdd(a.ID, a);
-            }
-            _actionsByIdCache = newMap;
-            _lastActionsRef = allActions;
-        }
-        Dictionary<uint, IAction> actionsById = _actionsByIdCache;
-
-        HashSet<uint> disabledActions = [];
-        foreach (KeyValuePair<uint, ConditionSet> pair in set.DisableConditionDict)
-        {
-            if (pair.Value.IsTrue(customRotation))
-            {
-                _ = disabledActions.Add(pair.Key);
-            }
-        }
-        DataCenter.DisabledActionSequencer = disabledActions;
-
-        foreach (KeyValuePair<uint, ConditionSet> conditionPair in set.ConditionDict)
-        {
-            if (!actionsById.TryGetValue(conditionPair.Key, out IAction? nextAct) || nextAct == null)
-            {
-                continue;
-            }
-            if (!conditionPair.Value.IsTrue(customRotation))
-            {
-                continue;
-            }
-
-            DataCenter.ActionSequencerAction = nextAct;
-            return;
-        }
-
+        // Condition-based action sequencer disabled.
+        DataCenter.DisabledActionSequencer = [];
         DataCenter.ActionSequencerAction = null;
     }
 

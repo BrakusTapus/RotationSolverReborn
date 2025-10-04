@@ -331,32 +331,50 @@ internal static class ImGuiHelper
 
     internal static bool NoPaddingImageButton(IDalamudTextureWrap handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
     {
-        if (handle == null)
+        if (handle == null || id == null)
         {
             return false;
         }
-        
+
         ImGuiStylePtr style = ImGui.GetStyle();
         Vector2 originalPadding = style.FramePadding;
         style.FramePadding = Vector2.Zero;
-
-        if (id == null)
-        {
-            return false;
-        }
 
         //https://xkcd.com/2347/
         ImGui.PushID(id + "literally anything");
         //https://xkcd.com/2347/
 
-        bool buttonClicked = ImGui.ImageButton(handle.Handle, size, uv0, uv1);
-        ImGui.PopID();
-        if (ImGui.IsItemHovered())
+        bool buttonClicked = false;
+        bool drawn = false;
+        try
+        {
+            if (!handle.Handle.IsNull)
+            {
+                buttonClicked = ImGui.ImageButton(handle.Handle, size, uv0, uv1);
+                drawn = true;
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            buttonClicked = false;
+            drawn = false;
+        }
+        catch
+        {
+            buttonClicked = false;
+            drawn = false;
+        }
+        finally
+        {
+            ImGui.PopID();
+            style.FramePadding = originalPadding;
+        }
+
+        if (drawn && ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
         }
 
-        style.FramePadding = originalPadding;
         return buttonClicked;
     }
 
@@ -402,69 +420,71 @@ internal static class ImGuiHelper
         drawList.AddText(pos, White, text);
     }
 
-    // Cached overlay cover textures (resolved once, reused each frame)
-    private static IDalamudTextureWrap? _coverFrame;
-    private static IDalamudTextureWrap? _coverRecast;
-    private static IDalamudTextureWrap? _coverRecast2;
-    private static bool _coversInitialized;
-
-    private static void EnsureCovers()
-    {
-        if (_coversInitialized) return;
-        _coversInitialized = true;
-        _ = IconSet.GetTexture("ui/uld/icona_frame_hr1.tex", out _coverFrame);
-        _ = IconSet.GetTexture("ui/uld/icona_recast_hr1.tex", out _coverRecast);
-        _ = IconSet.GetTexture("ui/uld/icona_recast2_hr1.tex", out _coverRecast2);
-    }
+    // Resolve overlay cover textures per draw to avoid using disposed wraps.
+    // Do not cache IDalamudTextureWrap instances long-term; the provider may dispose them.
 
     internal static void DrawActionOverlay(Vector2 cursor, float width, float percent)
     {
-        EnsureCovers();
         float pixPerUnit = width / 82f;
 
-        if (percent < 0f)
-        {
-            if (_coverFrame?.Handle != null)
-            {
-                ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 4));
-                Vector2 start = new(4f / _coverFrame.Width, 96f * 2 / _coverFrame.Height);
-                ImGui.Image(_coverFrame.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    start, start + new Vector2(88f / _coverFrame.Width, 94f / _coverFrame.Height));
-            }
-            return;
-        }
+        _ = IconSet.GetTexture("ui/uld/icona_frame_hr1.tex", out IDalamudTextureWrap? coverFrame);
+        _ = IconSet.GetTexture("ui/uld/icona_recast_hr1.tex", out IDalamudTextureWrap? coverRecast);
+        _ = IconSet.GetTexture("ui/uld/icona_recast2_hr1.tex", out IDalamudTextureWrap? coverRecast2);
 
-        if (percent < 1f)
+        try
         {
-            if (_coverRecast?.Handle != null)
+            if (percent < 0f)
+            {
+                if (coverFrame?.Handle != null)
+                {
+                    ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 4));
+                    Vector2 start = new(4f / coverFrame.Width, 96f * 2 / coverFrame.Height);
+                    ImGui.Image(coverFrame.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                        start, start + new Vector2(88f / coverFrame.Width, 94f / coverFrame.Height));
+                }
+                return;
+            }
+
+            if (percent < 1f)
+            {
+                if (coverRecast?.Handle != null)
+                {
+                    ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, 0));
+                    int P = (int)(percent * 81f);
+                    Vector2 step = new(88f / coverRecast.Width, 96f / coverRecast.Height);
+                    Vector2 start = new((P % 9) * step.X, (P / 9) * step.Y);
+                    ImGui.Image(coverRecast.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                        start, start + new Vector2(88f / coverRecast.Width, 94f / coverRecast.Height));
+                }
+            }
+            else
+            {
+                if (coverFrame?.Handle != null)
+                {
+                    ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 4));
+                    ImGui.Image(coverFrame.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                        new Vector2(4f / coverFrame.Width, 0f / coverFrame.Height),
+                        new Vector2(92f / coverFrame.Width, 94f / coverFrame.Height));
+                }
+            }
+
+            if (percent > 1f && coverRecast2?.Handle != null)
             {
                 ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, 0));
-                int P = (int)(percent * 81f);
-                Vector2 step = new(88f / _coverRecast.Width, 96f / _coverRecast.Height);
-                Vector2 start = new((P % 9) * step.X, (P / 9) * step.Y);
-                ImGui.Image(_coverRecast.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    start, start + new Vector2(88f / _coverRecast.Width, 94f / _coverRecast.Height));
+                int P = (int)(percent % 1f * 81f);
+                Vector2 step = new(88f / coverRecast2.Width, 96f / coverRecast2.Height);
+                Vector2 start = new(((P % 9) + 9) * step.X, (P / 9) * step.Y);
+                ImGui.Image(coverRecast2.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
+                    start, start + new Vector2(88f / coverRecast2.Width, 94f / coverRecast2.Height));
             }
         }
-        else
+        catch (ObjectDisposedException)
         {
-            if (_coverFrame?.Handle != null)
-            {
-                ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, pixPerUnit * 4));
-                ImGui.Image(_coverFrame.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                    new Vector2(4f / _coverFrame.Width, 0f / _coverFrame.Height),
-                    new Vector2(92f / _coverFrame.Width, 94f / _coverFrame.Height));
-            }
+            // A texture was disposed between fetch and draw; skip this frame to avoid propagating.
         }
-
-        if (percent > 1f && _coverRecast2?.Handle != null)
+        catch
         {
-            ImGui.SetCursorPos(cursor - new Vector2(pixPerUnit * 3, 0));
-            int P = (int)(percent % 1f * 81f);
-            Vector2 step = new(88f / _coverRecast2.Width, 96f / _coverRecast2.Height);
-            Vector2 start = new(((P % 9) + 9) * step.X, (P / 9) * step.Y);
-            ImGui.Image(_coverRecast2.Handle, new Vector2(pixPerUnit * 88, pixPerUnit * 94),
-                start, start + new Vector2(88f / _coverRecast2.Width, 94f / _coverRecast2.Height));
+            // Defensive: avoid bubbling up draw exceptions from overlay.
         }
     }
     #endregion

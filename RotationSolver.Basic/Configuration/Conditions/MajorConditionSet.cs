@@ -44,11 +44,9 @@ internal class MajorConditionValue(string name = MajorConditionValue.conditionNa
         }
     }
 
-    public Dictionary<string, ConditionSet> ForceEnableConditions { get; private set; }
-        = [];
+    public Dictionary<string, ConditionSet> ForceEnableConditions { get; private set; } = [];
 
-    public Dictionary<string, ConditionSet> ForceDisableConditions { get; private set; }
-        = [];
+    public Dictionary<string, ConditionSet> ForceDisableConditions { get; private set; } = [];
 
     public ConditionSet HealAreaConditionSet { get; set; } = new();
     public ConditionSet HealSingleConditionSet { get; set; } = new();
@@ -65,8 +63,7 @@ internal class MajorConditionValue(string name = MajorConditionValue.conditionNa
     public ConditionSet SwitchManualConditionSet { get; set; } = new();
     public ConditionSet SwitchCancelConditionSet { get; set; } = new();
 
-    public (string Name, ConditionSet Condition)[] NamedConditions { get; set; }
-        = Array.Empty<(string, ConditionSet)>();
+    public (string Name, ConditionSet Condition)[] NamedConditions { get; set; } = Array.Empty<(string, ConditionSet)>();
 
     public string Name = name;
 

@@ -253,7 +253,7 @@ namespace RotationSolver.Commands
                     (Service.Config.AutoOffBetweenArea && (Svc.Condition[ConditionFlag.BetweenAreas] || Svc.Condition[ConditionFlag.BetweenAreas51])) ||
                     (Service.Config.CancelStateOnCombatBeforeCountdown && Service.CountDownTime > 0.2f && DataCenter.InCombat) ||
                     (ActionUpdater.AutoCancelTime != DateTime.MinValue && DateTime.Now > ActionUpdater.AutoCancelTime) ||
-                    (DataCenter.CurrentConditionValue.SwitchCancelConditionSet?.IsTrue(DataCenter.CurrentRotation) ?? false))
+false)
                 {
                     CancelState();
                     if (Player.Job != _previousJob)

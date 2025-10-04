@@ -54,25 +54,7 @@ internal class ConditionBoolean
     /// <param name="condition">The condition to convert.</param>
     public static implicit operator bool(ConditionBoolean condition)
     {
-        if (!Service.Config.UseAdditionalConditions)
-        {
-            return condition.Value;
-        }
-
-        ICustomRotation? rotation = DataCenter.CurrentRotation;
-        Conditions.MajorConditionValue set = DataCenter.CurrentConditionValue;
-        if (rotation != null)
-        {
-            if (condition.Enable && set.GetEnableCondition(condition.Key).IsTrue(rotation))
-            {
-                return true;
-            }
-
-            if (condition.Disable && set.GetDisableCondition(condition.Key).IsTrue(rotation))
-            {
-                return false;
-            }
-        }
+        // Forced condition overrides have been removed; simply use the stored value.
         return condition.Value;
     }
 

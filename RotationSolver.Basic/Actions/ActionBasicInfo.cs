@@ -1,5 +1,6 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
@@ -237,7 +238,7 @@ public readonly struct ActionBasicInfo
 
         if (!IsQuestUnlocked())
         {
-            BasicWarningHelper.AddSystemWarning($"Do your class quests, action not unlocked: {Name}");
+            PluginLog.Warning($"Do your class quests, action not unlocked: {Name}");
             return false;
         }
 

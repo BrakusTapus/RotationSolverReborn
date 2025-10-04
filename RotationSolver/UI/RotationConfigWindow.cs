@@ -565,7 +565,7 @@ public partial class RotationConfigWindow : Window
     private void DrawHeader(float wholeWidth)
     {
         float size = MathF.Max(MathF.Min(wholeWidth, Scale * 128), Scale * MIN_COLUMN_WIDTH);
-        if (IconSet.GetTexture((uint)0, out IDalamudTextureWrap? overlay) && overlay != null)
+        if (IconSet.GetTexture((uint)0, out IDalamudTextureWrap? overlay) && overlay?.Handle != null)
         {
             ImGuiHelper.DrawItemMiddle(() =>
             {
@@ -577,7 +577,7 @@ public partial class RotationConfigWindow : Window
                     _searchResults = [];
                 }
                 ImguiTooltips.HoveredTooltip(UiString.ConfigWindow_About_Punchline.GetDescription());
-                if (_logoTexture != null)
+                if (_logoTexture?.Handle != null)
                 {
                     ImGui.SetCursorPos(cursor);
                     ImGui.Image(_logoTexture.Handle, Vector2.One * size);
@@ -589,7 +589,7 @@ public partial class RotationConfigWindow : Window
                     {
                         _lastLogoFetchAttempt = DateTime.UtcNow;
                         string logoUrl = $"https://raw.githubusercontent.com/{Service.USERNAME}/{Service.REPO}/main/Images/Logo.png";
-                        if (ThreadLoadImageHandler.TryGetTextureWrap(logoUrl, out IDalamudTextureWrap? logo) && logo != null)
+                        if (ThreadLoadImageHandler.TryGetTextureWrap(logoUrl, out IDalamudTextureWrap? logo) && logo?.Handle != null)
                         {
                             _logoTexture = logo;
                             ImGui.SetCursorPos(cursor);
@@ -677,7 +677,7 @@ public partial class RotationConfigWindow : Window
 
         Vector2 cursor = ImGui.GetCursorPos();
 
-        if (!rotation.GetTexture(out IDalamudTextureWrap? jobIcon) || jobIcon == null)
+        if (!rotation.GetTexture(out IDalamudTextureWrap? jobIcon) || jobIcon?.Handle == null)
             return;
 
         if (ImGuiHelper.SilenceImageButton(jobIcon, Vector2.One * iconSize, _activeTab == RotationConfigWindowTab.Rotation))
@@ -711,7 +711,7 @@ public partial class RotationConfigWindow : Window
             overlayTexture = IconSet.GetOccultIcon();
         }
 
-        if (overlayTexture != null)
+        if (overlayTexture?.Handle != null)
         {
             ImGui.SetCursorPos(cursor + (Vector2.One * iconSize / 2));
             ImGui.Image(overlayTexture.Handle, Vector2.One * iconSize / 2);
@@ -747,18 +747,16 @@ public partial class RotationConfigWindow : Window
 
                     if (IconSet.GetTexture(rAttr.Type.GetIcon(), out IDalamudTextureWrap? texture))
                     {
-                        if (texture == null)
+                        if (texture?.Handle != null)
                         {
-                            return;
-                        }
-
-                        ImGui.Image(texture.Handle, Vector2.One * 20 * Scale);
-                        if (ImGui.IsItemHovered())
-                        {
-                            ImguiTooltips.ShowTooltip(() =>
+                            ImGui.Image(texture.Handle, Vector2.One * 20 * Scale);
+                            if (ImGui.IsItemHovered())
                             {
-                                rAttr.Type.Draw();
-                            });
+                                ImguiTooltips.ShowTooltip(() =>
+                                {
+                                    rAttr.Type.Draw();
+                                });
+                            }
                         }
                     }
                     ImGui.SameLine();
@@ -1611,7 +1609,7 @@ public partial class RotationConfigWindow : Window
                 ImGui.TableNextRow();
                 _ = ImGui.TableNextColumn();
 
-                if (IconSet.GetTexture(attr.IconID, out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? image))
+                if (IconSet.GetTexture(attr.IconID, out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? image) && image?.Handle != null)
                 {
                     ImGui.Image(image.Handle, Vector2.One * DESC_SIZE * Scale);
                 }
@@ -2242,9 +2240,6 @@ public partial class RotationConfigWindow : Window
 
             DrawConfigsOfAction();
             DrawActionDebug();
-
-            ImGui.TextWrapped(UiString.ConfigWindow_Actions_ConditionDescription.GetDescription());
-            _sequencerList?.Draw();
         }
 
         static void DrawConfigsOfAction()
@@ -2439,32 +2434,6 @@ public partial class RotationConfigWindow : Window
     private static IAction? _activeAction;
 
     private static readonly CollapsingHeaderGroup _actionsList = new([])
-    {
-        HeaderSize = 18,
-    };
-
-    private static readonly CollapsingHeaderGroup _sequencerList = new(new()
-    {
-        { UiString.ConfigWindow_Actions_ForcedConditionSet.GetDescription, () =>
-        {
-            ImGui.TextWrapped(UiString.ConfigWindow_Actions_ForcedConditionSet_Description.GetDescription());
-
-            ICustomRotation? rotation = DataCenter.CurrentRotation;
-            Basic.Configuration.Conditions.MajorConditionValue set = DataCenter.CurrentConditionValue;
-
-            if (set == null || _activeAction == null || rotation == null) { return; } set.GetCondition(_activeAction.ID)?.DrawMain(rotation);
-        } },
-
-        { UiString.ConfigWindow_Actions_DisabledConditionSet.GetDescription, () =>
-        {
-            ImGui.TextWrapped(UiString.ConfigWindow_Actions_DisabledConditionSet_Description.GetDescription());
-
-            ICustomRotation? rotation = DataCenter.CurrentRotation;
-            Basic.Configuration.Conditions.MajorConditionValue set = DataCenter.CurrentConditionValue;
-
-            if (set == null || _activeAction == null || rotation == null) { return; } set.GetDisabledCondition(_activeAction.ID)?.DrawMain(rotation);
-        } },
-    })
     {
         HeaderSize = 18,
     };
@@ -3263,7 +3232,7 @@ public partial class RotationConfigWindow : Window
         const float MaxWidth = 480f;
         uint badge = imageId;
         if (badge != 0
-            && IconSet.GetTexture(badge, out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? badgeTexture))
+            && IconSet.GetTexture(badge, out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? badgeTexture) && badgeTexture?.Handle != null)
         {
             float wholeWidth = ImGui.GetWindowWidth();
             Vector2 size = new Vector2(badgeTexture.Width, badgeTexture.Height) * MathF.Min(1, MathF.Min(MaxWidth, wholeWidth) / badgeTexture.Width);
@@ -3550,6 +3519,19 @@ public partial class RotationConfigWindow : Window
         ImGui.Text($"Average Party HP Percent: {DataCenter.PartyMembersAverHP * 100}");
         ImGui.Text($"Average Lowest Party HP Percent: {DataCenter.LowestPartyMembersAverHP * 100}");
         ImGui.Text($"Number of Party Members with Doomed To Heal status: {DataCenter.PartyMembers.Count(member => member.DoomNeedHealing())}");
+
+        // AST-only card target preview
+        if (Player.Object.IsJobs(Job.AST))
+        {
+            IBattleChara? spear = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheSpear, 0, SpecialActionType.None);
+            IBattleChara? balance = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheBalance, 0, SpecialActionType.None);
+            ImGui.Spacing();
+            ImGui.Text("AST Card Targets (Preview):");
+            ImGui.Text($"- The Spear: {spear?.Name ?? "None"}");
+            ImGui.Text($"- The Balance: {balance?.Name ?? "None"}");
+            ImGui.Spacing();
+        }
+
         foreach (Dalamud.Game.ClientState.Party.IPartyMember p in Svc.Party)
         {
             if (p.GameObject is not IBattleChara b)

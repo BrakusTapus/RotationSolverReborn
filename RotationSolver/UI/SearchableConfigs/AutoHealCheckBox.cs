@@ -22,8 +22,8 @@ internal class AutoHealCheckBox(PropertyInfo property, params ISearchable[] othe
     // Helper to concatenate arrays without LINQ
     private static ISearchable[] ConcatChildren(ISearchable[] otherChildren)
     {
-        ISearchable[] healthChildren = new ISearchable[]
-        {
+        ISearchable[] healthChildren =
+        [
             _healthAreaAbility,
             _healthAreaAbilityHot,
             _healthAreaSpell,
@@ -32,7 +32,7 @@ internal class AutoHealCheckBox(PropertyInfo property, params ISearchable[] othe
             _healthSingleAbilityHot,
             _healthSingleSpell,
             _healthSingleSpellHot,
-        };
+        ];
 
         ISearchable[] result = new ISearchable[otherChildren.Length + healthChildren.Length];
         otherChildren.CopyTo(result, 0);
@@ -84,7 +84,7 @@ internal class AutoHealCheckBox(PropertyInfo property, params ISearchable[] othe
     }
 
     // Helper method to draw a row in the health table
-    private void DrawHealthRow(string description, DragFloatSearch normalTarget, DragFloatSearch hotTarget)
+    private static void DrawHealthRow(string description, DragFloatSearch normalTarget, DragFloatSearch hotTarget)
     {
         ImGui.TableNextRow();
         _ = ImGui.TableNextColumn();
