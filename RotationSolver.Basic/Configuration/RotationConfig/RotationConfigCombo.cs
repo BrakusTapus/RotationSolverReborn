@@ -13,6 +13,11 @@ internal class RotationConfigCombo : RotationConfigBase
     public string[] DisplayValues { get; }
 
     /// <summary>
+    /// Gets the enum names for the combo box.
+    /// </summary>
+    private string[] EnumNames { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="RotationConfigCombo"/> class.
     /// </summary>
     /// <param name="rotation">The custom rotation instance.</param>
@@ -26,17 +31,20 @@ internal class RotationConfigCombo : RotationConfigBase
         }
 
         List<string> names = [];
+        List<string> enumNames = [];
         foreach (Enum v in Enum.GetValues(property.PropertyType))
         {
             // Retrieve the Description attribute if it exists
             FieldInfo? fieldInfo = property.PropertyType.GetField(v.ToString());
             DescriptionAttribute? descriptionAttribute = fieldInfo?.GetCustomAttribute<DescriptionAttribute>();
             names.Add(descriptionAttribute?.Description ?? v.ToString());
+            enumNames.Add(v.ToString());
         }
 
         DisplayValues = names.ToArray();
+        EnumNames = enumNames.ToArray();
 
-        // Set the Value to the description of the default enum value
+        // Set the Value to the display value of the default enum value
         object? defaultEnumValue = property.GetValue(rotation);
         if (defaultEnumValue is Enum defaultEnum)
         {
@@ -64,17 +72,20 @@ internal class RotationConfigCombo : RotationConfigBase
         }
 
         List<string> names = [];
+        List<string> enumNames = [];
         foreach (Enum v in Enum.GetValues(property.PropertyType))
         {
             // Retrieve the Description attribute if it exists
             FieldInfo? fieldInfo = property.PropertyType.GetField(v.ToString());
             DescriptionAttribute? descriptionAttribute = fieldInfo?.GetCustomAttribute<DescriptionAttribute>();
             names.Add(descriptionAttribute?.Description ?? v.ToString());
+            enumNames.Add(v.ToString());
         }
 
         DisplayValues = names.ToArray();
+        EnumNames = enumNames.ToArray();
 
-        // Set the Value to the description of the default enum value
+        // Set the Value to the display value of the default enum value
         object? defaultEnumValue = property.GetValue(rotation);
         if (defaultEnumValue is Enum defaultEnum)
         {
@@ -94,8 +105,7 @@ internal class RotationConfigCombo : RotationConfigBase
     /// <returns>A string that represents the current object.</returns>
     public override string ToString()
     {
-        string indexStr = base.ToString();
-        return !int.TryParse(indexStr, out int index) || index < 0 || index >= DisplayValues.Length ? DisplayValues[0] : DisplayValues[index];
+        return Value;
     }
 
     /// <summary>
@@ -114,7 +124,9 @@ internal class RotationConfigCombo : RotationConfigBase
         string numStr = str[Name.Length..].Trim();
         int length = DisplayValues.Length;
 
-        int nextId = (int.Parse(Value) + 1) % length;
+        int currentIndex = Array.IndexOf(DisplayValues, Value);
+        if (currentIndex == -1) currentIndex = 0;
+        int nextId = (currentIndex + 1) % length;
         if (int.TryParse(numStr, out int num))
         {
             nextId = num % length;
@@ -123,7 +135,8 @@ internal class RotationConfigCombo : RotationConfigBase
         {
             for (int i = 0; i < length; i++)
             {
-                if (DisplayValues[i].Equals(str, StringComparison.OrdinalIgnoreCase))
+                if (DisplayValues[i].Equals(numStr, StringComparison.OrdinalIgnoreCase) ||
+                    EnumNames[i].Equals(numStr, StringComparison.OrdinalIgnoreCase))
                 {
                     nextId = i;
                     break;
@@ -131,7 +144,7 @@ internal class RotationConfigCombo : RotationConfigBase
             }
         }
 
-        Value = nextId.ToString();
+        Value = DisplayValues[nextId];
         return true;
     }
 }

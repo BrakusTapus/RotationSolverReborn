@@ -427,7 +427,8 @@ public static partial class RSCommands
         IRotationConfigSet configs = customCombo.Configs;
         foreach (IRotationConfig config in configs)
         {
-            if (config.DoCommand(configs, str))
+            bool result = config.DoCommand(configs, str);
+            if (result)
             {
                 if (Service.Config.ShowToggledSettingInChat)
                 {
