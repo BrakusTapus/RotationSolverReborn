@@ -199,9 +199,20 @@ internal static class MajorUpdater
             }
             catch (Exception ex)
             {
-                LogOnce("UpdateHighlight Exception", ex);
+                LogOnce("Hotbar Highlighting Exception", ex);
             }
         }
+
+        // Apply reddening of disabled actions on hotbars alongside highlight
+        try
+        {
+            HotbarDisabledColor.ApplyFrame();
+        }
+        catch (Exception ex)
+        {
+            LogOnce("Hotbar Disabled Redden Exception", ex);
+        }
+
     }
 
     private static void RSRCommonUpdate(IFramework framework)

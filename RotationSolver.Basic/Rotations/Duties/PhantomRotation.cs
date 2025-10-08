@@ -5,45 +5,13 @@ namespace RotationSolver.Basic.Rotations.Duties;
 /// <summary>
 /// Represents a rotation for phantom duties in the game.
 /// </summary>
-[DutyTerritory(1252)] // TODO: Verify IDs.
+[DutyTerritory(1252)]
 public partial class PhantomRotation : DutyRotation
 {
 }
 
 public partial class DutyRotation
 {
-    /// <summary>
-    /// Displays the rotation status on the window.
-    /// </summary>
-    public virtual void DisplayDutyStatus()
-    {
-        if (!DataCenter.IsInOccultCrescentOp)
-            return;
-
-        ImGui.Text($"ActivePhantomJob: {ActivePhantomJob ?? "N/A"}");
-        ImGui.Spacing();
-
-        if (string.Equals(ActivePhantomJob, "Oracle", StringComparison.OrdinalIgnoreCase))
-        {
-            ImGui.Text($"HasCleansing: {HasCleansing}");
-            ImGui.Text($"HasStarfall: {HasStarfall}");
-            ImGui.Text($"HasPhantomJudgment: {HasPhantomJudgment}");
-            ImGui.Text($"HasBlessing: {HasBlessing}");
-        }
-
-        if (string.Equals(ActivePhantomJob, "Samurai", StringComparison.OrdinalIgnoreCase))
-        {
-            ImGui.Text($"Has item for Zeninage: {ZeninageItem.HasIt}");
-        }
-
-        if (string.Equals(ActivePhantomJob, "Chemist", StringComparison.OrdinalIgnoreCase))
-        {
-            ImGui.Text($"Has item for Occult Potion: {OccultPotionItem.HasIt}");
-            ImGui.Text($"Has item for Occult Ether: {OccultPotionItem.HasIt}");
-            ImGui.Text($"Has item for Occult Elixir: {OccultElixirItem.HasIt}");
-        }
-    }
-
     #region Item Tracking
     private static readonly BaseItem ZeninageItem = new(47740);
     private static readonly BaseItem OccultElixirItem = new(47743);

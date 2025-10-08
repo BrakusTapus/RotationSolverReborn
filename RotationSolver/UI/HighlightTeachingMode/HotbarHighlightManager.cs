@@ -35,7 +35,7 @@ internal static class HotbarHighlightManager
     public static void UpdateSettings()
     {
         //UseTaskToAccelerate = Service.Config.UseTasksForOverlay;
-        Enable = Service.Config.TeachingMode && MajorUpdater.IsValid;
+        Enable = (Service.Config.TeachingMode || Service.Config.ReddenDisabledHotbarActions) && DataCenter.IsActivated() && MajorUpdater.IsValid;
         HighlightColor = Service.Config.TeachingModeColor;
     }
 
@@ -60,6 +60,9 @@ internal static class HotbarHighlightManager
         {
             foreach (var item in RotationSolverPlugin._drawingElements)
             {
+                // Let each element update its per-frame state before drawing
+                item.UpdateOnFrameMain();
+
                 drawing2Ds.Add(Task.Run(() =>
                 {
                     return item.To2DMain();

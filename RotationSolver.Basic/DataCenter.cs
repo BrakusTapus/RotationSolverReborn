@@ -471,6 +471,11 @@ internal static class DataCenter
 
     #region Misc Duty Info
     /// <summary>
+    /// Determines if the current content is a Monster Hunter duty
+    /// </summary>
+    public static bool IsInMonsterHunterDuty => RathalosNormal || RathalosEX || ArkveldNormal || ArkveldEX;
+
+    /// <summary>
     /// 
     /// </summary>
     public static bool RathalosNormal => IsInTerritory(761);
@@ -480,14 +485,15 @@ internal static class DataCenter
     /// </summary>
     public static bool RathalosEX => IsInTerritory(762);
 
-    //public static bool ArkveldNormal => IsInTerritory(?);
-
-    //public static bool ArkveldEX => IsInTerritory(?);
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool ArkveldNormal => IsInTerritory(1300);
 
     /// <summary>
     /// 
     /// </summary>
-    public static bool InMonsterHunterDuty => RathalosNormal || RathalosEX;
+    public static bool ArkveldEX => IsInTerritory(1306);
     #endregion
 
     #region Job Info

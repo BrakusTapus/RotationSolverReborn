@@ -40,7 +40,7 @@ public static class ObjectHelper
 
     internal static BNpcBase? GetObjectNPC(this IBattleChara battleChara)
     {
-        return battleChara == null ? null : Service.GetSheet<Lumina.Excel.Sheets.BNpcBase>().GetRow(battleChara.DataId);
+        return battleChara == null ? null : Service.GetSheet<Lumina.Excel.Sheets.BNpcBase>().GetRow(battleChara.BaseId);
     }
 
     internal static bool CanProvoke(this IBattleChara target)
@@ -119,7 +119,7 @@ public static class ObjectHelper
             return false;
         }
 
-        return Svc.Data.GetExcelSheet<BNpcBase>().TryGetRow(battleChara.DataId, out var dataRow) && !dataRow.IsOmnidirectional;
+        return Svc.Data.GetExcelSheet<BNpcBase>().TryGetRow(battleChara.BaseId, out var dataRow) && !dataRow.IsOmnidirectional;
     }
 
     internal static unsafe bool IsOthersPlayersMob(this IBattleChara battleChara)
@@ -238,7 +238,7 @@ public static class ObjectHelper
             }
         }*/
 
-        if (Service.Config.TargetQuestThings && battleChara.IsOthersPlayersMob())
+        if (Service.Config.TargetQuestThings2 && battleChara.IsOthersPlayersMob())
         {
             return false;
         }
@@ -1843,7 +1843,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
             return true;
         }
 
-        return Svc.Data.GetExcelSheet<BNpcBase>().TryGetRow(battleChara.DataId, out var dataRow) && dataRow.Rank is 2 or 6;
+        return Svc.Data.GetExcelSheet<BNpcBase>().TryGetRow(battleChara.BaseId, out var dataRow) && dataRow.Rank is 2 or 6;
     }
 
     /// <summary>

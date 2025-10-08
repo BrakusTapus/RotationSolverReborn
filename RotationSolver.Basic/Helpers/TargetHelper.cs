@@ -174,7 +174,7 @@ namespace RotationSolver.Basic.Helpers
             if (battleChara.IsEnemy() && !battleChara.IsAttackable()) return false;
 
             // Respect stop marks only when configured
-            if (Service.Config.FilterStopMark && stopTargets.Contains((long)battleChara.GameObjectId))
+            if (Service.Config.FilterStopMark && stopTargets.Contains((long)battleChara.GameObjectId) && battleChara.IsEnemy())
                 return false;
 
             return true;

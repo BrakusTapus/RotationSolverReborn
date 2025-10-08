@@ -135,6 +135,86 @@ public partial class DutyRotation : IDisposable
 
     #endregion
 
+    public virtual void DisplayDutyStatus()
+    {
+        if (DataCenter.IsInMonsterHunterDuty)
+        {
+            ImGui.Spacing();
+            ImGui.Text($"MegaPotionPvE Slotted: {MegaPotionPvE.Info.IsOnSlot}");
+            ImGui.Text($"MegaPotionPvE Charges: {MegaPotionPvE.Cooldown.CurrentCharges}");
+            ImGui.Spacing();
+            ImGui.Text($"Rathalos Normal: {RathalosNormal}");
+            ImGui.Text($"Rathalos EX: {RathalosEX}");
+            ImGui.Spacing();
+            ImGui.Spacing();
+            ImGui.Text($"MegaPotionPvE_44247 Slotted: {MegaPotionPvE_44247.Info.IsOnSlot}");
+            ImGui.Text($"MegaPotionPvE_44247 Charges: {MegaPotionPvE_44247.Cooldown.CurrentCharges}");
+            ImGui.Spacing();
+            ImGui.Text($"Arkveld Normal: {ArkveldNormal}");
+            ImGui.Text($"Arkveld EX: {ArkveldEX}");
+            ImGui.Spacing();
+        }
+
+        if (DataCenter.IsInOccultCrescentOp)
+        {
+            ImGui.Text($"ActivePhantomJob: {ActivePhantomJob ?? "N/A"}");
+            ImGui.Spacing();
+
+            if (string.Equals(ActivePhantomJob, "Oracle", StringComparison.OrdinalIgnoreCase))
+            {
+                ImGui.Text($"HasCleansing: {HasCleansing}");
+                ImGui.Text($"HasStarfall: {HasStarfall}");
+                ImGui.Text($"HasPhantomJudgment: {HasPhantomJudgment}");
+                ImGui.Text($"HasBlessing: {HasBlessing}");
+            }
+
+            if (string.Equals(ActivePhantomJob, "Samurai", StringComparison.OrdinalIgnoreCase))
+            {
+                ImGui.Text($"Has item for Zeninage: {ZeninageItem.HasIt}");
+            }
+
+            if (string.Equals(ActivePhantomJob, "Chemist", StringComparison.OrdinalIgnoreCase))
+            {
+                ImGui.Text($"Has item for Occult Potion: {OccultPotionItem.HasIt}");
+                ImGui.Text($"Has item for Occult Ether: {OccultPotionItem.HasIt}");
+                ImGui.Text($"Has item for Occult Elixir: {OccultElixirItem.HasIt}");
+            }
+        }
+
+        if (InVariantDungeon)
+        {
+            ImGui.Text($"VariantUltimatumPvE Status: {Player.HasStatus(true, StatusID.VariantUltimatumSet)}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantSpiritDartPvE_33863  Status: {Player.HasStatus(true, StatusID.VariantSpiritDartSet)}");
+            ImGui.Text($"VariantSpiritDartPvE_33863 Slotted: {VariantSpiritDartPvE_33863.Info.IsOnSlot}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantSpiritDartPvE  Status: {Player.HasStatus(true, StatusID.VariantSpiritDartSet)}");
+            ImGui.Text($"VariantSpiritDartPvE Slotted: {VariantSpiritDartPvE.Info.IsOnSlot}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantRampartPvE_33864 Status: {Player.HasStatus(true, StatusID.VariantRampartSet)}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantRampartPvE Status: {Player.HasStatus(true, StatusID.VariantRampartSet)}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantCurePvE_33862  Status: {Player.HasStatus(true, StatusID.VariantCureSet)}");
+            ImGui.Text($"VariantCurePvE_33862 Slotted: {VariantCurePvE_33862.Info.IsOnSlot}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantCurePvE  Status: {Player.HasStatus(true, StatusID.VariantCureSet)}");
+            ImGui.Text($"VariantCurePvE Slotted: {VariantCurePvE.Info.IsOnSlot}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantRaisePvE Status: {Player.HasStatus(true, StatusID.VariantRampartSet)}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantRaiseIiPvE Status: {Player.HasStatus(true, StatusID.VariantRaiseSet)}");
+            ImGui.Spacing();
+            ImGui.Text($"VariantRampartPvE Status: {Player.HasStatus(true, StatusID.VariantRaiseSet)}");
+            ImGui.Spacing();
+            ImGui.Spacing();
+            ImGui.Text($"Sildihn Subterrane: {SildihnSubterrane}");
+            ImGui.Text($"Mount Rokkon: {MountRokkon}");
+            ImGui.Text($"Aloalo Island: {AloaloIsland}");
+            ImGui.Spacing();
+        }
+    }
+
     public DutyRotation()
     {
         Configs = new RotationConfigSet(this);
@@ -177,6 +257,16 @@ public partial class DutyRotation : IDisposable
     /// 
     /// </summary>
     public static bool RathalosNormal => DataCenter.RathalosNormal;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool ArkveldNormal => DataCenter.ArkveldNormal;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool ArkveldEX => DataCenter.ArkveldEX;
 
     /// <summary>
     /// 

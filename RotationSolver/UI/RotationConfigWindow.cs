@@ -493,7 +493,7 @@ public partial class RotationConfigWindow : Window
                         var _ when DataCenter.IsInOccultCrescentOp => $"Duty - {DutyRotation.ActivePhantomJob}",
                         var _ when DataCenter.InVariantDungeon => "Duty - Variant",
                         var _ when DataCenter.IsInBozja => "Duty - Bozja",
-                        var _ when DataCenter.InMonsterHunterDuty => "Duty - Monster Hunter",
+                        var _ when DataCenter.IsInMonsterHunterDuty => "Duty - Monster Hunter",
                         _ => "Duty",
                     };
                 }
@@ -926,11 +926,6 @@ public partial class RotationConfigWindow : Window
         }
 
         if (!Player.AvailableThreadSafe)
-        {
-            return;
-        }
-
-        if (!DataCenter.IsInOccultCrescentOp) // Can be theoretically extended for other duty actions if needed
         {
             return;
         }
@@ -3616,7 +3611,7 @@ public partial class RotationConfigWindow : Window
             ImGui.Text($"TargetCharaCondition: {battleChara.TargetCharaCondition()}");
             //ImGui.Text($"GetMarkerNumber: {MarkingHelper.GetMarkerNumber((long)battleChara.GameObjectId)}");
             ImGui.Text($"Name Id: {battleChara.NameId}");
-            ImGui.Text($"Data Id: {battleChara.DataId}");
+            ImGui.Text($"Data Id: {battleChara.BaseId}");
             ImGui.Spacing();
             ImGui.Text($"Is Attackable: {battleChara.IsAttackable()}");
             ImGui.Text($"Is Others Players Mob: {battleChara.IsOthersPlayersMob()}");

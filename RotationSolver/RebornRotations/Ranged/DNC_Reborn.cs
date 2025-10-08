@@ -210,22 +210,9 @@ public sealed class DNC_Reborn : DancerRotation
     // Override the method for handling general Global Cooldown (GCD) actions
     protected override bool GeneralGCD(out IAction? act)
     {
-        // Attempt to use Closed Position if applicable
-        if (!InCombat && !HasClosedPosition && ClosedPositionPvE.CanUse(out act))
+        if (ClosedPositionPvE.EnoughLevel && !HasClosedPosition && ClosedPositionPvE.CanUse(out _))
         {
-
-            if (DancePartnerName != "")
-            {
-                foreach (IBattleChara player in PartyMembers)
-                {
-                    if (player.Name.ToString() == DancePartnerName)
-                    {
-                        ClosedPositionPvE.Target = new TargetResult(player, [player], player.Position);
-                    }
-                }
-            }
-
-            return true;
+            return base.GeneralGCD(out act);
         }
 
         // Try to finish the dance if applicable
@@ -263,7 +250,6 @@ public sealed class DNC_Reborn : DancerRotation
             return true;
         }
 
-        // Fallback to the base method if no custom GCD actions are found
         return base.GeneralGCD(out act);
     }
     #endregion
@@ -445,21 +431,28 @@ public sealed class DNC_Reborn : DancerRotation
             return false;
         }
 
+        // Attempt to use Closed Position with name if applicable
+        if (!InCombat && !HasClosedPosition && ClosedPositionPvE.CanUse(out act))
+        {
+            if (DancePartnerName != "")
+            {
+                foreach (IBattleChara player in PartyMembers)
+                {
+                    if (player.Name.ToString() == DancePartnerName)
+                    {
+                        ClosedPositionPvE.Target = new TargetResult(player, [player], player.Position);
+                    }
+                }
+            }
+
+            return true;
+        }
+
         if (!HasClosedPosition)
         {
-            // Check for party members with Closed Position status
-            foreach (IBattleChara friend in PartyMembers)
+            if (ClosedPositionPvE.CanUse(out act))
             {
-                if (friend.HasStatus(true, StatusID.ClosedPosition_2026))
-                {
-                    // Use Closed Position if target is not the same as the friend with the status
-                    if (ClosedPositionPvE.Target.Target != friend)
-                    {
-                        return true;
-                    }
-
-                    break;
-                }
+                return true;
             }
         }
         return false;
