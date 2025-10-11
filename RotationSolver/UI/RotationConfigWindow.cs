@@ -810,7 +810,34 @@ public partial class RotationConfigWindow : Window
                 // Display each search result
                 foreach (ISearchable searchable in _searchResults)
                 {
-                    searchable?.Draw();
+                    if (searchable == null)
+                    {
+                        continue;
+                    }
+
+                    searchable.Draw();
+
+                    // Offer a way to jump to the menu where this item resides
+                    if (searchable is Searchable s)
+                    {
+                        string filter = s.Filter;
+                        if (!string.IsNullOrEmpty(filter))
+                        {
+                            ImGui.SameLine();
+                            string btnId = $"##JumpToMenu_{s.ID}_{s.GetHashCode()}";
+                            if (ImGuiEx.IconButton(FontAwesomeIcon.ExternalLinkAlt, btnId))
+                            {
+                                NavigateToFilter(filter);
+                                _searchResults = [];
+                            }
+
+                            string path = GetFilterMenuPath(filter);
+                            if (!string.IsNullOrEmpty(path))
+                            {
+                                ImguiTooltips.HoveredTooltip($"Open: {path}");
+                            }
+                        }
+                    }
                 }
             }
             else
@@ -881,6 +908,98 @@ public partial class RotationConfigWindow : Window
                         break;
                 }
             }
+        }
+    }
+
+    private static string GetFilterMenuPath(string filter)
+    {
+        // Build a human-friendly path like "Auto > Action usage"
+        return filter switch
+        {
+            Configs.BasicTimer => $"Basic > {UiString.ConfigWindow_Basic_Timer.GetDescription()}",
+            Configs.BasicParams => $"Basic > {UiString.ConfigWindow_Basic_Others.GetDescription()}",
+
+            Configs.UiInformation => $"UI > {UiString.ConfigWindow_UI_Information.GetDescription()}",
+            Configs.UiWindows => $"UI > {UiString.ConfigWindow_UI_Windows.GetDescription()}",
+
+            Configs.BasicAutoSwitch => $"Auto > {UiString.ConfigWindow_Basic_AutoSwitch.GetDescription()}",
+            Configs.AutoActionUsage => $"Auto > {UiString.ConfigWindow_Auto_ActionUsage.GetDescription()}",
+            Configs.HealingActionCondition => $"Auto > {UiString.ConfigWindow_Auto_HealingCondition.GetDescription()}",
+            Configs.PvPSpecificControls => $"Auto > {UiString.ConfigWindow_Auto_PvPSpecific.GetDescription()}",
+
+            Configs.TargetConfig => $"Target > {UiString.ConfigWindow_Target_Config.GetDescription()}",
+
+            Configs.Extra => $"Extra > {UiString.ConfigWindow_Extra_Others.GetDescription()}",
+
+            Configs.List => $"List > {UiString.ConfigWindow_List_Actions.GetDescription()}",
+            Configs.List2 => $"List > {UiString.ConfigWindow_List_Actions.GetDescription()}",
+            Configs.List3 => $"List > {UiString.ConfigWindow_List_Actions.GetDescription()}",
+
+            Configs.Debug => $"Debug",
+
+            _ => string.Empty,
+        };
+    }
+
+    private void NavigateToFilter(string filter)
+    {
+        switch (filter)
+        {
+            case Configs.BasicTimer:
+                _activeTab = RotationConfigWindowTab.Basic;
+                _baseHeader.OpenHeaderByTitle(UiString.ConfigWindow_Basic_Timer.GetDescription());
+                break;
+            case Configs.BasicParams:
+                _activeTab = RotationConfigWindowTab.Basic;
+                _baseHeader.OpenHeaderByTitle(UiString.ConfigWindow_Basic_Others.GetDescription());
+                break;
+
+            case Configs.UiInformation:
+                _activeTab = RotationConfigWindowTab.UI;
+                _UIHeader.OpenHeaderByTitle(UiString.ConfigWindow_UI_Information.GetDescription());
+                break;
+            case Configs.UiWindows:
+                _activeTab = RotationConfigWindowTab.UI;
+                _UIHeader.OpenHeaderByTitle(UiString.ConfigWindow_UI_Windows.GetDescription());
+                break;
+
+            case Configs.BasicAutoSwitch:
+                _activeTab = RotationConfigWindowTab.Auto;
+                _autoHeader.OpenHeaderByTitle(UiString.ConfigWindow_Basic_AutoSwitch.GetDescription());
+                break;
+            case Configs.AutoActionUsage:
+                _activeTab = RotationConfigWindowTab.Auto;
+                _autoHeader.OpenHeaderByTitle(UiString.ConfigWindow_Auto_ActionUsage.GetDescription());
+                break;
+            case Configs.HealingActionCondition:
+                _activeTab = RotationConfigWindowTab.Auto;
+                _autoHeader.OpenHeaderByTitle(UiString.ConfigWindow_Auto_HealingCondition.GetDescription());
+                break;
+            case Configs.PvPSpecificControls:
+                _activeTab = RotationConfigWindowTab.Auto;
+                _autoHeader.OpenHeaderByTitle(UiString.ConfigWindow_Auto_PvPSpecific.GetDescription());
+                break;
+
+            case Configs.TargetConfig:
+                _activeTab = RotationConfigWindowTab.Target;
+                _targetHeader.OpenHeaderByTitle(UiString.ConfigWindow_Target_Config.GetDescription());
+                break;
+
+            case Configs.Extra:
+                _activeTab = RotationConfigWindowTab.Extra;
+                _extraHeader.OpenHeaderByTitle(UiString.ConfigWindow_Extra_Others.GetDescription());
+                break;
+
+            case Configs.List:
+            case Configs.List2:
+            case Configs.List3:
+                _activeTab = RotationConfigWindowTab.List;
+                _idsHeader.OpenHeaderByTitle(UiString.ConfigWindow_List_Actions.GetDescription());
+                break;
+
+            case Configs.Debug:
+                _activeTab = RotationConfigWindowTab.Debug;
+                break;
         }
     }
 

@@ -1,19 +1,22 @@
 using ECommons.DalamudServices;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using RotationSolver.Updaters;
 using RotationSolver.UI.HighlightTeachingMode.ElementSpecial;
+using RotationSolver.Updaters;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 
 namespace RotationSolver.UI.HighlightTeachingMode;
 
 /// <summary>
 /// Draws a semi-transparent red tint over hotbar slots whose actions are disabled in RSR (IsEnabled == false).
+/// Only applies to slots whose RaptureHotbarModule.HotbarSlotType == Action (byte 1).
 /// </summary>
 public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
 {
-    private readonly HashSet<uint> _disabledAdjustedActionIds = [];
     private readonly HashSet<uint> _disabledBaseActionIds = [];
 
     protected override void Dispose(bool disposing)
@@ -39,7 +42,7 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
             return;
         }
 
-        var (disabledAdjusted, disabledBase) = CollectDisabledActionIds();
+        var disabledBase = CollectDisabledActionIds();
 
         // Walk visible hotbars and apply per-slot reddening
         int hotBarIndex = 0;
@@ -56,25 +59,48 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
             }
 
             bool isCrossBar = hotBarIndex > 9;
+            // Preserve the displayed index to fetch the correct Rapture hotbar after adjustments
+            int resolvedHotbarIndex = hotBarIndex;
             if (isCrossBar)
             {
                 if (hotBarIndex == 10)
                 {
                     var actBar = (AddonActionCross*)intPtr;
-                    hotBarIndex = actBar->RaptureHotbarId;
+                    resolvedHotbarIndex = actBar->RaptureHotbarId;
                 }
                 else
                 {
                     var actBar = (AddonActionDoubleCrossBase*)intPtr;
-                    hotBarIndex = actBar->BarTarget;
+                    resolvedHotbarIndex = actBar->BarTarget;
                 }
             }
 
+            // Get underlying Rapture hotbar (needed to check slot types)
+            Hotbar raptureHotbar = Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->Hotbars[resolvedHotbarIndex];
+
+            int slotIndex = 0;
             foreach (ActionBarSlot slot in actionBar->ActionBarSlotVector.AsSpan())
             {
                 AtkComponentNode* iconAddon = slot.Icon;
                 if ((nint)iconAddon == nint.Zero || !IsVisible(&iconAddon->AtkResNode))
                 {
+                    slotIndex++;
+                    continue;
+                }
+
+                // Guard: ensure index within native hotbar slots (should always be 0-15)
+                if ((uint)slotIndex >= raptureHotbar.Slots.Length)
+                {
+                    slotIndex++;
+                    continue;
+                }
+
+                HotbarSlot hotbarSlot = raptureHotbar.Slots[slotIndex];
+
+                // Only apply reddening to Action slot types (byte value 1)
+                if (hotbarSlot.ApparentSlotType != HotbarSlotType.Action || hotbarSlot.OriginalApparentSlotType != HotbarSlotType.Action)
+                {
+                    slotIndex++;
                     continue;
                 }
 
@@ -88,8 +114,10 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
                     adjusted = 0;
                 }
 
-                bool shouldRedden = adjusted != 0 && (disabledAdjusted.Contains(adjusted) || disabledBase.Contains((uint)slot.ActionId));
+                bool shouldRedden = adjusted != 0 && disabledBase.Contains((uint)slot.ActionId);
                 ApplyIconReddening((AtkComponentIcon*)slot.Icon->Component, shouldRedden);
+
+                slotIndex++;
             }
 
             hotBarIndex++;
@@ -103,7 +131,6 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
 
         if (redden)
         {
-            // Multiply color with configured tint (keep alpha as-is)
             var tint = Service.Config.HotbarDisabledTintColor;
             byte r = (byte)Math.Clamp((int)(tint.X * 255f), 0, 255);
             byte g = (byte)Math.Clamp((int)(tint.Y * 255f), 0, 255);
@@ -114,7 +141,6 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
         }
         else
         {
-            // Reset to white
             iconComponent->IconImage->Color.R = 0xFF;
             iconComponent->IconImage->Color.G = 0xFF;
             iconComponent->IconImage->Color.B = 0xFF;
@@ -161,9 +187,8 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
         return true;
     }
 
-    private static (HashSet<uint> Adjusted, HashSet<uint> BaseIds) CollectDisabledActionIds()
+    private static HashSet<uint> CollectDisabledActionIds()
     {
-        HashSet<uint> adjusted = [];
         HashSet<uint> baseIds = [];
 
         Collect(DataCenter.CurrentRotation?.AllActions);
@@ -176,13 +201,12 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
             {
                 if (a is IBaseAction ba && !ba.IsEnabled)
                 {
-                    adjusted.Add(ba.AdjustedID);
                     baseIds.Add(ba.ID);
                 }
             }
         }
 
-        return (adjusted, baseIds);
+        return baseIds;
     }
 
     private static unsafe List<nint> GetAddons<T>() where T : struct

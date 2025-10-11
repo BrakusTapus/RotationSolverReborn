@@ -31,6 +31,40 @@ internal class CollapsingHeaderGroup(Dictionary<Func<string>, Action> headers)
         _headers.Clear();
     }
 
+    /// <summary>
+    /// Programmatically open a header by its display title.
+    /// </summary>
+    public void OpenHeaderByTitle(string? title, bool ignoreCase = true)
+    {
+        if (string.IsNullOrEmpty(title))
+        {
+            return;
+        }
+        int idx = -1;
+        foreach (KeyValuePair<Func<string>, Action> header in _headers)
+        {
+            idx++;
+            string name = header.Key?.Invoke() ?? string.Empty;
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+            if (string.Equals(name, title, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            {
+                _openedIndex = idx;
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Programmatically open a header by its 0-based index.
+    /// </summary>
+    public void OpenHeaderByIndex(int index)
+    {
+        _openedIndex = index;
+    }
+
     public void Draw()
     {      
         int index = -1;

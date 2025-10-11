@@ -19,8 +19,6 @@ public sealed class DRG_Reborn : DragoonRotation
     public float DragonfireDiveDistance { get; set; } = 20;
     #endregion
 
-    private static bool InBurstStatus => Player.HasStatus(true, StatusID.BattleLitany);
-
     #region Additional oGCD Logic
 
     [RotationDesc(ActionID.WingedGlidePvE)]

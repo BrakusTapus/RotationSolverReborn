@@ -193,6 +193,16 @@ internal abstract class Searchable(PropertyInfo property) : ISearchable
         }
     }
 
+    // Expose the owning UI filter so callers can navigate to the correct menu
+    public virtual string Filter
+    {
+        get
+        {
+            UIAttribute? ui = _property.GetCustomAttribute<UIAttribute>();
+            return ui == null ? string.Empty : ui.Filter ?? string.Empty;
+        }
+    }
+
     public virtual string Command
     {
         get

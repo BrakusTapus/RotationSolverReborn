@@ -841,8 +841,8 @@ public static class ObjectHelper
     /// <summary>
     /// List of NameIds that Undead enemies in Occult Crecent.
     /// </summary>
-private static readonly HashSet<uint> IsOCUndeadSet = new()
-    {
+private static readonly HashSet<uint> IsOCUndeadSet =
+    [
         13741, //Lifereaper
         13924, //Armor
         13922, //Ghost
@@ -851,7 +851,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13925, //Troubadour
         13923, //Geshunpest
         13927, //Dullahan
-    };
+    ];
 
     /// <summary>
     /// Check to see if Occult Crecent target is Undead.
@@ -864,8 +864,8 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
     /// <summary>
     /// List of NameIds that are immune to OC Slowga.
     /// </summary>
-    private static readonly HashSet<uint> IsOCSlowgaImmuneSet = new()
-    {
+    private static readonly HashSet<uint> IsOCSlowgaImmuneSet =
+    [
         13933, //Marolith
         13893, //AnimatedDoll
         13894, //AnimatedDoll
@@ -882,7 +882,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    };
+    ];
 
     /// <summary>
     /// Check to see if target is immune to Slowga.
@@ -895,8 +895,8 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
     /// <summary>
     /// List of NameIds that are immune to OC Doom.
     /// </summary>
-    private static readonly HashSet<uint> IsOCDoomImmuneSet = new()
-    {
+    private static readonly HashSet<uint> IsOCDoomImmuneSet =
+    [
         13893, //AnimatedDoll
         13894, //AnimatedDoll
         13917, //Sculpture
@@ -919,7 +919,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    };
+    ];
 
     /// <summary>
     /// Check to see if target is immune to Phantom Doom.
@@ -932,8 +932,8 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
     /// <summary>
     /// List of NameIds that are immune to OC Stun.
     /// </summary>
-    private static readonly HashSet<uint> IsOCStunImmuneSet = new()
-    {
+    private static readonly HashSet<uint> IsOCStunImmuneSet =
+    [
         13873, //Tormentor
         13891, //LionStatant
         13916, //Brachiosaur
@@ -950,7 +950,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    };
+    ];
 
     /// <summary>
     /// Check to see if target is immune to Stun.
@@ -963,8 +963,8 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
     /// <summary>
     /// List of NameIds that are immune to OC Freeze.
     /// </summary>
-    private static readonly HashSet<uint> IsOCFreezeImmuneSet = new()
-    {
+    private static readonly HashSet<uint> IsOCFreezeImmuneSet =
+    [
         13876, //Fan
         13917, //Sculpture
         13916, //Brachiosaur
@@ -983,7 +983,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    };
+    ];
 
     /// <summary>
     /// Check to see if target is immune to Freeze.
@@ -996,8 +996,8 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
     /// <summary>
     /// List of NameIds that are immune to OC Blind.
     /// </summary>
-    private static readonly HashSet<uint> IsOCBlindImmuneSet = new()
-    {
+    private static readonly HashSet<uint> IsOCBlindImmuneSet =
+    [
         13931, //Chaochu
         13874, //Snapweed
         13932, //Leshy
@@ -1014,7 +1014,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    };
+    ];
 
     /// <summary>
     /// Check to see if target is immune to Blind.
@@ -1027,8 +1027,8 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
     /// <summary>
     /// List of NameIds that are immune to OC Paralysis.
     /// </summary>
-    private static readonly HashSet<uint> IsOCParalysisImmuneSet = new()
-    {
+    private static readonly HashSet<uint> IsOCParalysisImmuneSet =
+    [
         13931, //Chaochu
         13874, //Snapweed
         13932, //Leshy
@@ -1051,7 +1051,7 @@ private static readonly HashSet<uint> IsOCUndeadSet = new()
         13666, //Cloister Demon
         13668, //Cloister Torch
         13729, //Megaloknight
-    };
+    ];
 
     /// <summary>
     /// Check to see if target is immune to Paralysis.

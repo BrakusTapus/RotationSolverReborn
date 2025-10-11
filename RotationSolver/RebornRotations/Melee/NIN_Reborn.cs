@@ -159,23 +159,42 @@ public sealed class NIN_Reborn : NinjaRotation
         }
 
         // If in a burst phase and not just starting combat, checks if Mug is available to generate additional Ninki.
-        if (IsBurst && !CombatElapsedLess(5) && MugPvE.CanUse(out act))
+        if (IsBurst && !CombatElapsedLess(5))
         {
-            return true;
+            if (!DokumoriPvE.EnoughLevel)
+            {
+                if (MugPvE.CanUse(out act))
+                {
+                    return true;
+                }
+            }
+            else if (DokumoriPvE.EnoughLevel)
+            {
+                if (DokumoriPvE.CanUse(out act))
+                {
+                    return true;
+                }
+            }
         }
+
 
         // Prioritizes using Suiton and Trick Attack for maximizing damage, especially outside the initial combat phase.
         if (!CombatElapsedLess(6))
         {
             // Attempts to use Trick Attack if it's available.
-            if (KunaisBanePvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: IsShadowWalking))
+            if (!KunaisBanePvE.EnoughLevel)
             {
-                return true;
+                if (TrickAttackPvE.CanUse(out act, skipStatusProvideCheck: IsShadowWalking))
+                {
+                    return true;
+                }
             }
-
-            if (!KunaisBanePvE.EnoughLevel && TrickAttackPvE.CanUse(out act, skipStatusProvideCheck: IsShadowWalking))
+            else if (KunaisBanePvE.EnoughLevel)
             {
-                return true;
+                if (KunaisBanePvE.CanUse(out act, skipAoeCheck: true, skipStatusProvideCheck: IsShadowWalking))
+                {
+                    return true;
+                }
             }
 
             // If Trick Attack is on cooldown but will not be ready soon, considers using Meisui to recover Ninki.
@@ -192,7 +211,6 @@ public sealed class NIN_Reborn : NinjaRotation
     // Defines attack abilities to use during combat, overriding the base class implementation.
     protected override bool AttackAbility(IAction nextGCD, out IAction? act)
     {
-        act = null;
         // If Ninjutsu is available or not in combat, it exits early, indicating no attack action to perform.
         if (!NoNinjutsu || !InCombat)
         {
@@ -223,7 +241,7 @@ public sealed class NIN_Reborn : NinjaRotation
                     return true;
                 }
             }
-            else
+            else if (DreamWithinADreamPvE.EnoughLevel)
             {
                 // If Dream Within A Dream is available, it's set as the next action.
                 if (DreamWithinADreamPvE.CanUse(out act))
@@ -314,26 +332,26 @@ public sealed class NIN_Reborn : NinjaRotation
         // Checks for Kassatsu status to prioritize high-impact Ninjutsu due to its buff.
         if (Player.HasStatus(true, StatusID.Kassatsu))
         {
-            if ((DeathBlossomPvE.CanUse(out _) || HakkeMujinsatsuPvE.CanUse(out _)) && GokaMekkyakuPvE.EnoughLevel && !IsLastAction(false, GokaMekkyakuPvE) && GokaMekkyakuPvE.IsEnabled)
+            if ((DeathBlossomPvE.CanUse(out _) || HakkeMujinsatsuPvE.CanUse(out _)) && GokaMekkyakuPvE.EnoughLevel && !IsLastAction(false, GokaMekkyakuPvE) && GokaMekkyakuPvE.IsEnabled && ChiPvE.Info.IsQuestUnlocked())
             {
                 SetNinjutsu(GokaMekkyakuPvE);
             }
-            if (!DeathBlossomPvE.CanUse(out _) && !HakkeMujinsatsuPvE.CanUse(out _) && HyoshoRanryuPvE.EnoughLevel && !IsLastAction(false, HyoshoRanryuPvE) && HyoshoRanryuPvE.IsEnabled)
+            if (!DeathBlossomPvE.CanUse(out _) && !HakkeMujinsatsuPvE.CanUse(out _) && HyoshoRanryuPvE.EnoughLevel && !IsLastAction(false, HyoshoRanryuPvE) && HyoshoRanryuPvE.IsEnabled && JinPvE.Info.IsQuestUnlocked())
             {
                 SetNinjutsu(HyoshoRanryuPvE);
             }
 
-            if (!IsShadowWalking && ShadowWalkerNeeded && !HyoshoRanryuPvE.EnoughLevel && HutonPvE.EnoughLevel && HutonPvE.IsEnabled)
+            if (!IsShadowWalking && ShadowWalkerNeeded && !HyoshoRanryuPvE.EnoughLevel && HutonPvE.EnoughLevel && HutonPvE.IsEnabled && JinPvE.Info.IsQuestUnlocked())
             {
                 SetNinjutsu(HutonPvE);
             }
 
-            if ((DeathBlossomPvE.CanUse(out _) || HakkeMujinsatsuPvE.CanUse(out _)) && !HyoshoRanryuPvE.EnoughLevel && KatonPvE.EnoughLevel && KatonPvE.IsEnabled)
+            if ((DeathBlossomPvE.CanUse(out _) || HakkeMujinsatsuPvE.CanUse(out _)) && !HyoshoRanryuPvE.EnoughLevel && KatonPvE.EnoughLevel && KatonPvE.IsEnabled && ChiPvE.Info.IsQuestUnlocked())
             {
                 SetNinjutsu(KatonPvE);
             }
 
-            if (!DeathBlossomPvE.CanUse(out _) && !HakkeMujinsatsuPvE.CanUse(out _) && !HyoshoRanryuPvE.EnoughLevel && RaitonPvE.EnoughLevel && RaitonPvE.IsEnabled)
+            if (!DeathBlossomPvE.CanUse(out _) && !HakkeMujinsatsuPvE.CanUse(out _) && !HyoshoRanryuPvE.EnoughLevel && RaitonPvE.EnoughLevel && RaitonPvE.IsEnabled && ChiPvE.Info.IsQuestUnlocked())
             {
                 SetNinjutsu(RaitonPvE);
             }
@@ -343,11 +361,11 @@ public sealed class NIN_Reborn : NinjaRotation
             //Vulnerable
             if (ShadowWalkerNeeded && (!MeisuiPvE.Cooldown.IsCoolingDown || !TrickAttackPvE.Cooldown.IsCoolingDown || KunaisBanePvE.Cooldown.IsCoolingDown) && !IsShadowWalking && !HasTenChiJin && SuitonPvE.EnoughLevel)
             {
-                if (DeathBlossomPvE.CanUse(out _) && JinPvE.CanUse(out _) && HutonPvE.IsEnabled)
+                if (DeathBlossomPvE.CanUse(out _) && JinPvE.CanUse(out _) && JinPvE.Info.IsQuestUnlocked() && HutonPvE.IsEnabled)
                 {
                     SetNinjutsu(HutonPvE);
                 }
-                else if (JinPvE.CanUse(out _) && SuitonPvE.IsEnabled && ((TrickAttackPvE.IsEnabled && !KunaisBanePvE.EnoughLevel) || (KunaisBanePvE.IsEnabled && KunaisBanePvE.EnoughLevel)))
+                else if (JinPvE.CanUse(out _) && JinPvE.Info.IsQuestUnlocked() && SuitonPvE.IsEnabled && ((TrickAttackPvE.IsEnabled && !KunaisBanePvE.EnoughLevel) || (KunaisBanePvE.IsEnabled && KunaisBanePvE.EnoughLevel)))
                 {
                     SetNinjutsu(SuitonPvE);
                 }
@@ -359,12 +377,12 @@ public sealed class NIN_Reborn : NinjaRotation
                 if ((!HasDoton && !IsMoving && !IsLastGCD(true, DotonPvE) && (!TenChiJinPvE.Cooldown.WillHaveOneCharge(6)) && DotonPvE.EnoughLevel)
                     || (!HasDoton && !IsLastGCD(true, DotonPvE) && !TenChiJinPvE.Cooldown.IsCoolingDown && DotonPvE.EnoughLevel))
                 {
-                    if (JinPvE.CanUse(out _) && DotonPvE.IsEnabled)
+                    if (JinPvE.CanUse(out _) && DotonPvE.IsEnabled && JinPvE.Info.IsQuestUnlocked())
                     {
                         SetNinjutsu(DotonPvE);
                     }
                 }
-                else if (KatonPvE.EnoughLevel && KatonPvE.IsEnabled)
+                else if (KatonPvE.EnoughLevel && KatonPvE.IsEnabled && ChiPvE.Info.IsQuestUnlocked())
                 {
                     SetNinjutsu(KatonPvE);
                 }
@@ -373,12 +391,12 @@ public sealed class NIN_Reborn : NinjaRotation
             //Single
             if (!DeathBlossomPvE.CanUse(out _) && !HakkeMujinsatsuPvE.CanUse(out _) && !ShadowWalkerNeeded)
             {
-                if (RaitonPvE.EnoughLevel && RaitonPvE.IsEnabled && (!Player.HasStatus(true, StatusID.RaijuReady) || (Player.HasStatus(true, StatusID.RaijuReady) && Player.StatusStack(true, StatusID.RaijuReady) < 3)))
+                if (RaitonPvE.EnoughLevel && RaitonPvE.IsEnabled && ChiPvE.Info.IsQuestUnlocked() && (!Player.HasStatus(true, StatusID.RaijuReady) || (Player.HasStatus(true, StatusID.RaijuReady) && Player.StatusStack(true, StatusID.RaijuReady) < 3)))
                 {
                     SetNinjutsu(RaitonPvE);
                 }
 
-                if (FumaShurikenPvE.EnoughLevel && FumaShurikenPvE.IsEnabled && (!RaitonPvE.EnoughLevel || (Player.HasStatus(true, StatusID.RaijuReady) && Player.StatusStack(true, StatusID.RaijuReady) == 3)))
+                if (FumaShurikenPvE.EnoughLevel && FumaShurikenPvE.IsEnabled && TenPvE.Info.IsQuestUnlocked() && (!RaitonPvE.EnoughLevel || (Player.HasStatus(true, StatusID.RaijuReady) && Player.StatusStack(true, StatusID.RaijuReady) == 3)))
                 {
                     SetNinjutsu(FumaShurikenPvE);
                 }

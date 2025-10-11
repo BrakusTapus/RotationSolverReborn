@@ -211,7 +211,7 @@ public partial class CustomRotation
         var list = new List<HpPotionItem>();
         foreach (var i in items)
         {
-            if (i.FilterGroup == 8 && i.ItemSearchCategory.RowId == 43)
+            if ((i.FilterGroup == 8 && i.ItemSearchCategory.RowId == 43) || i.RowId == 22306)
             {
                 list.Add(new HpPotionItem(i));
             }
