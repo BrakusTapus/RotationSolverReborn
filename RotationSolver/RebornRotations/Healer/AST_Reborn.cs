@@ -613,42 +613,45 @@ public sealed class AST_Reborn : AstrologianRotation
             return base.GeneralGCD(out act);
         }
 
-        if (GravityPvE.CanUse(out act))
+        if (GravityIiPvE.EnoughLevel && GravityIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (!GravityIiPvE.EnoughLevel && GravityPvE.EnoughLevel && GravityPvE.CanUse(out act))
         {
             return true;
         }
 
-        if (CombustIiiPvE.CanUse(out act))
+        if (CombustIiiPvE.EnoughLevel && CombustIiiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (!CombustIiiPvE.EnoughLevel && CombustIiPvE.EnoughLevel && CombustIiPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (!CombustIiPvE.EnoughLevel && CombustPvE.EnoughLevel && CombustPvE.CanUse(out act))
         {
             return true;
         }
 
-        if (CombustIiPvE.CanUse(out act))
+        if (FallMaleficPvE.EnoughLevel && FallMaleficPvE.CanUse(out act))
         {
             return true;
         }
-
-        if (CombustPvE.CanUse(out act))
+        if (!FallMaleficPvE.EnoughLevel && MaleficIvPvE.EnoughLevel && MaleficIvPvE.CanUse(out act))
         {
             return true;
         }
-
-        if (MaleficPvE.CanUse(out act))
+        if (!MaleficIvPvE.EnoughLevel && MaleficIiiPvE.EnoughLevel && MaleficIiiPvE.CanUse(out act))
         {
             return true;
         }
-
-        if (CombustIiiPvE.CanUse(out act))
+        if (!MaleficIiiPvE.EnoughLevel && MaleficIiPvE.EnoughLevel && MaleficIiPvE.CanUse(out act))
         {
             return true;
         }
-
-        if (CombustIiPvE.CanUse(out act))
-        {
-            return true;
-        }
-
-        if (CombustPvE.CanUse(out act))
+        if (!MaleficIiPvE.EnoughLevel && MaleficPvE.EnoughLevel && MaleficPvE.CanUse(out act))
         {
             return true;
         }

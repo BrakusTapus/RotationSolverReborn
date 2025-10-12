@@ -31,9 +31,9 @@ public sealed unsafe class ActionManagerEx : IDisposable
     /// </summary>
     public CooldownDelayTweak CooldownDelayTweak => _cooldownTweak;
 
-private readonly ActionManager* _actionManager;
-    private uint _lastActionSequence;
+    private readonly ActionManager* _actionManager;
     private float _lastAnimationLock;
+    private float _frameDeltaSec;
     private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
     
     private ActionManagerEx()
@@ -49,26 +49,11 @@ private readonly ActionManager* _actionManager;
     {
         if (_actionManager == null) return;
         
-var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
+        var dt = (float)_stopwatch.Elapsed.TotalSeconds;
+        _frameDeltaSec = Math.Clamp(dt, 0f, 0.25f);
         _stopwatch.Restart();
         
         var currentAnimLock = _actionManager->AnimationLock;
-        
-        // Record any changes in animation lock for the animation lock tweak
-        if (Math.Abs(currentAnimLock - _lastAnimationLock) > 0.001f)
-        {
-            // Animation lock changed, this might indicate an action was used
-            if (_lastAnimationLock < currentAnimLock)
-            {
-                // Animation lock increased, an action was likely used
-                var currentSequence = _actionManager->LastUsedActionSequence;
-                if (currentSequence != _lastActionSequence)
-                {
-                    _animLockTweak.RecordRequest(currentSequence, currentAnimLock);
-                    _lastActionSequence = currentSequence;
-                }
-            }
-        }
         
         _lastAnimationLock = currentAnimLock;
     }
@@ -86,13 +71,12 @@ var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
         
         // Record current state for tweaks
         var prevAnimLock = _actionManager->AnimationLock;
-        var prevCooldown = GetRemainingCooldown(actionId);
-var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
+        var prevCooldown = GetRemainingCooldown(actionType, actionId);
         
         // Start cooldown adjustment if enabled
         if (Service.Config.RemoveCooldownDelay)
         {
-            _cooldownTweak.StartAdjustment(prevAnimLock, prevCooldown, deltaTime);
+            _cooldownTweak.StartAdjustment(prevAnimLock, prevCooldown, _frameDeltaSec);
         }
         
         // Determine the expected sequence for the upcoming action
@@ -138,13 +122,12 @@ var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
         
         // Record current state for tweaks
         var prevAnimLock = _actionManager->AnimationLock;
-        var prevCooldown = GetRemainingCooldown(actionId);
-var deltaTime = (float)_stopwatch.Elapsed.TotalSeconds;
+        var prevCooldown = GetRemainingCooldown(actionType, actionId);
         
         // Start cooldown adjustment if enabled
         if (Service.Config.RemoveCooldownDelay)
         {
-            _cooldownTweak.StartAdjustment(prevAnimLock, prevCooldown, deltaTime);
+            _cooldownTweak.StartAdjustment(prevAnimLock, prevCooldown, _frameDeltaSec);
         }
         
         // Determine the expected sequence for the upcoming action
@@ -216,12 +199,12 @@ if (Service.Config.InDebug)
     /// <summary>
     /// Get the remaining cooldown for a specific action
     /// </summary>
-    private float GetRemainingCooldown(uint actionId)
+    private float GetRemainingCooldown(ActionType actionType, uint actionId)
     {
         if (_actionManager == null) return 0;
         
-        var recastTime = _actionManager->GetRecastTime(ActionType.Action, actionId);
-        var elapsedTime = _actionManager->GetRecastTimeElapsed(ActionType.Action, actionId);
+        var recastTime = _actionManager->GetRecastTime(actionType, actionId);
+        var elapsedTime = _actionManager->GetRecastTimeElapsed(actionType, actionId);
         return Math.Max(0, recastTime - elapsedTime);
     }
     

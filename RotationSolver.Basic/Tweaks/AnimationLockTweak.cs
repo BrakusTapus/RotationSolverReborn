@@ -21,8 +21,8 @@ public sealed unsafe class AnimationLockTweak
     private float _lastReqInitialAnimLock;
     private uint _lastReqSequence = uint.MaxValue;
 
-    private static float DelayMax => Math.Max(Service.Config.AnimationLockDelayMax2, 26) * 0.001f;
-    private static readonly float DelaySmoothing = 0.8f; // Exponential smoothing factor
+    private static float DelayMax => Math.Max(Service.Config.AnimationLockDelayMax2, 20) * 0.001f;
+    private static float DelaySmoothing => Math.Clamp(Service.Config.AnimLockDelaySmoothing, 0.3f, 0.95f); // Exponential smoothing factor
 
     /// <summary>
     /// Gets the smoothed delay between client request and server response.
@@ -59,16 +59,11 @@ public sealed unsafe class AnimationLockTweak
     /// <returns>Animation lock reduction amount</returns>
     public float Apply(uint sequence, float gamePrevAnimLock, float gameCurrAnimLock, float packetPrevAnimLock, float packetCurrAnimLock, out float delay)
     {
-        delay = _lastReqInitialAnimLock - gamePrevAnimLock;
-        
-        if (delay < 0)
-        {
-            PluginLog.Debug($"[AnimLockTweak] Prev anim lock {gamePrevAnimLock:f3} is larger than initial {_lastReqInitialAnimLock:f3}, something is wrong");
-        }
+        delay = Math.Max(0, _lastReqInitialAnimLock - gamePrevAnimLock);
         
         if (_lastReqSequence != sequence && gameCurrAnimLock != gamePrevAnimLock)
         {
-            PluginLog.Log($"[AnimLockTweak] Animation lock updated by action with unexpected sequence ID #{sequence}: {gamePrevAnimLock:f3} -> {gameCurrAnimLock:f3}");
+            PluginLog.Debug($"[AnimLockTweak] Animation lock updated by action with unexpected sequence ID #{sequence}: {gamePrevAnimLock:f3} -> {gameCurrAnimLock:f3}");
         }
         
         float reduction = 0;
@@ -96,17 +91,21 @@ public sealed unsafe class AnimationLockTweak
     private static void SanityCheck(float packetOriginalAnimLock, float packetModifiedAnimLock, float gameCurrAnimLock)
     {
         if (!Service.Config.RemoveAnimationLockDelay)
-            return; // Nothing to do, tweak is already disabled
+            return; // Tweak is disabled
 
         if (DataCenter.IsActivated())
             return;
 
+        // If we don't have distinct packet data, skip this check
         if (packetOriginalAnimLock == packetModifiedAnimLock &&
-            packetOriginalAnimLock == gameCurrAnimLock &&
-            (packetOriginalAnimLock % 0.01f is <= 0.0005f or >= 0.0095f))
-            return; // Nothing changed the packet value, and its original value is reasonable
+            packetOriginalAnimLock == gameCurrAnimLock)
+            return;
 
-        PluginLog.Log($"[AnimLockTweak] Unexpected animation lock {packetOriginalAnimLock:f6} -> {packetModifiedAnimLock:f6} -> {gameCurrAnimLock:f6}, disabling animation lock tweak feature");
+        // If the packet value appears to be aligned to 10ms increments, it's likely untouched and fine
+        if ((packetOriginalAnimLock % 0.01f) is <= 0.0005f or >= 0.0095f)
+            return;
+
+        PluginLog.Warning($"[AnimLockTweak] Unexpected animation lock {packetOriginalAnimLock:f6} -> {packetModifiedAnimLock:f6} -> {gameCurrAnimLock:f6}, disabling animation lock tweak feature");
 
         // Log warning to chat
         PluginLog.Debug($"[RSR] Unexpected animation lock detected! Disabling animation lock reduction feature.");

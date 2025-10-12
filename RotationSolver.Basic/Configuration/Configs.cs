@@ -710,8 +710,12 @@ internal partial class Configs : IPluginConfiguration
     [UI("Animation lock max. simulated delay (read tooltip!)", 
     Description = "Configures the maximum simulated delay in milliseconds when using animation lock removal - this is required and cannot be reduced to zero. Setting this to 20ms will enable triple-weaving when using autorotation. The minimum setting to remove triple-weaving is 26ms. The minimum of 20ms has been accepted by FFLogs and should not cause issues with your logs.",
     Parent = nameof(RemoveAnimationLockDelay), Filter = Extra)]
-    [Range(26, 50, ConfigUnitType.None, 1f)]
+    [Range(20, 50, ConfigUnitType.None, 1f)]
     public int AnimationLockDelayMax2 { get; set; } = 26;
+
+    [UI("Animation lock delay smoothing factor", Parent = nameof(RemoveAnimationLockDelay), Filter = Extra)]
+    [Range(0.3f, 0.95f, ConfigUnitType.None, 0.01f)]
+    public float AnimLockDelaySmoothing { get; set; } = 0.3f;
 
     /// <summary>
     /// Remove extra framerate-induced cooldown delay
@@ -721,6 +725,10 @@ internal partial class Configs : IPluginConfiguration
     Description = "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations",
     Filter = Extra)]
     private static readonly bool _removeCooldownDelay = false;
+
+    [UI("Max cooldown adjustment (ms)", Parent = nameof(RemoveCooldownDelay), Filter = Extra)]
+    [Range(10, 150, ConfigUnitType.None, 1f)]
+    public int CooldownAdjustMaxMs { get; set; } = 100;
 
     // Cactbot timeline integration
     [ConditionBool, UI("Enable cactbot timeline integration (Extremely experimental)",

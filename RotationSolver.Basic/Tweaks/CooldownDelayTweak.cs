@@ -14,6 +14,7 @@ public sealed class CooldownDelayTweak
     /// If > 0 while using an action, cooldown/animation lock will be reduced by this amount as if action was used a bit in the past
     /// </summary>
     public float Adjustment { get; private set; }
+    private static float MaxCooldownAdjust => Math.Clamp(Service.Config.CooldownAdjustMaxMs, 10, 150) * 0.001f;
     
     /// <summary>
     /// Start adjustment calculation based on previous conditions
@@ -41,11 +42,16 @@ public sealed class CooldownDelayTweak
         if (!Service.Config.RemoveCooldownDelay)
             return 0; // Tweak is disabled, so no adjustment
         
+        // Clamp inputs to avoid negative values
+        prevAnimLock = Math.Max(0, prevAnimLock);
+        prevRemainingCooldown = Math.Max(0, prevRemainingCooldown);
+        deltaTime = Math.Max(0, deltaTime);
+        
         var maxDelay = Math.Max(prevAnimLock, prevRemainingCooldown);
         if (maxDelay <= 0)
             return 0; // Nothing prevented us from executing the action on previous frame, so no adjustment
         
         var overflow = deltaTime - maxDelay; // Both cooldown and animation lock should expire this much before current frame start
-        return Math.Clamp(overflow, 0, 0.1f); // Use upper limit for time adjustment (if you have very low fps, adjusting too much could be suspicious)
+        return Math.Clamp(overflow, 0, MaxCooldownAdjust); // Use upper limit for time adjustment (if you have very low fps, adjusting too much could be suspicious)
     }
 }
