@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.Magical;
 
-[Rotation("Default", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Default", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/BasicRotations/Magical/BLM_Default.cs")]
 
 public class BLM_Default : BlackMageRotation
@@ -211,6 +211,11 @@ public class BLM_Default : BlackMageRotation
             {
                 return true;
             }
+        }
+
+        if (HasBuffs && UseBurstMedicine(out act))
+        {
+            return true;
         }
 
         return base.AttackAbility(nextGCD, out act);

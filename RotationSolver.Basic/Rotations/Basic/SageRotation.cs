@@ -448,8 +448,9 @@ public partial class SageRotation
     static partial void ModifyKardiaPvP(ref ActionSetting setting)
     {
         setting.StatusProvide = [StatusID.Kardia_2871];
+        setting.TargetStatusProvide = [StatusID.Kardion_2872];
+        setting.TargetType = TargetType.Kardia;
     }
-
 
     static partial void ModifyEukrasianDosisIiiPvP(ref ActionSetting setting)
     {

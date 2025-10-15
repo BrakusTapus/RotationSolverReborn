@@ -1846,7 +1846,7 @@ public struct ActionTargetInfo(IBaseAction action)
             IBattleChara? bestGalvanize = null;
             uint bestGalvanizeShield = 0;
 
-            const float spreadRadius = 10f; // Deployment Tactics spreads within 10y of the target
+            //const float spreadRadius = 30f; // Deployment Tactics spreads within 30y of the target
 
             foreach (IBattleChara battleChara in DataCenter.PartyMembers)
             {
@@ -1863,26 +1863,26 @@ public struct ActionTargetInfo(IBaseAction action)
                 }
 
                 // Require at least one other party member in spread radius
-                int neighbors = 0;
-                foreach (IBattleChara member in DataCenter.PartyMembers)
-                {
-                    if (member == null || member.IsDead || member.GameObjectId == battleChara.GameObjectId)
-                    {
-                        continue;
-                    }
-                    if (Vector3.Distance(member.Position, battleChara.Position) <= spreadRadius)
-                    {
-                        neighbors++;
-                        if (neighbors >= 1) break;
-                    }
-                }
-                if (neighbors == 0)
-                {
-                    // Nothing to spread to
-                    continue;
-                }
+                //int neighbors = 0;
+                //foreach (IBattleChara member in DataCenter.PartyMembers)
+                //{
+                //    if (member == null || member.IsDead || member.GameObjectId == battleChara.GameObjectId)
+                //    {
+                //        continue;
+                //    }
+                //    if (Vector3.Distance(member.Position, battleChara.Position) <= spreadRadius)
+                //    {
+                //        neighbors++;
+                //        if (neighbors >= 1) break;
+                //    }
+                //}
+                //if (neighbors == 0)
+                //{
+                //    // Nothing to spread to
+                //    continue;
+                //}
 
-                if (!battleChara.WillStatusEnd(20, true, StatusID.Catalyze))
+                if (battleChara.HasStatus(true, StatusID.Catalyze))
                 {
                     if (bestCatalyze == null || shield > bestCatalyzeShield)
                     {
@@ -1890,7 +1890,7 @@ public struct ActionTargetInfo(IBaseAction action)
                         bestCatalyzeShield = shield;
                     }
                 }
-                else if (!battleChara.WillStatusEnd(20, true, StatusID.Galvanize))
+                else if (battleChara.HasStatus(true, StatusID.Galvanize))
                 {
                     if (bestGalvanize == null || shield > bestGalvanizeShield)
                     {
@@ -1906,7 +1906,7 @@ public struct ActionTargetInfo(IBaseAction action)
                 return bestCatalyze;
             }
 
-            if (bestGalvanize != null)
+            if (bestGalvanize != null && bestCatalyze == null)
             {
                 PluginLog.Debug($"FindDeploymentTacticsTarget: {bestGalvanize.Name} is a valid target with Galvanize, largest shield, and nearby allies.");
                 return bestGalvanize;

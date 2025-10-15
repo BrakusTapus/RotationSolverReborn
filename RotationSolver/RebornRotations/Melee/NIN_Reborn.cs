@@ -1,6 +1,6 @@
 namespace RotationSolver.RebornRotations.Melee;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/RebornRotations/Melee/NIN_Reborn.cs")]
 
 
@@ -202,6 +202,11 @@ public sealed class NIN_Reborn : NinjaRotation
             {
                 return true;
             }
+        }
+
+        if (InTrickAttack && InCombat && UseBurstMedicine(out act))
+        {
+            return true;
         }
 
         // If none of the specific conditions are met, falls back to the base class's emergency ability logic.

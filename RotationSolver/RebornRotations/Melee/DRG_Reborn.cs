@@ -1,6 +1,6 @@
 namespace RotationSolver.RebornRotations.Melee;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/RebornRotations/Melee/DRG_Reborn.cs")]
 
 
@@ -79,6 +79,11 @@ public sealed class DRG_Reborn : DragoonRotation
                     return true;
                 }
             }
+        }
+
+        if (HasBattleLitany && InCombat && UseBurstMedicine(out act))
+        {
+            return true;
         }
 
         return base.EmergencyAbility(nextGCD, out act);

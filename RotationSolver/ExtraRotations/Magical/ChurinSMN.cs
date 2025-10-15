@@ -1,12 +1,25 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
+using Dalamud.Game.ClientState.JobGauge.Types;
+using ECommons.DalamudServices;
 
-namespace RotationSolver.RebornRotations.Magical;
+namespace RotationSolver.ExtraRotations.Magical;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
-[SourceCode(Path = "main/RebornRotations/Magical/SMN_Reborn.cs")]
+[Rotation("Churin SMN", CombatType.PvE, GameVersion = "7.35")]
+[SourceCode(Path = "main/ExtraRotations/Magical/ChurinSMN.cs")]
 
-public sealed class SMN_Reborn : SummonerRotation
+public sealed class ChurinSMN : SummonerRotation
 {
+    #region Properties
+    private bool InBigSummon => !SummonBahamutPvE.EnoughLevel || InBahamut || InPhoenix || InSolarBahamut;
+    private static bool InSolar => Player.Level == 100 ? !InBahamut && !InPhoenix && InSolarBahamut : InBahamut && !InPhoenix;
+    private bool BahamutBurst => (SummonSolarBahamutPvE.EnoughLevel && InSolarBahamut) || (!SummonSolarBahamutPvE.EnoughLevel && InBahamut) || !SummonBahamutPvE.EnoughLevel;
+    private static SMNGauge SummonerGauge => Svc.Gauges.Get<SMNGauge>();
+    private double LateWeaveWindow => (float)(RuinPvE.Cooldown.RecastTime * 0.45);
+    private static bool CanWeave => WeaponRemain > AnimationLock;
+    private bool CanLateWeave => WeaponRemain < LateWeaveWindow && CanWeave;
+    private static float SummonTimer => SummonerGauge.SummonTimerRemaining / 1000f;
+    #endregion
+
     #region Config Options
 
     public enum SummonOrderType : byte
@@ -66,6 +79,7 @@ public sealed class SMN_Reborn : SummonerRotation
     public override void DisplayRotationStatus()
     {
         ImGui.Text($"EnergyDrainPvE: Is Cooling Down: {EnergyDrainPvE.Cooldown.IsCoolingDown}");
+        ImGui.Text($"Max GCDs in Big Summon: {BigSummonGCDLeft}");
     }
     #endregion
 
@@ -76,8 +90,12 @@ public sealed class SMN_Reborn : SummonerRotation
         {
             return act;
         }
-        if (HasSummon && remainTime <= RuinPvE.Info.CastTime + CountDownAhead
+        if (HasSummon && remainTime <= RuinPvE.Info.CastTime + 0.8f && remainTime > RuinPvE.Info.CastTime && !InCombat
             && RuinPvE.CanUse(out act))
+        {
+            return act;
+        }
+        if (BigSummonTime(out act))
         {
             return act;
         }
@@ -148,184 +166,42 @@ public sealed class SMN_Reborn : SummonerRotation
                 }
             }
         }
-
-        if (HasSearingLight && InCombat && UseBurstMedicine(out act))
-        {
-            return true;
-        }
-
         return base.GeneralAbility(nextGCD, out act);
     }
 
     protected override bool AttackAbility(IAction nextGCD, out IAction? act)
     {
-        bool inBigInvocation = !SummonBahamutPvE.EnoughLevel || InBahamut || InPhoenix || InSolarBahamut;
-        bool inSolarUnique = Player.Level == 100 ? !InBahamut && !InPhoenix && InSolarBahamut : InBahamut && !InPhoenix;
-        bool burstInSolar = (SummonSolarBahamutPvE.EnoughLevel && InSolarBahamut) || (!SummonSolarBahamutPvE.EnoughLevel && InBahamut) || !SummonBahamutPvE.EnoughLevel;
 
-        if (burstInSolar)
+        if (TryUseSearingLight(out act))
         {
-            if (SearingLightPvE.CanUse(out act))
-            {
-                return true;
-            }
+            return true;
         }
-
-        if (inBigInvocation)
+        if (TryUseEnergyDrain(out act))
         {
-            if (EnergySiphonPvE.CanUse(out act))
-            {
-                if ((EnergySiphonPvE.Target.Target.IsBossFromTTK() || EnergySiphonPvE.Target.Target.IsBossFromIcon()) && EnergySiphonPvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (EnergyDrainPvE.CanUse(out act))
-            {
-                if ((EnergyDrainPvE.Target.Target.IsBossFromTTK() || EnergyDrainPvE.Target.Target.IsBossFromIcon()) && EnergyDrainPvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (EnkindleBahamutPvE.CanUse(out act))
-            {
-                if ((EnkindleBahamutPvE.Target.Target.IsBossFromTTK() || EnkindleBahamutPvE.Target.Target.IsBossFromIcon()) && EnkindleBahamutPvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (EnkindleSolarBahamutPvE.CanUse(out act))
-            {
-                if ((EnkindleSolarBahamutPvE.Target.Target.IsBossFromTTK() || EnkindleSolarBahamutPvE.Target.Target.IsBossFromIcon()) && EnkindleSolarBahamutPvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (EnkindlePhoenixPvE.CanUse(out act))
-            {
-                if ((EnkindlePhoenixPvE.Target.Target.IsBossFromTTK() || EnkindlePhoenixPvE.Target.Target.IsBossFromIcon()) && EnkindlePhoenixPvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (DeathflarePvE.CanUse(out act))
-            {
-                if ((DeathflarePvE.Target.Target.IsBossFromTTK() || DeathflarePvE.Target.Target.IsBossFromIcon()) && DeathflarePvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (SunflarePvE.CanUse(out act))
-            {
-                if ((SunflarePvE.Target.Target.IsBossFromTTK() || SunflarePvE.Target.Target.IsBossFromIcon()) && SunflarePvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
-
-            if (SearingFlashPvE.CanUse(out act))
-            {
-                if ((SearingFlashPvE.Target.Target.IsBossFromTTK() || SearingFlashPvE.Target.Target.IsBossFromIcon()) && SearingFlashPvE.Target.Target.IsDying())
-                {
-                    return true;
-                }
-
-                if (SummonTime > 0f || !SummonBahamutPvE.EnoughLevel)
-                {
-                    return true;
-                }
-            }
+            return true;
         }
-
-        if (MountainBusterPvE.CanUse(out act))
+        if (TryUseEnkindle(out act))
         {
             return true;
         }
 
-        if (PainflarePvE.CanUse(out act))
+        if (TryUseAstralFlow(out act))
         {
-            if ((inSolarUnique && HasSearingLight) || !SearingLightPvE.EnoughLevel)
-            {
-                return true;
-            }
-            if ((PainflarePvE.Target.Target.IsBossFromTTK() || PainflarePvE.Target.Target.IsBossFromIcon()) && PainflarePvE.Target.Target.IsDying())
-            {
-                return true;
-            }
+            return true;
         }
 
-        if (NecrotizePvE.CanUse(out act))
+        if (TryUseSearingFlash(out act))
         {
-            if ((inSolarUnique && HasSearingLight) || !SearingLightPvE.EnoughLevel)
-            {
-                return true;
-            }
-            if ((NecrotizePvE.Target.Target.IsBossFromTTK() || NecrotizePvE.Target.Target.IsBossFromIcon()) && NecrotizePvE.Target.Target.IsDying())
-            {
-                return true;
-            }
-            if (EnergyDrainPvE.Cooldown.WillHaveOneChargeGCD(2))
-            {
-                return true;
-            }
+            return true;
         }
 
-        if (FesterPvE.CanUse(out act))
+        if (TryUseAetherflow(out act))
         {
-            if ((inSolarUnique && HasSearingLight) || !SearingLightPvE.EnoughLevel)
-            {
-                return true;
-            }
-            if ((FesterPvE.Target.Target.IsBossFromTTK() || FesterPvE.Target.Target.IsBossFromIcon()) && FesterPvE.Target.Target.IsDying())
-            {
-                return true;
-            }
-            if (EnergyDrainPvE.Cooldown.WillHaveOneChargeGCD(2))
-            {
-                return true;
-            }
+            return true;
         }
-
-        if (SearingFlashPvE.CanUse(out act))
+        if (MountainBusterPvE.CanUse(out act))
         {
-            if ((SearingFlashPvE.Target.Target.IsBossFromTTK() || SearingFlashPvE.Target.Target.IsBossFromIcon()) && SearingFlashPvE.Target.Target.IsDying())
-            {
-                return true;
-            }
+            return true;
         }
         return base.AttackAbility(nextGCD, out act);
     }
@@ -389,21 +265,7 @@ public sealed class SMN_Reborn : SummonerRotation
             return true;
         }
 
-        if (SummonBahamutPvE.CanUse(out act))
-        {
-            return true;
-        }
-        if (DreadwyrmTrancePvE.CanUse(out act))
-        {
-            return true;
-        }
-
-        if ((HasSearingLight || SearingLightPvE.Cooldown.IsCoolingDown) && SummonBahamutPvE.CanUse(out act))
-        {
-            return true;
-        }
-
-        if (IsBurst && !SearingLightPvE.Cooldown.IsCoolingDown && SummonSolarBahamutPvE.CanUse(out act))
+        if (BigSummonTime(out act))
         {
             return true;
         }
@@ -429,11 +291,6 @@ public sealed class SMN_Reborn : SummonerRotation
         }
 
         if (GemshineTime(out act))
-        {
-            return true;
-        }
-
-        if (!SummonBahamutPvE.EnoughLevel && HasHostilesInRange && AetherchargePvE.CanUse(out act))
         {
             return true;
         }
@@ -569,6 +426,8 @@ public sealed class SMN_Reborn : SummonerRotation
     #endregion
 
     #region Extra Methods
+
+    #region Summons
     private bool TitanTime(out IAction? act)
     {
         if (SummonTitanIiPvE.CanUse(out act))
@@ -719,6 +578,138 @@ public sealed class SMN_Reborn : SummonerRotation
         return false;
     }
 
+    private bool BigSummonTime(out IAction? act)
+    {
+        if (SummonSolarBahamutPvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonBahamutPvE.EnoughLevel && SummonBahamutPvE.CanUse(out act)
+        || !SummonBahamutPvE.EnoughLevel && DreadwyrmTrancePvE.CanUse(out act)
+        || !DreadwyrmTrancePvE.EnoughLevel && HasHostilesInRange && AetherchargePvE.CanUse(out act))
+        {
+            return true;
+        }
+        if (SummonPhoenixPvE.CanUse(out act))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private int BigSummonGCDLeft
+    {
+        get
+        {
+            if (InBigSummon)
+            {
+                var MaxImpulse = Math.Abs((double)SummonTimer / (double)RuinPvE.Cooldown.RecastTime);
+                {
+                    if (MaxImpulse > 0)
+                    {
+                        return (int)(MaxImpulse + 1);
+                    }
+                }
+            }
+            return 0;
+        }
+    }
+    #endregion
+
+    #region oGCDs
+    private bool TryUseEnergyDrain(out IAction? act)
+    {
+        act = null;
+        if (HasAetherflowStacks || !InBigSummon)
+        {
+            return false;
+        }
+        if (BigSummonGCDLeft == 3 && (EnergySiphonPvE.CanUse(out act) || EnergyDrainPvE.CanUse(out act)))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool TryUseSearingLight(out IAction? act)
+    {
+        act = null;
+        if (!BahamutBurst)
+        {
+            return false;
+        }
+        if (BigSummonGCDLeft == 5 && CanLateWeave && SearingLightPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryUseEnkindle(out IAction? act)
+    {
+        act = null;
+        if (!InBigSummon)
+        {
+            return false;
+        }
+        if (BigSummonGCDLeft == 2 && (EnkindleSolarBahamutPvE.CanUse(out act) || EnkindleBahamutPvE.CanUse(out act) || EnkindlePhoenixPvE.CanUse(out act)))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool TryUseAstralFlow(out IAction? act)
+    {
+        act = null;
+        if (!InBigSummon)
+        {
+            return false;
+        }
+        if (BigSummonGCDLeft == 1 && (SunflarePvE.CanUse(out act) || DeathflarePvE.CanUse(out act)))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool TryUseSearingFlash(out IAction? act)
+    {
+        act = null;
+        if (!HasSearingLight)
+        {
+            return false;
+        }
+        if (BigSummonGCDLeft < 1 && SearingFlashPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryUseAetherflow(out IAction? act)
+    {
+        act = null;
+        if (!HasAetherflowStacks)
+        {
+            return false;
+        }
+
+        if ((SummonSolarBahamutPvE.EnoughLevel && InSolar || !SummonSolarBahamutPvE.EnoughLevel && InBahamut) && HasSearingLight || !SearingLightPvE.EnoughLevel)
+        {
+            if (PainflarePvE.CanUse(out act) || NecrotizePvE.CanUse(out act) || FesterPvE.CanUse(out act))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    #endregion
+
+    #region Miscellaneous
     public override bool CanHealSingleSpell
     {
         get
@@ -734,5 +725,7 @@ public sealed class SMN_Reborn : SummonerRotation
             return base.CanHealSingleSpell && (GCDHeal || aliveHealerCount == 0);
         }
     }
+    #endregion
+
     #endregion
 }

@@ -1,6 +1,6 @@
 namespace RotationSolver.RebornRotations.Magical;
 
-[Rotation("Basic BLU", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Basic BLU", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/BasicRotations/Limited Jobs/BLU_Basic.cs")]
 
 public sealed class Blue_Basic : BlueMageRotation

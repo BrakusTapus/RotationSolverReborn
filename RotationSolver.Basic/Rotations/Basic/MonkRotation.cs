@@ -180,6 +180,11 @@ public partial class MonkRotation
     /// </summary>
     public static bool HasWindsRumination => Player.HasStatus(true, StatusID.WindsRumination);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool HasBrotherhood => Player.HasStatus(true, StatusID.Brotherhood);
+
     #endregion
 
     #region PvE Actions Unassignable

@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.Magical;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/RebornRotations/Magical/RDM_Reborn.cs")]
 
 public sealed class RDM_Reborn : RedMageRotation
@@ -231,6 +231,16 @@ public sealed class RDM_Reborn : RedMageRotation
         }
 
         return base.AttackAbility(nextGCD, out act);
+    }
+
+    protected override bool GeneralAbility(IAction nextGCD, out IAction? act)
+    {
+        if (HasEmbolden && InCombat && UseBurstMedicine(out act))
+        {
+            return true;
+        }
+
+        return base.GeneralAbility(nextGCD, out act);
     }
     #endregion
 

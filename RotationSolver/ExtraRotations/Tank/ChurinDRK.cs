@@ -3,17 +3,18 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace RotationSolver.ExtraRotations.Tank;
 
-[Rotation("ChurinDRK", CombatType.PvE, GameVersion = "7.3", Description = "Find it in your heart. You'll need to break past the ribs and then scoop it out, but it's in there, and you need to find it. Quickly.")]
+[Rotation("ChurinDRK", CombatType.PvE, GameVersion = "7.35", Description = "Find it in your heart. You'll need to break past the ribs and then scoop it out, but it's in there, and you need to find it. Quickly.")]
 [SourceCode(Path = "main/ExtraRotations/Tank/ChurinDRK.cs")]
 [ExtraRotation]
 public sealed class ChurinDRK : DarkKnightRotation
 {
     #region Properties
     private static bool HasDisesteem => Player.HasStatus(true, StatusID.Scorn);
-    private bool InBurstWindow => DeliriumPvE.Cooldown.IsCoolingDown && !DeliriumPvE.Cooldown.ElapsedAfter(20) && (LivingShadowPvE.EnoughLevel && ShadowTime is > 0 and < 15 || !LivingShadowPvE.EnoughLevel) || HasBuffs;
+    private bool InBurstWindow => DeliriumPvE.Cooldown.IsCoolingDown && !DeliriumPvE.Cooldown.ElapsedAfter(15) && (LivingShadowPvE.EnoughLevel && ShadowTime is > 0 and < 15 || !LivingShadowPvE.EnoughLevel) || HasBuffs;
     private static bool InOddWindow(IBaseAction action) => action.Cooldown.IsCoolingDown && action.Cooldown.ElapsedAfter(30) && !action.Cooldown.ElapsedAfter(90);
     private static bool CanFitSksGCD(float duration, int extraGCDs = 0) => WeaponRemain + ActionManager.GetAdjustedRecastTime(ActionType.Action, 3617U) * extraGCDs < duration;
     private static bool IsMedicated => Player.HasStatus(true, StatusID.Medicated) && !Player.WillStatusEnd(0, true, StatusID.Medicated);
+    private bool NoCombo => !SyphonStrikePvE.CanUse(out _) && !SouleaterPvE.CanUse(out _);
 
     #region Enums
     private enum MpStrategy
@@ -151,8 +152,10 @@ public sealed class ChurinDRK : DarkKnightRotation
     {
         InitializePotions();
         UpdatePotions();
-        if (remainTime <= 3 && HasTankStance && TheBlackestNightPvE.CanUse(out var act) ||
-            remainTime <= 1 && UnmendPvE.CanUse(out act) || remainTime <= 1 && !HasWeaved() && TryUsePotion(out act))
+        if (remainTime <= 3 && HasTankStance && TheBlackestNightPvE.CanUse(out var act)
+            || remainTime <= 0.98 && CurrentTarget?.DistanceToPlayer() > 3 && UnmendPvE.CanUse(out act)
+            || remainTime <= 0.58 && CurrentTarget?.DistanceToPlayer() <= 3 && HardSlashPvE.CanUse(out act)
+            || remainTime <= 1 && !HasWeaved() && TryUsePotion(out act))
         {
             return act;
         }
@@ -263,9 +266,9 @@ public sealed class ChurinDRK : DarkKnightRotation
         act = null;
         if (!HasDisesteem) return false;
 
-        if ((LivingShadowPvE.Cooldown.ElapsedAfterGCD(3) && CurrentTarget?.DistanceToPlayer() > 3 || LivingShadowPvE.Cooldown.ElapsedAfterGCD(3) || HasBuffs) && LiveComboTime <= 0)
+        if ((LivingShadowPvE.Cooldown.ElapsedAfterGCD(3) && CurrentTarget?.DistanceToPlayer() > 3 || LivingShadowPvE.Cooldown.ElapsedAfterGCD(3) || HasBuffs) && NoCombo)
         {
-            return DisesteemPvE.CanUse(out act, skipComboCheck: true, skipAoeCheck: true);
+            return DisesteemPvE.CanUse(out act);
         }
 
         return false;
@@ -293,7 +296,7 @@ public sealed class ChurinDRK : DarkKnightRotation
             }
         }
 
-        if (HasDelirium && LiveComboTime <= 0)
+        if (HasDelirium && NoCombo)
         {
             return ImpalementReady && ImpalementPvE.CanUse(out act) ||
                    TorcleaverReady && TorcleaverPvE.CanUse(out act, skipComboCheck: true) ||
@@ -306,7 +309,7 @@ public sealed class ChurinDRK : DarkKnightRotation
     private bool TryUseFiller(out IAction? act)
     {
         act = null;
-        if (HasDelirium) return false;
+        if (HasDelirium && NoCombo) return false;
 
         return StalwartSoulPvE.CanUse(out act) ||
                UnleashPvE.CanUse(out act) ||

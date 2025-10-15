@@ -23,7 +23,7 @@ public readonly struct ActionCooldownInfo : ICooldown
     /// <summary>
     /// Gets the total recast time.
     /// </summary>
-    private unsafe float RecastTime => CoolDownDetail == null ? 0 : CoolDownDetail->Total;
+    public unsafe float RecastTime => CoolDownDetail == null ? 0 : CoolDownDetail->Total;
 
     /// <summary>
     /// Gets the elapsed recast time minus the default GCD remain.

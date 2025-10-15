@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.Ranged;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/RebornRotations/Ranged/MCH_Reborn.cs")]
 
 public sealed class MCH_Reborn : MachinistRotation
@@ -14,6 +14,9 @@ public sealed class MCH_Reborn : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "Only use Wildfire on Boss targets")]
     private bool WildfireBoss { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "Restrict mitigations to not overlap")]
+    private bool MitOverlap { get; set; } = false;
     #endregion
 
     #region Countdown logic
@@ -83,9 +86,12 @@ public sealed class MCH_Reborn : MachinistRotation
             return true;
         }
 
-        if (DismantlePvE.CanUse(out act))
+        if (!MitOverlap || (MitOverlap && !Player.HasStatus(true, StatusID.Tactician_1951)))
         {
-            return true;
+            if (DismantlePvE.CanUse(out act))
+            {
+                return true;
+            }
         }
 
         return base.DefenseAreaAbility(nextGCD, out act);
@@ -302,24 +308,20 @@ public sealed class MCH_Reborn : MachinistRotation
         }
 
         // ST Big GCDs
-        if (!SpreadShotPvE.CanUse(out _))
+        if (HotShotMasteryTrait.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
-            // use AirAnchor if possible
-            if (HotShotMasteryTrait.EnoughLevel && AirAnchorPvE.CanUse(out act))
-            {
-                return true;
-            }
+            return true;
+        }
 
-            // for opener: only use the first charge of Drill after AirAnchor when there are two
-            if (DrillPvE.CanUse(out act, usedUp: false))
-            {
-                return true;
-            }
+        // for opener: only use the first charge of Drill after AirAnchor when there are two
+        if (DrillPvE.CanUse(out act, usedUp: false))
+        {
+            return true;
+        }
 
-            if (!HotShotMasteryTrait.EnoughLevel && HotShotPvE.CanUse(out act))
-            {
-                return true;
-            }
+        if (!HotShotMasteryTrait.EnoughLevel && HotShotPvE.CanUse(out act))
+        {
+            return true;
         }
 
         // ChainSaw is always used after Drill

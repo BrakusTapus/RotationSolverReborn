@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace RotationSolver.RebornRotations.Melee;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.31", Description = "Uses Lunar Solar Opener from The Balance")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35", Description = "Uses Lunar Solar Opener from The Balance")]
 [SourceCode(Path = "main/RebornRotations/Melee/MNK_Reborn.cs")]
 
 
@@ -134,6 +134,11 @@ public sealed class MNK_Reborn : MonkRotation
             }
         }
         //if (CombatElapsedLessGCD(1) && TheForbiddenChakraPvE.CanUse(out act)) return true; // if it weaves one day in the future...
+
+        if (HasBrotherhood && InCombat && UseBurstMedicine(out act))
+        {
+            return true;
+        }
 
         return base.EmergencyAbility(nextGCD, out act);
     }

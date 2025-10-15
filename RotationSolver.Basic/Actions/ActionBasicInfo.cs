@@ -1,6 +1,7 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.Logging;
+using ExCSS;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
@@ -171,6 +172,11 @@ public readonly struct ActionBasicInfo
     public bool IsSystemAction { get; }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public bool IsAbility { get; }
+
+    /// <summary>
     /// Determines whether the action is a general global cooldown (GCD) action.
     /// </summary>
     public bool IsGeneralGCD { get; }
@@ -203,6 +209,8 @@ public readonly struct ActionBasicInfo
             is ActionCate.Mount;
         IsSpecialAction = (ActionCate?)_action.Action.ActionCategory.Value.RowId
             is ActionCate.Special;
+        IsAbility = (ActionCate?)_action.Action.ActionCategory.Value.RowId
+            is ActionCate.Ability;
         IsSystemAction = (ActionCate?)_action.Action.ActionCategory.Value.RowId
             is ActionCate.System or ActionCate.System_11;
         IsDutyAction = isDutyAction;
@@ -218,12 +226,29 @@ public readonly struct ActionBasicInfo
     /// <param name="skipCastingCheck">Whether to skip the casting check.</param>
     /// /// <param name="checkActionManager">Whether to check the action manager directly for skills being usable.</param>
     /// <returns>True if the action passes the basic check; otherwise, false.</returns>
-    internal readonly bool BasicCheck(bool skipStatusProvideCheck, bool skipStatusNeed,  bool skipComboCheck, bool skipCastingCheck, bool checkActionManager = false)
+    internal readonly unsafe bool BasicCheck(bool skipStatusProvideCheck, bool skipStatusNeed,  bool skipComboCheck, bool skipCastingCheck, bool checkActionManager = false)
     {
         // 1. Player and action slot checks
         if (Player.Object.StatusList == null)
         {
             return false;
+        }
+
+        var type = ActionHelper.GetActionCate(_action.Action);
+        if (type is ActionCate.Weaponskill)
+        {
+            if (Player.Object.HasStatus(false, StatusID.Pacification_620))
+            {
+                return false;
+            }
+        }
+
+        if (type is ActionCate.Spell)
+        {
+            if (Player.Object.HasStatus(false, StatusID.Silence))
+            {
+                return false;
+            }
         }
 
         if (IsLimitBreak)
@@ -246,6 +271,22 @@ public readonly struct ActionBasicInfo
         if (IsActionDisabled() || !EnoughLevel || !HasEnoughMP())
         {
             return false;
+        }
+
+        if (IsRealGCD)
+        {
+            if (ConfigurationHelper.BadStatusGCD.Contains(ActionManager.Instance()->GetActionStatus(ActionType.Action, AdjustedID)))
+            {
+                return false;
+            }
+        }
+
+        if (IsAbility && !IsRealGCD)
+        {
+            if (ConfigurationHelper.BadStatusAbility.Contains(ActionManager.Instance()->GetActionStatus(ActionType.Ability, AdjustedID)))
+            {
+                return false;
+            }
         }
 
         // Status checks: need or provide

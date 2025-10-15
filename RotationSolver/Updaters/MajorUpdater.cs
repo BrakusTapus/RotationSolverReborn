@@ -18,17 +18,24 @@ internal static class MajorUpdater
     private static bool _shouldRunThisCycle;
     private static bool _isValidThisCycle;
     private static bool _isActivatedThisCycle;
+    private static bool _rotationsLoaded;
 
     public static bool IsValid
     {
         get
         {
             if (!Player.AvailableThreadSafe)
+            {
+                _rotationsLoaded = false;
                 return false;
+            }
 
             // Consider the game valid when not transitioning or logging out.
             if (Svc.Condition[ConditionFlag.BetweenAreas] || Svc.Condition[ConditionFlag.BetweenAreas51] || Svc.Condition[ConditionFlag.LoggingOut])
+            {
+                _rotationsLoaded = false;
                 return false;
+            }
 
             return true;
         }
@@ -70,9 +77,10 @@ internal static class MajorUpdater
             _shouldRunThisCycle = true;
 
             // Opportunistically load rotations if not yet loaded
-            if (_isValidThisCycle)
+            if (_isValidThisCycle && !_rotationsLoaded)
             {
                 RotationUpdater.LoadBuiltInRotations();
+                _rotationsLoaded = true;
             }
         }
         catch (Exception ex)

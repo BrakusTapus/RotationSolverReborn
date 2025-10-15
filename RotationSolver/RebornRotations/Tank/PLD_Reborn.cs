@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.Tank;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.31")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/RebornRotations/Tank/PLD_Reborn.cs")]
 
 
@@ -284,6 +284,11 @@ public sealed class PLD_Reborn : PaladinRotation
         }
 
         if (InCombat && OathGauge >= WhenToSheltron && WhenToSheltron > 0 && UseOath(out act))
+        {
+            return true;
+        }
+
+        if (HasFightOrFlight && InCombat && UseBurstMedicine(out act))
         {
             return true;
         }
