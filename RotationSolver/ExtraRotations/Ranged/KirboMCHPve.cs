@@ -1,4 +1,6 @@
-﻿namespace RotationSolver.ExtraRotations.Ranged;
+﻿// TODO: refine boss logic better
+
+namespace RotationSolver.ExtraRotations.Ranged;
 
 [Rotation("Kirbo", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
@@ -78,17 +80,38 @@ public sealed class KirboMCHPve : MachinistRotation
             return base.DefenseAreaAbility(nextGCD, out act);
         }
 
-        if (TacticianPvE.CanUse(out act))
+        if (TacticianPvE.CanUse(out act) && !TacticianPvE.Target.Target.HasStatus(false, StatusID.ShieldSamba, StatusID.Troubadour, StatusID.Tactician_1951, StatusID.Tactician_2177))
         {
             return true;
         }
 
-        if (DismantlePvE.CanUse(out act))
+        if (DismantlePvE.CanUse(out act) && !DismantlePvE.Target.Target.HasStatus(false, StatusID.Dismantled))
         {
             return true;
         }
 
         return base.DefenseAreaAbility(nextGCD, out act);
+    }
+
+    [RotationDesc(ActionID.TacticianPvE, ActionID.DismantlePvE)]
+    protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? act)
+    {
+        if (IsOverheated || HasWildfire || HasFullMetalMachinist)
+        {
+            return base.DefenseSingleAbility(nextGCD, out act);
+        }
+
+        if (TacticianPvE.CanUse(out act) && !TacticianPvE.Target.Target.HasStatus(false, StatusID.ShieldSamba, StatusID.Troubadour, StatusID.Tactician_1951, StatusID.Tactician_2177))
+        {
+            return true;
+        }
+
+        if (DismantlePvE.CanUse(out act) && !DismantlePvE.Target.Target.HasStatus(false, StatusID.Dismantled))
+        {
+            return true;
+        }
+
+        return base.DefenseSingleAbility(nextGCD, out act);
     }
 
     // Logic for using attack abilities outside of GCD, focusing on burst windows and cooldown management.
