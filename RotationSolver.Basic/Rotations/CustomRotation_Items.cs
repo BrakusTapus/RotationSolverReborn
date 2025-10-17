@@ -38,7 +38,7 @@ public partial class CustomRotation
         act = null;
 
         var target = DataCenter.DeathTarget;
-        if (target == null || !RotationSolver.Basic.Helpers.ObjectHelper.CanBeRaised(target))
+        if (target == null || !ObjectHelper.CanBeRaised(target))
         {
             return false;
         }
@@ -211,7 +211,7 @@ public partial class CustomRotation
         var list = new List<HpPotionItem>();
         foreach (var i in items)
         {
-            if ((i.FilterGroup == 8 && i.ItemSearchCategory.RowId == 43) || i.RowId == 22306)
+            if ((i.FilterGroup == 8 && i.ItemSearchCategory.RowId == 43) || i.RowId == 22306 || i.RowId == 47102)
             {
                 list.Add(new HpPotionItem(i));
             }
@@ -237,7 +237,8 @@ public partial class CustomRotation
         HpPotionItem? best = null;
         foreach (var a in HpPotions)
         {
-            if (a.CanUse(out _, true))
+            bool isDeepDungeons = DataCenter.Territory?.ContentType == TerritoryContentType.DeepDungeons;
+            if (a.CanUse(out _, true) && (a.ID != 47102 || (a.ID == 47102 && isDeepDungeons)))
             {
                 if (best == null || a.MaxHp >= best.MaxHp)
                 {

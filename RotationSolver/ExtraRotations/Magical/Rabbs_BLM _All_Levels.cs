@@ -1,12 +1,28 @@
-﻿using Lumina.Excel.Sheets;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.IoC;
+using Dalamud.Plugin.Services;
+using ECommons.DalamudServices;
+using ECommons.GameFunctions;
+using ECommons.Hooks.ActionEffectTypes;
+using ECommons.Logging;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using Lumina.Excel.Sheets;
 using Lumina.Excel.Sheets.Experimental;
+using Lumina.Text;
+using RotationSolver.UI;
+using RotationSolver.Updaters;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Drawing.Imaging;
+using static ECommons.UIHelpers.AddonMasterImplementations.AddonMaster;
+using static FFXIVClientStructs.FFXIV.Client.Game.Character.ActionEffectHandler;
 
 namespace RotationSolver.ExtraRotations.Magical;
 [Rotation("Rabbs Blackest Mage", CombatType.PvE, GameVersion = "7.3")]
 [SourceCode(Path = "main/ExtraRotations/Magical/Rabbs_BLM_All_Levels.cs")]
 [ExtraRotation]
+
 
 public sealed class Rabbs_BLM : BlackMageRotation
 {
@@ -325,14 +341,14 @@ public sealed class Rabbs_BLM : BlackMageRotation
         {
             if (AllHostileTargets != null)
             {
-                foreach (var centerTarget in AllHostileTargets)
+                foreach (var centerTarget in AllHostileTargets.Where(t => t.DistanceToPlayer() < action.Info.Range && t.CanSee()))
                 {
 
-                        int currentAoeCount = AllHostileTargets.Count(otherTarget =>
-                            Vector3.Distance(centerTarget.Position, otherTarget.Position) < (action.Info.EffectRange + centerTarget.HitboxRadius));
+                    int currentAoeCount = AllHostileTargets.Count(otherTarget =>
+                        Vector3.Distance(centerTarget.Position, otherTarget.Position) < (action.Info.EffectRange + centerTarget.HitboxRadius));
 
-                        maxAoeCount = Math.Max(maxAoeCount, currentAoeCount);
-                    
+                    maxAoeCount = Math.Max(maxAoeCount, currentAoeCount);
+
                 }
             }
         }
@@ -344,6 +360,16 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
         return maxAoeCount;
     }
+
+
+
+
+    
+
+
+
+
+
 
     public bool ShouldTranspose
     {
@@ -400,76 +426,84 @@ public sealed class Rabbs_BLM : BlackMageRotation
             return false;
         }
     }
-        public bool ShouldTransposeLowLevel
+    public bool ShouldTransposeLowLevel
+    {
+        get
         {
-            get
+            if (!TransposePvE.Cooldown.IsCoolingDown)
             {
-                if (!TransposePvE.Cooldown.IsCoolingDown)
+                if (Player.Level < 99)
                 {
-                    if (Player.Level < 99)
+
+                    if (GetAoeCount(FlarePvE) >= 3)
                     {
-
-                        if (GetAoeCount(FlarePvE) >=3)
+                        if (Player.Level >= 26 && Player.Level <= 49)//If Thunder II needs to be refreshed, use the following to generate a fresh Thunderhead proc:Transpose->Fire II x3 > Transpose
                         {
-                            if (Player.Level < 35)// can only get 2 astral fire or umbral ice stacks at these levels
-                                {
-                                if (InAstralFire)
-                                {
-                                    if (CurrentMp < FireIiPvE.Info.MPNeed)
-                                    {
-                                        return true;
-                                    }
-                                }
-                                if (InUmbralIce)
-                                {
-                                    if (CurrentMp == 10000)
-                                    {
-                                        return true;
-                                    }
-                                }
-                            }
-                            if (Player.Level >= 40 && Player.Level <= 49)//If Thunder II needs to be refreshed, use the following to generate a fresh Thunderhead proc:Transpose->Fire II x3 > Transpose
-                            {
 
-                                    if (IsSoulStacksMaxed && MissingThunderAoE && !Player.HasStatus(true, StatusID.Thunderhead) && (InUmbralIce || InAstralFire))
-                                { return true; }
-                            
-                            }
-                            if (Player.Level >= 50 && Player.Level <= 57)//(From Umbral Ice) Freeze x2 > Transpose > Fire II > Flare > Transpose > repeat
+                            if (MissingThunderAoE && !Player.HasStatus(true, StatusID.Thunderhead) && (InUmbralIce || InAstralFire))
+                            { return true; }
+
+                        }
+                        if (Player.Level < 35)// can only get 2 astral fire or umbral ice stacks at these levels
+                        {
+                            if (InAstralFire)
                             {
-                                if (InAstralFire)
+                                if (Player.Level < 18)
                                 {
-                                    if (CurrentMp < FlarePvE.Info.MPNeed)
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
-                                if (InUmbralIce)
+                                if (CurrentMp < FireIiPvE.Info.MPNeed)
                                 {
-                                    if (CurrentMp >= 2300 && UmbralHearts > 0)
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
                             }
-                            if (Player.Level > 57)
+                            if (InUmbralIce)
                             {
-                                if (InAstralFire)
+                                if (Player.Level < 18)
+                                { return false; }
+                                // The MP condition for all levels is checked here.
+                                if (CurrentMp >= 10000 || (Player.Level >= 35 ? CurrentMp > 5000 && Player.IsCasting && UmbralIceStacks == 3 : Player.Level >= 20 ? CurrentMp > 7500 && Player.IsCasting && UmbralIceStacks == 2 : CurrentMp > 7500 && Player.IsCasting && UmbralIceStacks == 1))
                                 {
-                                    if (CurrentMp < FlarePvE.Info.MPNeed)
-                                    {
-                                        return true;
-                                    }
-                                }
-                                if (InUmbralIce)
-                                {
-                                    if (CurrentMp >= 2300 && UmbralHearts > 0)
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
                             }
                         }
+
+                        if (Player.Level >= 50 && Player.Level <= 57)//(From Umbral Ice) Freeze x2 > Transpose > Fire II > Flare > Transpose > repeat
+                        {
+                            if (InAstralFire)
+                            {
+                                if (CurrentMp < FlarePvE.Info.MPNeed)
+                                {
+                                    return true;
+                                }
+                            }
+                            if (InUmbralIce)
+                            {
+                                if (CurrentMp >= 2300 && UmbralHearts > 0)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        if (Player.Level > 57)
+                        {
+                            if (InAstralFire)
+                            {
+                                if (CurrentMp < FlarePvE.Info.MPNeed)
+                                {
+                                    return true;
+                                }
+                            }
+                            if (InUmbralIce)
+                            {
+                                if (CurrentMp >= 2300 && UmbralHearts > 0)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
 
                     //single target situation
                     if (GetAoeCount(FlarePvE) < 3)
@@ -485,7 +519,8 @@ public sealed class Rabbs_BLM : BlackMageRotation
                             }
                             if (InUmbralIce)
                             {
-                                if (CurrentMp == 10000)
+                                // The MP condition for all levels is checked here.
+                                if (CurrentMp >= 10000 || (Player.Level >= 35 ? CurrentMp > 5000 && Player.IsCasting && UmbralIceStacks == 3 : Player.Level >= 20 ? CurrentMp > 7500 && Player.IsCasting && UmbralIceStacks == 2 : CurrentMp > 7500 && Player.IsCasting && UmbralIceStacks == 1))
                                 {
                                     return true;
                                 }
@@ -503,20 +538,20 @@ public sealed class Rabbs_BLM : BlackMageRotation
                         }
                     }
 
-                        // General combat downtime check
-                        if (GetTimeSinceNoHostilesInCombat() > 5f)
+                    // General combat downtime check
+                    if (GetTimeSinceNoHostilesInCombat() > 5f)
+                    {
+                        if (InAstralFire && CurrentMp < 10000)
                         {
-                            if (InAstralFire && CurrentMp < 10000)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
-
-                return false;
             }
+
+            return false;
         }
+    }
 
     public bool ShouldXeno
     {
@@ -752,8 +787,28 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
             }
         }
+        if (Player.Level < 100)
+        {
+            if (!IsPolyglotStacksMaxed)
+            {
+                if (AmplifierPvE.CanUse(out act)) return true;
+            }
+            if (!ManafontPvE.Cooldown.IsCoolingDown && CurrentMp < 800 && InAstralFire)
+            {
+                if (ManafontPvE.CanUse(out act, skipCastingCheck: true, skipComboCheck: true, skipAoeCheck: true, skipStatusProvideCheck: true, skipTargetStatusNeedCheck: true, skipTTKCheck: true, usedUp: true)) return true;
+            }
+            if (IsLastAction(true,DespairPvE) && ManafontPvE.Cooldown.IsCoolingDown && !NextGCDisInstant)
+            {
+                if (SwiftcastPvE.CanUse(out act)) return true;
+            }
+            if (InAstralFire && ManafontPvE.Cooldown.IsCoolingDown && CurrentMp < 5000)
+            {
+                if (LucidDreamingPvE.CanUse(out act)) return true;
+            }
 
-        return base.AttackAbility(nextGCD, out act);
+        }
+
+            return base.AttackAbility(nextGCD, out act);
     }
     #endregion
 
@@ -765,8 +820,32 @@ public sealed class Rabbs_BLM : BlackMageRotation
         //var recentActions = RecordActions.Take(4);
         //var lastAction = RecordActions.FirstOrDefault(); // Get the first (most recent) action, or null if the list is empty
 
-        if(Player.Level < 100)
+        if (Player.Level < 100)
         {
+            if ((InCombat && GetTimeSinceNoHostilesInCombat() > 5f) || (!InCombat && TimeSinceLastAction.TotalSeconds > 4.5))
+            {
+                if (InUmbralIce && Player.Level >= 58)
+                {
+                    if (UmbralIceStacks < 3 || UmbralHearts < 3)
+                    {
+                        if (UmbralSoulPvE.CanUse(out act)) return true;
+                    }
+                }
+                if (InUmbralIce && Player.Level >= 35)
+                {
+                    if (CurrentMp < Player.MaxMp)
+                    {
+                        if (UmbralSoulPvE.CanUse(out act)) return true;
+                    }
+                }
+                if (InAstralFire)
+                {
+                    if ((InCombat && GetTimeSinceNoHostilesInCombat() > 5f) || (!InCombat && TimeSinceLastAction.TotalSeconds > 4.5))
+                    {
+                        if (TransposePvE.CanUse(out act)) return true;
+                    }
+                }
+            }
             if (ShouldThunder)
             {
                 if (ThunderIiPvE.CanUse(out act)) return true;
@@ -774,16 +853,18 @@ public sealed class Rabbs_BLM : BlackMageRotation
             }
             if (!InUmbralIce && !InAstralFire) // assume just starting dungeon or death
             {
-                
+
                 if (GetAoeCount(FlarePvE) >= 3)
                 {
                     if (CurrentMp == 10000)
                     {
-                        if (FireIiPvE.CanUse(out act)) return true;
+                        if (FireIiPvE.CanUse(out act, skipAoeCheck: true)) return true;
+                        if (FirePvE.CanUse(out act, skipAoeCheck: true)) return true;
                     }
                     if (CurrentMp < 10000)
                     {
-                        if (BlizzardIiPvE.CanUse(out act)) return true;
+                        if (BlizzardIiPvE.CanUse(out act, skipAoeCheck: true)) return true;
+                        if (BlizzardPvE.CanUse(out act, skipAoeCheck: true)) return true;
                     }
                 }
                 if (GetAoeCount(FlarePvE) < 3)
@@ -806,28 +887,31 @@ public sealed class Rabbs_BLM : BlackMageRotation
                 if (ShouldTransposeLowLevel)
                 {
                     if (TransposePvE.CanUse(out act)) return true;
+                    else return false;
                 }
                 if (GetAoeCount(FlarePvE) >= 3)
                 {
+
                     if (Player.Level < 58)
                     {
-                        if (FoulPvE.CanUse(out act)) return true;
+                        if (FoulPvE.CanUse(out act, skipAoeCheck: true)) return true;
                         if (CurrentMp < FireIiPvE.Info.MPNeed)
                         {
-                            if (FlarePvE.CanUse(out act)) return true;
+                            if (FlarePvE.CanUse(out act, skipAoeCheck: true)) return true;
                         }
                     }
                     if (Player.Level >= 58)
                     {
-                        if (FlarePvE.CanUse(out act)) return true;
+                        if (FlarePvE.CanUse(out act, skipAoeCheck: true)) return true;
                     }
 
-                    if (FireIiPvE.CanUse(out act)) return true;
+                    if (FireIiPvE.CanUse(out act, skipAoeCheck: true)) return true;
+                    if (FirePvE.CanUse(out act, skipAoeCheck: true)) return true;
                 }
                 if (GetAoeCount(FlarePvE) < 3)
                 {
-                    
-                    if (ParadoxPvE.CanUse(out act)&& ParadoxPvEReady) return true;
+
+                    if (ParadoxPvE.CanUse(out act) && ParadoxPvEReady) return true;
                     if (CurrentMp < FireIvPvE.Info.MPNeed)
                     {
                         if (DespairPvE.CanUse(out act)) return true;
@@ -839,7 +923,7 @@ public sealed class Rabbs_BLM : BlackMageRotation
                             if (BlizzardIiiPvE.CanUse(out act)) return true;
                         }
                     }
-                    if (Player.Level >=60)
+                    if (Player.Level >= 60)
                     {
                         if (CurrentMp < FireIvPvE.Info.MPNeed)
                         {
@@ -856,35 +940,41 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
             if (InUmbralIce)
             {
+
                 if (ShouldTransposeLowLevel)
                 {
-                    if (TransposePvE.CanUse(out act)) return true;
+                    act = TransposePvE;
+                    return true;
                 }
-                if (GetAoeCount(FlarePvE) >= 3)
+                if ((!TransposePvE.Cooldown.IsCoolingDown || CurrentMp < 5000))
+                { 
+                if (GetAoeCount(FlarePvE) >= 3 && !ShouldTransposeLowLevel)
                 {
-                    if (FreezePvE.CanUse(out act)) return true;
-                    if (BlizzardIiPvE.CanUse(out act)) return true;
+                    
+                    if (FreezePvE.CanUse(out act, skipAoeCheck: true)) return true;
+                    if (BlizzardIiPvE.CanUse(out act, skipAoeCheck: true)) return true;
                 }
-                if (GetAoeCount(FlarePvE) < 3)
-                {
-                    if (BlizzardIvPvE.CanUse(out act) && IsSoulStacksMaxed) return true;
-                    if (Player.Level < 35)
+                    if (GetAoeCount(FlarePvE) < 3 && !ShouldTransposeLowLevel)
                     {
-                        if (CurrentMp < 10000)
+                        if (BlizzardIvPvE.CanUse(out act) && IsSoulStacksMaxed) return true;
+                        if (Player.Level < 35)
                         {
+                            if (CurrentMp < 10000)
+                            {
+                                if (BlizzardIiiPvE.CanUse(out act)) return true;
+                                if (BlizzardPvE.CanUse(out act)) return true;
+                            }
+
+                        }
+                        if (Player.Level >= 35 && Player.Level < 99)
+                        {
+                            if (IsSoulStacksMaxed && CurrentMp == 10000 && (Player.Level < 58 || UmbralHearts > 0))
+                            {
+                                if (FireIiiPvE.CanUse(out act)) return true;
+                            }
                             if (BlizzardIiiPvE.CanUse(out act)) return true;
                             if (BlizzardPvE.CanUse(out act)) return true;
                         }
-
-                    }
-                    if (Player.Level >= 35 && Player.Level < 99)
-                    {
-                        if (IsSoulStacksMaxed && CurrentMp == 10000 && (Player.Level < 58|| UmbralHearts > 0))
-                        {
-                            if (FireIiiPvE.CanUse(out act)) return true;
-                        }
-                        if (BlizzardIiiPvE.CanUse(out act)) return true;
-                        if (BlizzardPvE.CanUse(out act)) return true;
                     }
                 }
             }
@@ -1128,13 +1218,20 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
     #endregion
 
+
     public unsafe override void DisplayRotationStatus()
     {
         //motif
         ImGui.Text("GCDTime " + GCDTime());
-        ImGui.Text("IsSoulStacksMaxed " + IsSoulStacksMaxed);
+        ImGui.Text($"Last Action: {RecordActions?.FirstOrDefault()?.Action.RowId}");
+        ImGui.Text(" currentmp " + CurrentMp);
+        ImGui.Text(" Player.CurrentMP " + Player.CurrentMp);
+        ImGui.Text("iscasting " + Player.IsCasting);
         ImGui.Text("FlareAoeNumber " + GetAoeCount(FlarePvE));
         ImGui.Text("falre aoe range " + FlarePvE.Info.EffectRange);
+        ImGui.Text("Player.BaseCastTime " + Player.BaseCastTime);
+        ImGui.Text("Player.CurrentCastTime) " + Player.CurrentCastTime);
+        ImGui.Text("Player.TotalCastTime " + Player.TotalCastTime);
 
         base.DisplayRotationStatus();
     }

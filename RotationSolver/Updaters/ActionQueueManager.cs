@@ -136,29 +136,29 @@ namespace RotationSolver.Updaters
             if (actionSheet == null) return false;
 
             var action = actionSheet.GetRow(actionId);
-            var type = action.ActionCategory.Value.RowId;
+            var type = ActionHelper.GetActionCate(action);
 
-            if (type == 0) // ActionCate.None
+            if (type == ActionCate.None)
             {
                 return false;
             }
 
-            if (type == 1) // ActionCate.Autoattack
+            if (type == ActionCate.Autoattack)
             {
                 return false;
             }
 
-            if (!Service.Config.InterceptSpell2 && type == 2) // ActionCate.Spell
+            if (!Service.Config.InterceptSpell2 && type == ActionCate.Spell)
             {
                 return false;
             }
 
-            if (!Service.Config.InterceptWeaponskill2 && type == 3) // ActionCate.Weaponskill
+            if (!Service.Config.InterceptWeaponskill2 && type == ActionCate.Weaponskill)
             {
                 return false;
             }
 
-            if (!Service.Config.InterceptAbility2 && type == 4) // ActionCate.Ability
+            if (!Service.Config.InterceptAbility2 && type == ActionCate.Ability)
             {
                 return false;
             }

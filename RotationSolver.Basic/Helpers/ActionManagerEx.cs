@@ -2,6 +2,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using ECommons.Logging;
 using RotationSolver.Basic.Tweaks;
 using System.Diagnostics;
+using ECommons.GameHelpers;
 
 namespace RotationSolver.Basic.Helpers;
 
@@ -53,7 +54,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _frameDeltaSec = Math.Clamp(dt, 0f, 0.25f);
         _stopwatch.Restart();
         
-        var currentAnimLock = _actionManager->AnimationLock;
+        var currentAnimLock = Player.AnimationLock;
         
         _lastAnimationLock = currentAnimLock;
     }
@@ -70,7 +71,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_actionManager == null) return false;
         
         // Record current state for tweaks
-        var prevAnimLock = _actionManager->AnimationLock;
+        var prevAnimLock = Player.AnimationLock;
         var prevCooldown = GetRemainingCooldown(actionType, actionId);
         
         // Start cooldown adjustment if enabled
@@ -90,7 +91,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
             // Record the initial animation lock bump after a successful use
             if (Service.Config.RemoveAnimationLockDelay)
             {
-                var initAnimLock = _actionManager->AnimationLock;
+                var initAnimLock = Player.AnimationLock;
                 if (initAnimLock > prevAnimLock)
                 {
                     _animLockTweak.RecordRequest((uint)expectedSequence, initAnimLock);
@@ -121,7 +122,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_actionManager == null || location == null) return false;
         
         // Record current state for tweaks
-        var prevAnimLock = _actionManager->AnimationLock;
+        var prevAnimLock = Player.AnimationLock;
         var prevCooldown = GetRemainingCooldown(actionType, actionId);
         
         // Start cooldown adjustment if enabled
@@ -141,7 +142,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
             // Record the initial animation lock bump after a successful use
             if (Service.Config.RemoveAnimationLockDelay)
             {
-                var initAnimLock = _actionManager->AnimationLock;
+                var initAnimLock = Player.AnimationLock;
                 if (initAnimLock > prevAnimLock)
                 {
                     _animLockTweak.RecordRequest((uint)expectedSequence, initAnimLock);
@@ -169,13 +170,13 @@ public sealed unsafe class ActionManagerEx : IDisposable
         // Apply animation lock reduction
         if (Service.Config.RemoveAnimationLockDelay && prevAnimLock > 0)
         {
-            var currentAnimLock = _actionManager->AnimationLock;
+            var currentAnimLock = Player.AnimationLock;
             var reduction = _animLockTweak.Apply(expectedSequence, prevAnimLock, currentAnimLock, currentAnimLock, currentAnimLock, out var delay);
             
             // Apply the reduction to the current animation lock
             if (reduction > 0)
             {
-_actionManager->AnimationLock = Math.Max(0, currentAnimLock - reduction);
+                _actionManager->AnimationLock = Math.Max(0, currentAnimLock - reduction);
                 if (Service.Config.InDebug)
                 {
                     PluginLog.Debug($"[ActionManagerEx] Reduced animation lock by {reduction:f3}s (delay: {delay:f3}s)");
@@ -188,7 +189,7 @@ _actionManager->AnimationLock = Math.Max(0, currentAnimLock - reduction);
         {
             // Note: In a full implementation, we would need to adjust specific action cooldowns
             // This is a simplified version that demonstrates the concept
-if (Service.Config.InDebug)
+            if (Service.Config.InDebug)
             {
                 PluginLog.Debug($"[ActionManagerEx] Cooldown adjustment: {_cooldownTweak.Adjustment:f3}s");
             }

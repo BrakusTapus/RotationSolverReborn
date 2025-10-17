@@ -239,7 +239,7 @@ public readonly struct ActionCooldownInfo : ICooldown
 
         if (!_action.Info.IsRealGCD)
         {
-            if (Player.AnimationLock > 0)
+            if (Player.AnimationLock > 0f)
             {
                 return false;
             }
