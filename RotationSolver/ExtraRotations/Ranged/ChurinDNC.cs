@@ -38,7 +38,18 @@ public sealed class ChurinDNC : DancerRotation
     private static bool HasAnyProc => Player.HasStatus(true, StatusID.SilkenFlow, StatusID.SilkenSymmetry, StatusID.FlourishingFlow, StatusID.FlourishingSymmetry);
     private static bool HasFinishingMove => Player.HasStatus(true, StatusID.FinishingMoveReady) && !Player.WillStatusEnd(0, true, StatusID.FinishingMoveReady);
     private static bool HasStarfall => HasFlourishingStarfall && !Player.WillStatusEnd(0, true, StatusID.FlourishingStarfall);
-    private static bool AreDanceTargetsInRange => AllHostileTargets.Any(target => target.DistanceToPlayer() <= DanceTargetRange);
+    private static bool AreDanceTargetsInRange
+    {
+        get
+        {
+            if (AllHostileTargets == null) return false;
+            foreach (var target in AllHostileTargets)
+            {
+                if (target.DistanceToPlayer() <= DanceTargetRange) return true;
+            }
+            return false;
+        }
+    }
     private static bool ShouldSwapDancePartner => CurrentDancePartner != null && (CurrentDancePartner.HasStatus(false, StatusID.Weakness, StatusID.DamageDown, StatusID.BrinkOfDeath, StatusID.DamageDown_2911) || CurrentDancePartner.IsDead);
     #endregion
 
@@ -291,6 +302,13 @@ public sealed class ChurinDNC : DancerRotation
 
     #endregion
 
+    private static bool HasAnyPartyMembers()
+    {
+        if (PartyMembers == null) return false;
+        foreach (var _ in PartyMembers) return true;
+        return false;
+    }
+
     #region oGCD Logic
 
     /// Override the method for handling emergency abilities
@@ -367,7 +385,7 @@ public sealed class ChurinDNC : DancerRotation
     {
         act = null;
         if (Player.HasStatus(true, StatusID.ClosedPosition)
-        || !PartyMembers.Any()
+        || PartyMembers == null || !HasAnyPartyMembers()
         || !ClosedPositionPvE.IsEnabled)
         {
             return false;

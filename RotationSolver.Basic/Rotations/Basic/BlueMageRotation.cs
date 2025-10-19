@@ -972,7 +972,19 @@ public partial class BlueMageRotation
     {
         setting.IsFriendly = true;
         setting.StatusProvide = [StatusID.BasicInstinct];
-        setting.ActionCheck = () => IsInDuty && PartyMembers.Count() <= 1 && DataCenter.Territory?.ContentType != TerritoryContentType.TheMaskedCarnivale;
+        setting.ActionCheck = () =>
+        {
+            int pmCount = 0;
+            if (PartyMembers != null)
+            {
+                foreach (var _ in PartyMembers)
+                {
+                    pmCount++;
+                    if (pmCount > 1) break;
+                }
+            }
+            return IsInDuty && pmCount <= 1 && DataCenter.Territory?.ContentType != TerritoryContentType.TheMaskedCarnivale;
+        };
     }
 
     static partial void ModifyUltravibrationPvE(ref ActionSetting setting)

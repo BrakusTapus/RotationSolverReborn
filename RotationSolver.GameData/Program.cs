@@ -104,10 +104,16 @@ public class Program
 
             """;
 
-            var rotations = gameData.GetExcelSheet<ClassJob>()!
-                .Where(job => job.JobIndex > 0)
-                .Select(job => new RotationGetter(gameData, job).GetCode());
-            res.AddResource("Rotation", header + string.Join("\n\n", rotations));
+            var rotationsSheet = gameData.GetExcelSheet<ClassJob>()!;
+            var rotationList = new List<string>();
+            foreach (var job in rotationsSheet)
+            {
+                if (job.JobIndex > 0)
+                {
+                    rotationList.Add(new RotationGetter(gameData, job).GetCode());
+                }
+            }
+            res.AddResource("Rotation", header + string.Join("\n\n", rotationList));
 
             using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
             var result = await client.GetAsync("https://raw.githubusercontent.com/karashiiro/FFXIVOpcodes/master/opcodes.json");
@@ -115,21 +121,30 @@ public class Program
             if (result.StatusCode != HttpStatusCode.OK) return;
             var responseStream = await result.Content.ReadAsStringAsync();
 
-            var strs = JToken.Parse(responseStream)[0]!["lists"]!.Children()
-                .SelectMany(i => i.Children()).SelectMany(i => i.Children()).Cast<JObject>()
-                .Select(i =>
+            var root = JToken.Parse(responseStream)[0]!["lists"]!;
+            var strs = new List<string>();
+            foreach (var level1 in root.Children())
+            {
+                foreach (var level2 in level1.Children())
                 {
-                    var name = ((JValue)i["name"]!).Value as string;
-                    var description = name!.Space();
+                    foreach (var tok in level2.Children())
+                    {
+                        if (tok is JObject i)
+                        {
+                            var name = ((JValue)i["name"]!).Value as string;
+                            var description = name!.Space();
 
-                    return $$"""
+                            strs.Add($$"""
                     /// <summary>
                     ///{{description}}
                     /// </summary>
                     [Description("{{description}}")]
                     {{name}} = {{((JValue)i["opcode"]!).Value}},
-                    """;
-                });
+                    """);
+                        }
+                    }
+                }
+            }
             res.AddResource("OpCode", string.Join("\n", strs));
 
             res.Generate();

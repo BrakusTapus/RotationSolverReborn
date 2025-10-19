@@ -44,7 +44,12 @@ internal class TraitRotationGetter : ExcelRowGetter<Trait>
         if (item.ClassJob.RowId == 0) return false;
         var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
-        if (!name.All(char.IsAscii)) return false;
+        bool allAscii = true;
+        foreach (char c in name)
+        {
+            if (!char.IsAscii(c)) { allAscii = false; break; }
+        }
+        if (!allAscii) return false;
         if (item.Icon == 0) return false;
 
         var category = item.ClassJob.Value;

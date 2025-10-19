@@ -46,10 +46,7 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
 
         // Walk visible hotbars and apply per-slot reddening
         int hotBarIndex = 0;
-        foreach (nint intPtr in GetAddons<AddonActionBar>()
-            .Union(GetAddons<AddonActionBarX>())
-            .Union(GetAddons<AddonActionCross>())
-            .Union(GetAddons<AddonActionDoubleCrossBase>()))
+        foreach (nint intPtr in EnumerateHotbarAddons())
         {
             var actionBar = (AddonActionBarBase*)intPtr;
             if (actionBar == null || !IsVisible(actionBar->AtkUnitBase))
@@ -149,10 +146,7 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
 
     private static unsafe void ResetAllHotbarIconColors()
     {
-        foreach (nint intPtr in GetAddons<AddonActionBar>()
-            .Union(GetAddons<AddonActionBarX>())
-            .Union(GetAddons<AddonActionCross>())
-            .Union(GetAddons<AddonActionDoubleCrossBase>()))
+        foreach (nint intPtr in EnumerateHotbarAddons())
         {
             var actionBar = (AddonActionBarBase*)intPtr;
             if (actionBar == null || !IsVisible(actionBar->AtkUnitBase))
@@ -185,6 +179,14 @@ public sealed class HotbarDisabledColor : DrawingHighlightHotbarBase
             node = node->ParentNode;
         }
         return true;
+    }
+
+    private static IEnumerable<nint> EnumerateHotbarAddons()
+    {
+        foreach (var a in GetAddons<AddonActionBar>()) yield return a;
+        foreach (var a in GetAddons<AddonActionBarX>()) yield return a;
+        foreach (var a in GetAddons<AddonActionCross>()) yield return a;
+        foreach (var a in GetAddons<AddonActionDoubleCrossBase>()) yield return a;
     }
 
     private static HashSet<uint> CollectDisabledActionIds()

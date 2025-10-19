@@ -35,8 +35,12 @@ internal class StatusGetter(Lumina.GameData gameData)
         }
 
         // Perform usual checks for statuses with a name
-        return name.All(char.IsAscii) &&
-               item.Icon != 0;
+        bool allAscii = true;
+        foreach (char c in name)
+        {
+            if (!char.IsAscii(c)) { allAscii = false; break; }
+        }
+        return allAscii && item.Icon != 0;
     }
 
     /// <summary>

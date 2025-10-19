@@ -90,16 +90,35 @@ public class RotationDescAttribute : Attribute
 
     internal static IEnumerable<RotationDescAttribute[]> Merge(IEnumerable<RotationDescAttribute?> rotationDescAttributes)
     {
-        return from r in rotationDescAttributes
-               where r is not null
-               group r by r.Type into gr
-               orderby gr.Key
-               select gr.ToArray();
+        if (rotationDescAttributes == null)
+        {
+            yield break;
+        }
+
+        var dict = new Dictionary<DescType, List<RotationDescAttribute>>();
+        foreach (var r in rotationDescAttributes)
+        {
+            if (r == null) continue;
+            if (!dict.TryGetValue(r.Type, out var list))
+            {
+                list = new List<RotationDescAttribute>();
+                dict[r.Type] = list;
+            }
+            list.Add(r);
+        }
+
+        var keys = new List<DescType>(dict.Keys);
+        keys.Sort();
+        foreach (var k in keys)
+        {
+            yield return dict[k].ToArray();
+        }
     }
 
     internal static RotationDescAttribute? MergeToOne(IEnumerable<RotationDescAttribute> rotationDescAttributes)
     {
         RotationDescAttribute result = new();
+        var actionSet = new HashSet<ActionID>();
         foreach (RotationDescAttribute attr in rotationDescAttributes)
         {
             if (attr == null)
@@ -115,9 +134,16 @@ public class RotationDescAttribute : Attribute
             {
                 result.Type = attr.Type;
             }
-            result.Actions = result.Actions.Union(attr.Actions);
+            if (attr.Actions != null)
+            {
+                foreach (var a in attr.Actions)
+                {
+                    actionSet.Add(a);
+                }
+            }
         }
 
+        result.Actions = [.. actionSet];
         return result.Type == DescType.None ? null : result;
     }
 }

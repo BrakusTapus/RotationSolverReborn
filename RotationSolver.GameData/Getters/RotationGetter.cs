@@ -93,17 +93,15 @@ internal class RotationGetter
             var jobCategory = job.ClassJobCategory.Value;
 
             // Find PvP Limit Break actions (ActionCategory.RowId == 15)
-            var pvpLimitBreaks = actionSheet.Where(action =>
-                action.ActionCategory.RowId == 15 &&
-                action.ClassJobCategory.IsValid &&
-                action.IsPvP);
-
             // Check each PvP LB to see if it matches this job
-            foreach (var action in pvpLimitBreaks)
+            foreach (var action in actionSheet)
             {
-                if (IsJobCompatible(action.ClassJobCategory.Value, job))
+                if (action.ActionCategory.RowId == 15 && action.ClassJobCategory.IsValid && action.IsPvP)
                 {
-                    return action;
+                    if (IsJobCompatible(action.ClassJobCategory.Value, job))
+                    {
+                        return action;
+                    }
                 }
             }
 

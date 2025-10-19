@@ -1,28 +1,12 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.IoC;
-using Dalamud.Plugin.Services;
-using ECommons.DalamudServices;
-using ECommons.GameFunctions;
-using ECommons.Hooks.ActionEffectTypes;
-using ECommons.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using Lumina.Excel.Sheets;
+﻿using Lumina.Excel.Sheets;
 using Lumina.Excel.Sheets.Experimental;
-using Lumina.Text;
-using RotationSolver.UI;
-using RotationSolver.Updaters;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.Drawing.Imaging;
-using static ECommons.UIHelpers.AddonMasterImplementations.AddonMaster;
-using static FFXIVClientStructs.FFXIV.Client.Game.Character.ActionEffectHandler;
 
 namespace RotationSolver.ExtraRotations.Magical;
 [Rotation("Rabbs Blackest Mage", CombatType.PvE, GameVersion = "7.3")]
 [SourceCode(Path = "main/ExtraRotations/Magical/Rabbs_BLM_All_Levels.cs")]
 [ExtraRotation]
-
 
 public sealed class Rabbs_BLM : BlackMageRotation
 {
@@ -101,11 +85,10 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
     private readonly Lazy<IBaseAction> _AltFlareOpenerPvE = new(static delegate
     {
-        IBaseAction action460 = new BaseAction(ActionID.FlarePvE);
-        Basic.Actions.ActionSetting setting460 = action460.Setting;
+        Basic.Actions.ActionSetting setting460 = new BaseAction(ActionID.FlarePvE).Setting;
         ModifyAltFlareOpenerPvE(ref setting460);
-        action460.Setting = setting460;
-        return action460;
+        new BaseAction(ActionID.FlarePvE).Setting = setting460;
+        return new BaseAction(ActionID.FlarePvE);
     });
 
     private static readonly HashSet<uint> burstStatusIds =
@@ -146,11 +129,11 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
     #region underhood stuff
     // Centralize Thunder DoT IDs in one place so we don’t repeat them.
-    private static readonly StatusID[] ThunderStatusIds = new[]
-    {
+    private static readonly StatusID[] ThunderStatusIds =
+    [
     StatusID.Thunder, StatusID.ThunderIi, StatusID.ThunderIii, StatusID.ThunderIv,
     StatusID.HighThunder_3872, StatusID.HighThunder
-    };
+    ];
 
     /// <summary>
     /// Time remaining on Thunder DoT for the current target. 
@@ -161,11 +144,11 @@ public sealed class Rabbs_BLM : BlackMageRotation
             ? Target.StatusTime(true, ThunderStatusIds)
             : null;
 
-    public bool TargetHasThunderDebuff => ThunderDuration.HasValue;
+    public static bool TargetHasThunderDebuff => ThunderDuration.HasValue;
 
-    public bool ThunderBuffAboutToFallOff => ThunderDuration is < 3.0;
+    public static bool ThunderBuffAboutToFallOff => ThunderDuration is < 3.0;
 
-    public bool ThunderBuffMoreThan10 => ThunderDuration is > 10.0;
+    public static bool ThunderBuffMoreThan10 => ThunderDuration is > 10.0;
 
     /// <summary>
     /// Checks if the Thunder DoT is missing on at least 3 enemies within AoE range.
@@ -343,33 +326,34 @@ public sealed class Rabbs_BLM : BlackMageRotation
             {
                 foreach (var centerTarget in AllHostileTargets.Where(t => t.DistanceToPlayer() < action.Info.Range && t.CanSee()))
                 {
-
-                    int currentAoeCount = AllHostileTargets.Count(otherTarget =>
-                        Vector3.Distance(centerTarget.Position, otherTarget.Position) < (action.Info.EffectRange + centerTarget.HitboxRadius));
+                    int currentAoeCount = 0;
+                    foreach (var otherTarget in AllHostileTargets)
+                    {
+                        if (Vector3.Distance(centerTarget.Position, otherTarget.Position) < (action.Info.EffectRange + centerTarget.HitboxRadius))
+                        {
+                            currentAoeCount++;
+                        }
+                    }
 
                     maxAoeCount = Math.Max(maxAoeCount, currentAoeCount);
-
                 }
             }
         }
         else if (AllHostileTargets != null && CurrentTarget != null) // Use action.Target.Target
         {
-            maxAoeCount = AllHostileTargets.Count(otherTarget =>
-                Vector3.Distance(CurrentTarget.Position, otherTarget.Position) < (action.Info.EffectRange + otherTarget.HitboxRadius));
+            int count = 0;
+            foreach (var otherTarget in AllHostileTargets)
+            {
+                if (Vector3.Distance(CurrentTarget.Position, otherTarget.Position) < (action.Info.EffectRange + otherTarget.HitboxRadius))
+                {
+                    count++;
+                }
+            }
+            maxAoeCount = count;
         }
 
         return maxAoeCount;
     }
-
-
-
-
-    
-
-
-
-
-
 
     public bool ShouldTranspose
     {
@@ -815,8 +799,8 @@ public sealed class Rabbs_BLM : BlackMageRotation
     #region GCD Logic
     protected override bool GeneralGCD(out IAction? act)
     {
-        var isTargetBoss = CurrentTarget?.IsBossFromTTK() ?? false;
-        var isTargetDying = CurrentTarget?.IsDying() ?? false;
+        //var isTargetBoss = CurrentTarget?.IsBossFromTTK() ?? false;
+        //var isTargetDying = CurrentTarget?.IsDying() ?? false;
         //var recentActions = RecordActions.Take(4);
         //var lastAction = RecordActions.FirstOrDefault(); // Get the first (most recent) action, or null if the list is empty
 
@@ -1217,7 +1201,6 @@ public sealed class Rabbs_BLM : BlackMageRotation
 
 
     #endregion
-
 
     public unsafe override void DisplayRotationStatus()
     {

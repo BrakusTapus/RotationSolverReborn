@@ -88,7 +88,13 @@ namespace RotationSolver.SourceGenerators
                 if (strs.Length < 2) return str;
                 str = strs[0];
 
-                str += "<" + string.Join(", ", symbolType.TypeArguments.Select(p => p.GetFullMetadataName())) + ">";
+                var sb2 = new StringBuilder();
+                for (int i = 0; i < symbolType.TypeArguments.Length; i++)
+                {
+                    if (i > 0) sb2.Append(", ");
+                    sb2.Append(symbolType.TypeArguments[i].GetFullMetadataName());
+                }
+                str += "<" + sb2.ToString() + ">";
             }
             return str;
         }
@@ -107,7 +113,12 @@ namespace RotationSolver.SourceGenerators
         /// <returns>The PascalCase string.</returns>
         public static string ToPascalCase(this string input)
         {
-            return string.Join(".", input.Split('.').Select(ConvertToPascalCase));
+            var parts = input.Split('.');
+            for (int i = 0; i < parts.Length; i++)
+            {
+                parts[i] = ConvertToPascalCase(parts[i]);
+            }
+            return string.Join(".", parts);
 
             static string ConvertToPascalCase(string input)
             {
@@ -118,14 +129,19 @@ namespace RotationSolver.SourceGenerators
                 Regex lowerCaseNextToNumber = new("(?<=[0-9])[a-z]");
                 Regex upperCaseInside = new("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))");
 
-                var pascalCase = invalidCharsRgx.Replace(whiteSpace.Replace(input, "_"), string.Empty)
-                    .Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(w => startsWithLowerCaseChar.Replace(w, m => m.Value.ToUpper()))
-                    .Select(w => firstCharFollowedByUpperCasesOnly.Replace(w, m => m.Value.ToLower()))
-                    .Select(w => lowerCaseNextToNumber.Replace(w, m => m.Value.ToUpper()))
-                    .Select(w => upperCaseInside.Replace(w, m => m.Value.ToLower()));
+                string cleaned = invalidCharsRgx.Replace(whiteSpace.Replace(input, "_"), string.Empty);
+                string[] parts = cleaned.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                var sb = new StringBuilder();
+                foreach (var w0 in parts)
+                {
+                    string w = startsWithLowerCaseChar.Replace(w0, m => m.Value.ToUpper());
+                    w = firstCharFollowedByUpperCasesOnly.Replace(w, m => m.Value.ToLower());
+                    w = lowerCaseNextToNumber.Replace(w, m => m.Value.ToUpper());
+                    w = upperCaseInside.Replace(w, m => m.Value.ToLower());
+                    sb.Append(w);
+                }
 
-                return string.Concat(pascalCase);
+                return sb.ToString();
             }
         }
     }

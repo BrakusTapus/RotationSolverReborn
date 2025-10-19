@@ -17,7 +17,12 @@ internal static partial class Util
     {
         if (jobCategory.RowId == 68) return true; // ACN SMN SCH 
         var str = jobCategory.Name.ToString().Replace(" ", "");
-        if (!str.All(char.IsUpper)) return false;
+        bool allUpper = true;
+        foreach (char c in str)
+        {
+            if (!char.IsUpper(c)) { allUpper = false; break; }
+        }
+        if (!allUpper) return false;
         if (str.Length is not 3 and not 6) return false;
         return true;
     }
@@ -58,7 +63,16 @@ internal static partial class Util
     /// </summary>
     /// <param name="input">The input string.</param>
     /// <returns>The string containing only ASCII characters.</returns>
-    public static string OnlyAscii(this string input) => new(input.Where(char.IsAscii).ToArray());
+    public static string OnlyAscii(this string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        var sb = new StringBuilder(input.Length);
+        foreach (char c in input)
+        {
+            if (char.IsAscii(c)) sb.Append(c);
+        }
+        return sb.ToString();
+    }
 
     /// <summary>
     /// Converts the string to PascalCase.
@@ -67,14 +81,18 @@ internal static partial class Util
     /// <returns>The PascalCase string.</returns>
     public static string ToPascalCase(this string input)
     {
-        var pascalCase = InvalidCharsRgx().Replace(WhiteSpace().Replace(input, "_"), string.Empty)
-            .Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(w => StartWithLowerCaseChar().Replace(w, m => m.Value.ToUpper()))
-            .Select(w => FirstCharFollowedByUpperCasesOnly().Replace(w, m => m.Value.ToLower()))
-            .Select(w => LowerCaseNextToNumber().Replace(w, m => m.Value.ToUpper()))
-            .Select(w => UpperCaseInside().Replace(w, m => m.Value.ToLower()));
-
-        var result = string.Concat(pascalCase);
+        string cleaned = InvalidCharsRgx().Replace(WhiteSpace().Replace(input, "_"), string.Empty);
+        string[] parts = cleaned.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+        var sb = new StringBuilder();
+        foreach (string w0 in parts)
+        {
+            string w = StartWithLowerCaseChar().Replace(w0, m => m.Value.ToUpper());
+            w = FirstCharFollowedByUpperCasesOnly().Replace(w, m => m.Value.ToLower());
+            w = LowerCaseNextToNumber().Replace(w, m => m.Value.ToUpper());
+            w = UpperCaseInside().Replace(w, m => m.Value.ToLower());
+            sb.Append(w);
+        }
+        var result = sb.ToString();
 
         if (result.Length > 0 && char.IsNumber(result[0]))
         {

@@ -33,16 +33,26 @@ public class ConditionBoolGenerator : IIncrementalGenerator
     /// <param name="array">The array of variable declarators and semantic models.</param>
     private void Execute(SourceProductionContext context, ImmutableArray<(VariableDeclaratorSyntax, SemanticModel SemanticModel)> array)
     {
-        var typeGroups = array.GroupBy(variable => variable.Item1.Parent!.Parent!.Parent!);
-
-        foreach (var group in typeGroups)
+        var dict = new Dictionary<SyntaxNode, List<(VariableDeclaratorSyntax, SemanticModel)>>();
+        foreach (var entry in array)
         {
-            var type = (TypeDeclarationSyntax)group.Key;
+            var key = entry.Item1.Parent!.Parent!.Parent!;
+            if (!dict.TryGetValue(key, out var list))
+            {
+                list = new List<(VariableDeclaratorSyntax, SemanticModel)>();
+                dict[key] = list;
+            }
+            list.Add((entry.Item1, entry.SemanticModel));
+        }
+
+        foreach (var kv in dict)
+        {
+            var type = (TypeDeclarationSyntax)kv.Key;
             var nameSpace = type.GetParent<BaseNamespaceDeclarationSyntax>()?.Name.ToString() ?? "Null";
             var classType = type is ClassDeclarationSyntax ? "class" : "struct";
             var className = type.Identifier.Text;
 
-            var propertyCodes = GeneratePropertyCodes(group, context, nameSpace, className);
+            var propertyCodes = GeneratePropertyCodes(kv.Value, context, nameSpace, className);
 
             if (propertyCodes.Count == 0) continue;
 
@@ -59,7 +69,7 @@ public class ConditionBoolGenerator : IIncrementalGenerator
     /// <param name="nameSpace">The namespace of the class.</param>
     /// <param name="className">The name of the class.</param>
     /// <returns>A list of property code strings.</returns>
-    private List<string> GeneratePropertyCodes(IGrouping<SyntaxNode, (VariableDeclaratorSyntax, SemanticModel)> group, SourceProductionContext context, string nameSpace, string className)
+    private List<string> GeneratePropertyCodes(IEnumerable<(VariableDeclaratorSyntax, SemanticModel)> group, SourceProductionContext context, string nameSpace, string className)
     {
         var propertyCodes = new List<string>();
 

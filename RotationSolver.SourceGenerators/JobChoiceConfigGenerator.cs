@@ -48,15 +48,23 @@ public class JobChoiceConfigGenerator : IIncrementalGenerator
                     var fieldType = model.GetTypeInfo(fieldTypeStr).Type!;
                     var fieldStr = fieldType.GetFullMetadataName();
 
-                    var attributeNames = field.AttributeLists
-                        .SelectMany(attrSet => attrSet.Attributes)
-                        .Select(attr => model.GetSymbolInfo(attr).Symbol?.GetFullMetadataName())
-                        .Where(name => name is "RotationSolver.Basic.Attributes.UIAttribute"
-                            or "RotationSolver.Basic.Attributes.UnitAttribute"
-                            or "RotationSolver.Basic.Attributes.RangeAttribute"
-                            or "RotationSolver.Basic.Attributes.JobChoiceConfigAttribute"
-                            or "RotationSolver.Basic.Attributes.LinkDescriptionAttribute")
-                        .ToList();
+                    var attributeNames = new List<string>();
+                    foreach (var attrSet in field.AttributeLists)
+                    {
+                        if (attrSet == null) continue;
+                        foreach (var attr in attrSet.Attributes)
+                        {
+                            var name = model.GetSymbolInfo(attr).Symbol?.GetFullMetadataName();
+                            if (name is "RotationSolver.Basic.Attributes.UIAttribute"
+                                or "RotationSolver.Basic.Attributes.UnitAttribute"
+                                or "RotationSolver.Basic.Attributes.RangeAttribute"
+                                or "RotationSolver.Basic.Attributes.JobChoiceConfigAttribute"
+                                or "RotationSolver.Basic.Attributes.LinkDescriptionAttribute")
+                            {
+                                attributeNames.Add(attr.ToString());
+                            }
+                        }
+                    }
 
                     var attributeStr = attributeNames.Count == 0 ? "" : $"[{string.Join(", ", attributeNames)}]";
                     var propertyCode = $$"""

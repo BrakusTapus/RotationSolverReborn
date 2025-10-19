@@ -211,6 +211,20 @@ public sealed class RPR_Reborn : ReaperRotation
             }
         }
 
+        // If at least 2 targets in a best Whorl of Death AoE lack Death's Design, allow refreshing via AoE
+        int ddNeeds = 0;
+        if (WhorlOfDeathPvE.CanUse(out _, skipAoeCheck: true) && WhorlOfDeathPvE.PreviewTarget.HasValue)
+        {
+            ddNeeds = WhorlOfDeathPvE.PreviewTarget.Value.AffectedTargets?.Length ?? 0;
+        }
+        if (ddNeeds >= 2)
+        {
+            if (WhorlOfDeathPvE.CanUse(out act, skipStatusProvideCheck: true))
+            {
+                return true;
+            }
+        }
+
         if (WhorlOfDeathPvE.CanUse(out act))
         {
             return true;

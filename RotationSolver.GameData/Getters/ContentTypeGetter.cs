@@ -16,7 +16,16 @@ internal class ContentTypeGetter(Lumina.GameData gameData)
     protected override bool AddToList(ContentType item)
     {
         var name = item.Name.ToString();
-        if (string.IsNullOrEmpty(name) || !name.All(char.IsAscii))
+        if (string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
+        bool allAscii = true;
+        foreach (char c in name)
+        {
+            if (!char.IsAscii(c)) { allAscii = false; break; }
+        }
+        if (!allAscii)
         {
             return false;
         }

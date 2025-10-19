@@ -251,8 +251,13 @@ public class ActionTimelineManager : IDisposable
             return session;
         }
 
-        var startTime = combatStartTime ?? items.Min(i => i.StartTime);
-        var endTime = items.Max(i => i.EndTime);
+        DateTime startTime = combatStartTime ?? items[0].StartTime;
+        DateTime endTime = items[0].EndTime;
+        for (int i = 1; i < items.Length; i++)
+        {
+            if (items[i].StartTime < startTime) startTime = items[i].StartTime;
+            if (items[i].EndTime > endTime) endTime = items[i].EndTime;
+        }
 
         // Fill session info
         session.SessionInfo = new SessionInfo
@@ -268,7 +273,8 @@ public class ActionTimelineManager : IDisposable
         };
 
         // Convert timeline items to export format
-        foreach (var item in items.OrderBy(i => i.StartTime))
+        Array.Sort(items, (a, b) => a.StartTime.CompareTo(b.StartTime));
+        foreach (var item in items)
         {
             var exportedAction = new ExportedAction
             {

@@ -16,32 +16,74 @@ public partial class AstrologianRotation
     /// <summary>
     /// 
     /// </summary>
-    public static bool HasBalance => DrawnCard.Any(card => card == CardType.Balance);
+    public static bool HasBalance
+    {
+        get
+        {
+            foreach (var card in DrawnCard) { if (card == CardType.Balance) return true; }
+            return false;
+        }
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    public static bool HasBole => DrawnCard.Any(card => card == CardType.Bole);
+    public static bool HasBole
+    {
+        get
+        {
+            foreach (var card in DrawnCard) { if (card == CardType.Bole) return true; }
+            return false;
+        }
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    public static bool HasArrow => DrawnCard.Any(card => card == CardType.Arrow);
+    public static bool HasArrow
+    {
+        get
+        {
+            foreach (var card in DrawnCard) { if (card == CardType.Arrow) return true; }
+            return false;
+        }
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    public static bool HasSpear => DrawnCard.Any(card => card == CardType.Spear);
+    public static bool HasSpear
+    {
+        get
+        {
+            foreach (var card in DrawnCard) { if (card == CardType.Spear) return true; }
+            return false;
+        }
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    public static bool HasEwer => DrawnCard.Any(card => card == CardType.Ewer);
+    public static bool HasEwer
+    {
+        get
+        {
+            foreach (var card in DrawnCard) { if (card == CardType.Ewer) return true; }
+            return false;
+        }
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    public static bool HasSpire => DrawnCard.Any(card => card == CardType.Spire);
+    public static bool HasSpire
+    {
+        get
+        {
+            foreach (var card in DrawnCard) { if (card == CardType.Spire) return true; }
+            return false;
+        }
+    }
 
     /// <summary>
     /// Indicates the state of Minor Arcana and which card will be used next when activating Minor Arcana, LORD = 7, LADY = 8
@@ -187,12 +229,22 @@ public partial class AstrologianRotation
 
     static partial void ModifyAstralDrawPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => ActiveDraw == DrawType.Astral && DrawnCard.All(card => card != CardType.Spear);
+        setting.ActionCheck = () =>
+        {
+            if (ActiveDraw != DrawType.Astral) return false;
+            foreach (var card in DrawnCard) { if (card == CardType.Spear) return false; }
+            return true;
+        };
     }
 
     static partial void ModifyUmbralDrawPvE(ref ActionSetting setting)
     {
-        setting.ActionCheck = () => ActiveDraw == DrawType.Umbral && DrawnCard.All(card => card != CardType.Balance);
+        setting.ActionCheck = () =>
+        {
+            if (ActiveDraw != DrawType.Umbral) return false;
+            foreach (var card in DrawnCard) { if (card == CardType.Balance) return false; }
+            return true;
+        };
     }
 
     static partial void ModifyPlayIPvE(ref ActionSetting setting) //37019

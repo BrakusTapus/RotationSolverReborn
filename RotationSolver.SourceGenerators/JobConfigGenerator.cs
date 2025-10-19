@@ -34,17 +34,27 @@ public class JobConfigGenerator : IIncrementalGenerator
     /// <param name="array">The collected syntax nodes and semantic models.</param>
     private void Execute(SourceProductionContext context, ImmutableArray<(VariableDeclaratorSyntax, SemanticModel SemanticModel)> array)
     {
-        var typeGroups = array.GroupBy(variable => variable.Item1.Parent!.Parent!.Parent!);
-
-        foreach (var group in typeGroups)
+        var dict = new Dictionary<SyntaxNode, List<(VariableDeclaratorSyntax, SemanticModel)>>();
+        foreach (var entry in array)
         {
-            var type = (TypeDeclarationSyntax)group.Key;
+            var key = entry.Item1.Parent!.Parent!.Parent!;
+            if (!dict.TryGetValue(key, out var list))
+            {
+                list = new List<(VariableDeclaratorSyntax, SemanticModel)>();
+                dict[key] = list;
+            }
+            list.Add((entry.Item1, entry.SemanticModel));
+        }
+
+        foreach (var kv in dict)
+        {
+            var type = (TypeDeclarationSyntax)kv.Key;
             var namespaceName = type.GetParent<BaseNamespaceDeclarationSyntax>()?.Name.ToString() ?? "Null";
             var classType = type is ClassDeclarationSyntax ? "class" : "struct";
             var className = type.Identifier.Text;
 
             var propertyCodes = new List<string>();
-            foreach (var (variableInfo, model) in group)
+            foreach (var (variableInfo, model) in kv.Value)
             {
                 var typeSymbol = model.GetDeclaredSymbol(type) as ITypeSymbol;
                 var field = (FieldDeclarationSyntax)variableInfo.Parent!.Parent!;

@@ -45,10 +45,19 @@ namespace RotationSolver.GameData.Getters
             if (items == null) return string.Empty;
             BeforeCreating();
 
-            var filteredItems = items.Where(AddToList);
-            Count = filteredItems.Count();
+            List<string> codes = [];
+            int cnt = 0;
+            foreach (var it in items)
+            {
+                if (AddToList(it))
+                {
+                    cnt++;
+                    codes.Add(ToCode(it));
+                }
+            }
+            Count = cnt;
 
-            return string.Join("\n", filteredItems.Select(ToCode));
+            return string.Join("\n", codes);
         }
     }
 }

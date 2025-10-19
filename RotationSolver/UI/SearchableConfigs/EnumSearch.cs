@@ -21,16 +21,42 @@ internal class EnumSearch(PropertyInfo property) : Searchable(property)
             enumValueToNameMap[Convert.ToInt32(enumValue)] = enumValue.GetDescription();
         }
 
-        string[] displayNames = enumValueToNameMap.Values.ToArray();
+        string[] displayNames;
+        {
+            displayNames = new string[enumValueToNameMap.Count];
+            int idx = 0;
+            foreach (var kv in enumValueToNameMap)
+            {
+                displayNames[idx++] = kv.Value;
+            }
+        }
 
         if (displayNames.Length > 0)
         {
             // Set the width of the combo box
-            ImGui.SetNextItemWidth(Math.Max(displayNames.Max(name => ImGui.CalcTextSize(name).X) + 30, DRAG_WIDTH) * Scale);
+            float maxText = 0f;
+            for (int i = 0; i < displayNames.Length; i++)
+            {
+                float w = ImGui.CalcTextSize(displayNames[i]).X;
+                if (w > maxText) maxText = w;
+            }
+            ImGui.SetNextItemWidth(Math.Max(maxText + 30, DRAG_WIDTH) * Scale);
 
             // Find the current index of the selected value
-            int currentIndex = enumValueToNameMap.Keys.ToList().IndexOf(currentValue);
-            if (currentIndex == -1)
+            int currentIndex = 0;
+            int tmpIdx = 0;
+            bool found = false;
+            foreach (var kv in enumValueToNameMap)
+            {
+                if (kv.Key == currentValue)
+                {
+                    currentIndex = tmpIdx;
+                    found = true;
+                    break;
+                }
+                tmpIdx++;
+            }
+            if (!found)
             {
                 currentIndex = 0; // Default to first item if not found
             }
@@ -41,7 +67,18 @@ internal class EnumSearch(PropertyInfo property) : Searchable(property)
             // Draw the combo box
             if (ImGui.Combo($"##Config_{ID}{hashCode}", ref currentIndex, displayNames, displayNames.Length))
             {
-                Value = enumValueToNameMap.Keys.ElementAt(currentIndex);
+                int i = 0;
+                int selectedKey = currentValue;
+                foreach (var kv in enumValueToNameMap)
+                {
+                    if (i == currentIndex)
+                    {
+                        selectedKey = kv.Key;
+                        break;
+                    }
+                    i++;
+                }
+                Value = selectedKey;
             }
         }
 

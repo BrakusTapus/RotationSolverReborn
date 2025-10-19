@@ -442,13 +442,25 @@ public sealed class ChurinDRK : DarkKnightRotation
 
             // Merge used state if in combat
             if (InCombat)
+            {
                 for (var i = 0; i < _potions.Count; i++)
                 {
                     var (time, enabled, _) = _potions[i];
-                    var old = oldPotions.FirstOrDefault(p => p.Time == time);
+
+                    (int Time, bool Enabled, bool Used) old = default;
+                    for (var j = 0; j < oldPotions.Count; j++)
+                    {
+                        if (oldPotions[j].Time == time)
+                        {
+                            old = oldPotions[j];
+                            break;
+                        }
+                    }
+
                     if (old.Time == time)
                         _potions[i] = (time, enabled, old.Used);
                 }
+            }
 
             _lastPotionTiming = PotionTiming;
             _lastFirst = CustomFirstPotionTime;
@@ -456,52 +468,53 @@ public sealed class ChurinDRK : DarkKnightRotation
             _lastThird = CustomThirdPotionTime;
         }
     }
+
     private bool ShouldUseMp(MpStrategy strategy)
-{
-    var riskingMp = CurrentMp >= 8500;
-
-    if (!FloodOfShadowPvE.EnoughLevel)
-        return false;
-
-    if (strategy == MpStrategy.Optimal)
     {
-        if (riskingMp)
-            return CurrentMp >= 3000 || HasDarkArts;
+        var riskingMp = CurrentMp >= 8500;
 
-        if (DeliriumPvE.EnoughLevel)
+        if (!FloodOfShadowPvE.EnoughLevel)
+            return false;
+
+        if (strategy == MpStrategy.Optimal)
         {
-            // For Dark Arts
-            if (TheBlackestNightPvE.EnoughLevel && HasDarkArts)
+            if (riskingMp)
+                return CurrentMp >= 3000 || HasDarkArts;
+
+            if (DeliriumPvE.EnoughLevel)
             {
-                if (HasDelirium || !DeliriumPvE.Cooldown.WillHaveOneCharge(DarkSideTime + WeaponTotal))
+                // For Dark Arts
+                if (TheBlackestNightPvE.EnoughLevel && HasDarkArts)
+                {
+                    if (HasDelirium || !DeliriumPvE.Cooldown.WillHaveOneCharge(DarkSideTime + WeaponTotal))
+                        return CurrentMp >= 3000;
+                }
+
+                // 1m window - 2 uses expected
+                if (!DeliriumPvE.Cooldown.WillHaveOneCharge(40) && InOddWindow(LivingShadowPvE))
+                    return CurrentMp >= 6000;
+
+                // 2m window - 4 uses expected; 5 with Dark Arts
+                if (!DeliriumPvE.Cooldown.WillHaveOneCharge(40) && !InOddWindow(LivingShadowPvE))
                     return CurrentMp >= 3000;
             }
 
-            // 1m window - 2 uses expected
-            if (!DeliriumPvE.Cooldown.WillHaveOneCharge(40) && InOddWindow(LivingShadowPvE))
-                return CurrentMp >= 6000;
-
-            // 2m window - 4 uses expected; 5 with Dark Arts
-            if (!DeliriumPvE.Cooldown.WillHaveOneCharge(40) && !InOddWindow(LivingShadowPvE))
+            // If no Delirium, just use it whenever we have more than 3000 MP
+            if (!DeliriumPvE.EnoughLevel)
                 return CurrentMp >= 3000;
         }
 
-        // If no Delirium, just use it whenever we have more than 3000 MP
-        if (!DeliriumPvE.EnoughLevel)
-            return CurrentMp >= 3000;
+        return strategy switch
+        {
+            MpStrategy.Auto3K => CurrentMp >= 3000,
+            MpStrategy.Auto6K => CurrentMp >= 6000,
+            MpStrategy.Auto9K => CurrentMp >= 9000,
+            MpStrategy.AutoRefresh => riskingMp,
+            MpStrategy.ForceEdge => EdgeOfDarknessPvE.EnoughLevel && (CurrentMp >= 3000 || HasDarkArts),
+            MpStrategy.ForceFlood => FloodOfDarknessPvE.EnoughLevel && (CurrentMp >= 3000 || HasDarkArts),
+            _ => false
+        };
     }
-
-    return strategy switch
-    {
-        MpStrategy.Auto3K => CurrentMp >= 3000,
-        MpStrategy.Auto6K => CurrentMp >= 6000,
-        MpStrategy.Auto9K => CurrentMp >= 9000,
-        MpStrategy.AutoRefresh => riskingMp,
-        MpStrategy.ForceEdge => EdgeOfDarknessPvE.EnoughLevel && (CurrentMp >= 3000 || HasDarkArts),
-        MpStrategy.ForceFlood => FloodOfDarknessPvE.EnoughLevel && (CurrentMp >= 3000 || HasDarkArts),
-        _ => false
-    };
-}
 
     private bool ShouldUseBlood(BloodStrategy strategy, IBattleChara? target)
     {
@@ -535,7 +548,7 @@ public sealed class ChurinDRK : DarkKnightRotation
         {
             _currentParty = value;
             var newParty = PartyMembers ?? [Player];
-            IEnumerable<IBattleChara> battleCharas = newParty.ToList();
+            IEnumerable<IBattleChara> battleCharas = [.. newParty];
             var hasChanged = !_currentParty.ToHashSet().SetEquals(battleCharas);
 
             if (hasChanged)

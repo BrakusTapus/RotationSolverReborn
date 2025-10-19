@@ -26,9 +26,16 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData) : ExcelRowGet
     protected override void BeforeCreating()
     {
         AddedNames.Clear();
-        _notCombatJobs = [.. _gameData.GetExcelSheet<ClassJob>()!
-            .Where(c => c.ClassJobCategory.RowId is 32 or 33)
-            .Select(c => c.Abbreviation.ToString())];
+        var classJobs = _gameData.GetExcelSheet<ClassJob>()!;
+        var tmp = new List<string>();
+        foreach (var c in classJobs)
+        {
+            if (c.ClassJobCategory.RowId is 32 or 33)
+            {
+                tmp.Add(c.Abbreviation.ToString());
+            }
+        }
+        _notCombatJobs = tmp.ToArray();
         base.BeforeCreating();
     }
 
@@ -45,7 +52,12 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData) : ExcelRowGet
 
         var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
-        if (!name.All(char.IsAscii)) return false;
+        bool allAscii = true;
+        foreach (char c in name)
+        {
+            if (!char.IsAscii(c)) { allAscii = false; break; }
+        }
+        if (!allAscii) return false;
         if (item.Icon is 0 or 405 or 784) return false;
 
         if (item.ActionCategory.RowId is 6 or 7 or 8 or 12 or > 14 or 9) return false;
@@ -56,7 +68,18 @@ internal abstract class ActionGetterBase(Lumina.GameData gameData) : ExcelRowGet
 
         if (category.RowId == 1) return true;
 
-        if (_notCombatJobs.Any(jobName => (bool?)category.GetType().GetRuntimeProperty(jobName)?.GetValue(category) ?? false))
+        bool isNotCombat = false;
+        for (int i = 0; i < _notCombatJobs.Length; i++)
+        {
+            string jobName = _notCombatJobs[i];
+            bool val = (bool?)category.GetType().GetRuntimeProperty(jobName)?.GetValue(category) ?? false;
+            if (val)
+            {
+                isNotCombat = true;
+                break;
+            }
+        }
+        if (isNotCombat)
         {
             return false;
         }

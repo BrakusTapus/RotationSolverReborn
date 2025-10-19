@@ -28,7 +28,12 @@ internal class ActionCategoryGetter(Lumina.GameData gameData)
     {
         var name = item.Name.ToString();
         if (string.IsNullOrEmpty(name)) return false;
-        if (!name.All(char.IsAscii)) return false;
+        bool allAscii = true;
+        foreach (char c in name)
+        {
+            if (!char.IsAscii(c)) { allAscii = false; break; }
+        }
+        if (!allAscii) return false;
         return true;
     }
 

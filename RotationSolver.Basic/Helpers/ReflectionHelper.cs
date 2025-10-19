@@ -80,14 +80,15 @@ internal static IEnumerable<MethodInfo> GetAllMethodInfo(this Type? type)
 
             IEnumerable<MethodInfo> baseMethods = type.BaseType?.GetAllMethodInfo() ?? [];
 
-            // Combine filteredMethods and baseMethods
-            MethodInfo[] result = new MethodInfo[filteredMethods.Count + baseMethods.Count()];
-            filteredMethods.CopyTo(result, 0);
-            if (baseMethods.Any())
+            // Combine filteredMethods and baseMethods without LINQ
+            List<MethodInfo> resultList = new List<MethodInfo>(filteredMethods.Count + 8);
+            resultList.AddRange(filteredMethods);
+            foreach (var m in baseMethods)
             {
-                baseMethods.ToArray().CopyTo(result, filteredMethods.Count);
+                resultList.Add(m);
             }
 
+            MethodInfo[] result = resultList.ToArray();
             s_methodsCache[type] = result;
             return result;
         }

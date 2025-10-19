@@ -9,12 +9,28 @@
 
         protected override bool IsTrueInside(ICustomRotation rotation)
         {
-            return Conditions.Count != 0 && Type switch
+            if (Conditions.Count == 0)
             {
-                LogicalType.And => Conditions.All(c => c.IsTrue(rotation)),
-                LogicalType.Or => Conditions.Any(c => c.IsTrue(rotation)),
-                _ => false,
-            };
+                return false;
+            }
+
+            switch (Type)
+            {
+                case LogicalType.And:
+                    foreach (var c in Conditions)
+                    {
+                        if (!c.IsTrue(rotation)) return false;
+                    }
+                    return true;
+                case LogicalType.Or:
+                    foreach (var c in Conditions)
+                    {
+                        if (c.IsTrue(rotation)) return true;
+                    }
+                    return false;
+                default:
+                    return false;
+            }
         }
     }
 

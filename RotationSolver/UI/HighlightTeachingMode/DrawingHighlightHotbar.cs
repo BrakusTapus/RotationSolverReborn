@@ -69,10 +69,7 @@ public class DrawingHighlightHotbar : DrawingHighlightHotbarBase
         List<IDrawing2D> result = new();
 
         int hotBarIndex = 0;
-        foreach (nint intPtr in GetAddons<AddonActionBar>()
-            .Union(GetAddons<AddonActionBarX>())
-            .Union(GetAddons<AddonActionCross>())
-            .Union(GetAddons<AddonActionDoubleCrossBase>()))
+        foreach (nint intPtr in EnumerateHotbarAddons())
         {
             AddonActionBarBase* actionBar = (AddonActionBarBase*)intPtr;
             if (actionBar != null && IsVisible(actionBar->AtkUnitBase))
@@ -178,6 +175,14 @@ public class DrawingHighlightHotbar : DrawingHighlightHotbarBase
         }
 
         return unit.VisibilityFlags != 1 && IsVisible(unit.RootNode);
+    }
+
+    private static IEnumerable<nint> EnumerateHotbarAddons()
+    {
+        foreach (var a in GetAddons<AddonActionBar>()) yield return a;
+        foreach (var a in GetAddons<AddonActionBarX>()) yield return a;
+        foreach (var a in GetAddons<AddonActionCross>()) yield return a;
+        foreach (var a in GetAddons<AddonActionDoubleCrossBase>()) yield return a;
     }
 
     private static unsafe bool IsVisible(AtkResNode* node)

@@ -127,6 +127,9 @@ internal abstract class DelayCondition : ICondition
         }
 
         IEnumerable<MemberInfo> methods = getFunc(type);
-        return methods.Union(GetAllMembers(type.BaseType, getFunc));
+        var list = new List<MemberInfo>();
+        foreach (var m in methods) list.Add(m);
+        foreach (var m in GetAllMembers(type.BaseType, getFunc)) list.Add(m);
+        return list;
     }
 }

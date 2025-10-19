@@ -159,8 +159,17 @@ internal readonly struct JobFilter
     {
         get
         {
-            string roleOrJob = string.Join("\n",
-                AllJobs.Select(job => Svc.Data.GetExcelSheet<ClassJob>()?.GetRow((uint)job).Name ?? job.ToString()));
+            var sb = new System.Text.StringBuilder();
+            bool firstLine = true;
+            foreach (var job in AllJobs)
+            {
+                var sheet = Svc.Data.GetExcelSheet<ClassJob>();
+                var name = sheet?.GetRow((uint)job).Name ?? job.ToString();
+                if (!firstLine) sb.Append('\n');
+                sb.Append(name);
+                firstLine = false;
+            }
+            string roleOrJob = sb.ToString();
             return string.Format(UiString.NotInJob.GetDescription(), roleOrJob);
         }
     }

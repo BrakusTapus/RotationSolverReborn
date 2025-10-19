@@ -60,8 +60,16 @@ namespace RotationSolver.DocumentationGenerator
 
             private string RemoveWhitespace(string data)
             {
-                return string.Join("\n", data.Replace("\r", "").Trim().Split("\n")
-                    .Select((line) => line == "\n" ? line : "> " + line.Trim()));
+                var parts = data.Replace("\r", "").Trim().Split("\n");
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    string line = parts[i];
+                    string processed = line == "\n" ? line : "> " + line.Trim();
+                    if (i > 0) sb.Append('\n');
+                    sb.Append(processed);
+                }
+                return sb.ToString();
             }
         }
 
@@ -139,8 +147,9 @@ namespace RotationSolver.DocumentationGenerator
                             fileContents += "\n\n";
                         }
 
-                        foreach (var entry in entries.Where(entry => !entry.IsSubsection))
+                        foreach (var entry in entries)
                         {
+                            if (entry.IsSubsection) continue;
                             fileContents += $"### {entry.Name}\n";
                             fileContents += entry.ProcessContent(Entries);
                             fileContents += "\n\n";
