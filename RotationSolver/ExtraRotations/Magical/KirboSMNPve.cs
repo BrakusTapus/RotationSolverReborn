@@ -536,7 +536,7 @@ public sealed class KirboSMNPve : SummonerRotation
         }
 
         if (SummonTimeEndAfterGCD() && AttunmentTimeEndAfterGCD() && !InBahamut && !InPhoenix && !InSolarBahamut &&
-            RuinIvPvE.CanUse(out act, skipAoeCheck: true))
+            RuinIvPvE.CanUse(out act, skipAoeCheck: true)) // TODO - make sure ruin 4 is not wasted if Further Ruin is about too fall off
         {
             return true;
         }
