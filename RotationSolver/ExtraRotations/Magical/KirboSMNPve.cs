@@ -23,12 +23,12 @@ public sealed class KirboSMNPve : SummonerRotation
     [RotationConfig(CombatType.PvE, Name = "Use GCDs to heal. (Ignored if there are no healers alive in party)")]
     public bool GCDHeal { get; set; } = false;
 
-    [RotationConfig(CombatType.PvE, Name = "Use Crimson Cyclone at any range, regardless of saftey use with caution (Enabling this ignores the below distance setting).")]
-    public bool AddCrimsonCyclone { get; set; } = true;
+    //[RotationConfig(CombatType.PvE, Name = "Use Crimson Cyclone at any range, regardless of saftey use with caution (Enabling this ignores the below distance setting).")]
+    //public bool AddCrimsonCyclone { get; set; } = true;
 
-    [Range(1, 20, ConfigUnitType.Yalms)]
+    [Range(0.1f, 20, ConfigUnitType.Yalms)]
     [RotationConfig(CombatType.PvE, Name = "Max distance you can be from the target for Crimson Cyclone use")]
-    public float CrimsonCycloneDistance { get; set; } = 3.0f;
+    public float CrimsonCycloneDistance { get; set; } = 0.5f;
 
     [RotationConfig(CombatType.PvE, Name = "Use Crimson Cyclone when moving")]
     public bool AddCrimsonCycloneMoving { get; set; } = false;
@@ -51,11 +51,11 @@ public sealed class KirboSMNPve : SummonerRotation
     [RotationConfig(CombatType.PvE, Name = "Order")]
     public SummonOrderType SummonOrder { get; set; } = SummonOrderType.TopazEmeraldRuby;
 
-    [RotationConfig(CombatType.PvE, Name = "Use radiant on cooldown. But still keeping one charge")]
-    public bool RadiantOnCooldown { get; set; } = true;
+    //[RotationConfig(CombatType.PvE, Name = "Use radiant on cooldown. But still keeping one charge")]
+    //public bool RadiantOnCooldown { get; set; } = true;
 
-    [RotationConfig(CombatType.PvE, Name = "Use this if there's no other raid buff in your party")]
-    public bool SecondTypeOpenerLogic { get; set; } = false;
+    //[RotationConfig(CombatType.PvE, Name = "Use this if there's no other raid buff in your party")]
+    //public bool SecondTypeOpenerLogic { get; set; } = false;
 
     [RotationConfig(CombatType.PvE, Name = "Use Physick above level 30")]
     public bool Healbot { get; set; } = false;
@@ -66,6 +66,8 @@ public sealed class KirboSMNPve : SummonerRotation
     public override void DisplayRotationStatus()
     {
         ImGui.Text($"EnergyDrainPvE: Is Cooling Down: {EnergyDrainPvE.Cooldown.IsCoolingDown}");
+
+        base.DisplayBaseStatus();
     }
     #endregion
 
@@ -87,7 +89,7 @@ public sealed class KirboSMNPve : SummonerRotation
     #endregion
 
     #region Additional oGCD Logic
-    [RotationDesc(ActionID.LuxSolarisPvE)]
+    [RotationDesc(ActionID.LuxSolarisPvE, ActionID.EverlastingFlightPvE)]
     protected override bool HealAreaAbility(IAction nextGCD, out IAction? act)
     {
         if (LuxSolarisPvE.CanUse(out act))
@@ -107,7 +109,7 @@ public sealed class KirboSMNPve : SummonerRotation
         return base.HealSingleAbility(nextGCD, out act);
     }
 
-    [RotationDesc(ActionID.LuxSolarisPvE)]
+    [RotationDesc(ActionID.RadiantAegisPvE, ActionID.AddlePvE)]
     protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
         if (!IsLastAction(false, RadiantAegisPvE) && RadiantAegisPvE.CanUse(out act, usedUp: true))
@@ -116,10 +118,20 @@ public sealed class KirboSMNPve : SummonerRotation
         }
         return base.DefenseAreaAbility(nextGCD, out act);
     }
+
+    [RotationDesc(ActionID.RadiantAegisPvE, ActionID.AddlePvE)]
+    protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? act)
+    {
+        if (!IsLastAction(false, RadiantAegisPvE) && RadiantAegisPvE.CanUse(out act, usedUp: true))
+        {
+            return true;
+        }
+        return base.DefenseSingleAbility(nextGCD, out act);
+    }
     #endregion
 
     #region oGCD Logic
-    [RotationDesc(ActionID.LuxSolarisPvE)]
+    [RotationDesc(ActionID.LuxSolarisPvE, ActionID.RekindlePvE)]
     protected override bool GeneralAbility(IAction nextGCD, out IAction? act)
     {
         if (Player.WillStatusEndGCD(3, 0, true, StatusID.RefulgentLux))
@@ -165,7 +177,7 @@ public sealed class KirboSMNPve : SummonerRotation
 
         if (burstInSolar)
         {
-            if (SearingLightPvE.CanUse(out act))
+            if (SearingLightPvE.CanUse(out act)) // TODO - add check to prevent use if target is dying
             {
                 return true;
             }
@@ -320,7 +332,7 @@ public sealed class KirboSMNPve : SummonerRotation
             }
         }
 
-        if (SearingFlashPvE.CanUse(out act))
+        if (SearingFlashPvE.CanUse(out act)) 
         {
             if ((SearingFlashPvE.Target.Target.IsBossFromTTK() || SearingFlashPvE.Target.Target.IsBossFromIcon()) && SearingFlashPvE.Target.Target.IsDying())
             {
@@ -354,6 +366,7 @@ public sealed class KirboSMNPve : SummonerRotation
             {
                 return true;
             }
+            // TODO - add option to use swiftcast on ruby rite instead of garuda or on either of them
         }
 
         return base.EmergencyAbility(nextGCD, out act);
@@ -362,15 +375,15 @@ public sealed class KirboSMNPve : SummonerRotation
     #endregion
 
     #region GCD Logic
-    [RotationDesc(ActionID.CrimsonCyclonePvE)]
-    protected override bool MoveForwardGCD(out IAction? act)
-    {
-        if (CrimsonCyclonePvE.CanUse(out act))
-        {
-            return true;
-        }
-        return base.MoveForwardGCD(out act);
-    }
+    //[RotationDesc(ActionID.CrimsonCyclonePvE)]
+    //protected override bool MoveForwardGCD(out IAction? act)
+    //{
+    //    if (CrimsonCyclonePvE.CanUse(out act))
+    //    {
+    //        return true;
+    //    }
+    //    return base.MoveForwardGCD(out act);
+    //}
 
     [RotationDesc(ActionID.PhysickPvE)]
     protected override bool HealSingleGCD(out IAction? act)
@@ -413,7 +426,12 @@ public sealed class KirboSMNPve : SummonerRotation
             return true;
         }
 
-        if ((!IsMoving || AddCrimsonCycloneMoving) && CrimsonCyclonePvE.CanUse(out act) && (AddCrimsonCyclone || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance))
+        if (
+            (!IsMoving || AddCrimsonCycloneMoving) &&
+            CrimsonCyclonePvE.CanUse(out act) &&
+            CrimsonCyclonePvE.Target.Target.DistanceToPlayer() > -5.0f &&
+            (CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= 0.55f || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance)
+        )
         {
             return true;
         }
