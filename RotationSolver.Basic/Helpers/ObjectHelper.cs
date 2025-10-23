@@ -296,6 +296,7 @@ public static class ObjectHelper
                 TargetHostileType.AllTargetsWhenSolo => DataCenter.PartyMembers.Count == 1 || battleChara.TargetObject is not null,
                 TargetHostileType.AllTargetsWhenSoloInDuty => (DataCenter.PartyMembers.Count == 1 && (Svc.Condition[ConditionFlag.BoundByDuty] || Svc.Condition[ConditionFlag.BoundByDuty56]))
                                     || battleChara.TargetObject is not null,
+                TargetHostileType.SoloDeepDungeonSmart => IsSoloDeepDungeonSmartAttackable(battleChara),
                 _ => true,
             };
     }
@@ -319,6 +320,48 @@ public static class ObjectHelper
 
         // Get the EventId of the mob
         return battleChara.GetEventType() == EventHandlerContent.PublicContentDirector;
+    }
+
+    private static bool IsSoloDeepDungeonSmartAttackable(IBattleChara battleChara)
+    {
+        // In combat: only previously engaged targets.
+        if (DataCenter.InCombat)
+        {
+            return battleChara.TargetObject is not null;
+        }
+
+        // Out of combat: if any previously engaged targets are nearby, only attack those; otherwise, only the nearest single enemy.
+        bool hasEngagedNearby = false;
+        var hostiles = DataCenter.AllHostileTargets;
+        for (int i = 0, n = hostiles.Count; i < n; i++)
+        {
+            var h = hostiles[i];
+            if (h != null && h.TargetObject != null && h.DistanceToPlayer() < 25f)
+            {
+                hasEngagedNearby = true;
+                break;
+            }
+        }
+
+        if (hasEngagedNearby)
+        {
+            return battleChara.TargetObject is not null;
+        }
+
+        IBattleChara? nearest = null;
+        float best = float.MaxValue;
+        for (int i = 0, n = hostiles.Count; i < n; i++)
+        {
+            var h = hostiles[i];
+            if (h == null) continue;
+            float d = h.DistanceToPlayer();
+            if (d < best)
+            {
+                best = d;
+                nearest = h;
+            }
+        }
+        return nearest != null && battleChara.GameObjectId == nearest.GameObjectId;
     }
 
     internal static bool IsOccultCEMob(this IBattleChara battleChara)
@@ -822,6 +865,25 @@ public static class ObjectHelper
             }
         }
 
+        // striking shrublet - Floor 10 boss ads
+        if (DataCenter.TerritoryID == 1281)
+        {
+            if (battleChara.NameId == 13980)
+            {
+                return true;
+            }
+        }
+
+
+        // forgiven adulation - Floor 30 boss ads
+        if (DataCenter.TerritoryID == 1284)
+        {
+            if (battleChara.NameId == 13978)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -1142,7 +1204,8 @@ private static readonly HashSet<uint> IsOCUndeadSet =
     /// <returns>True if the target is immune due to any special mechanic; otherwise, false.</returns>
     public static bool IsSpecialImmune(this IBattleChara battleChara)
     {
-        return battleChara.IsLOTAImmune()
+        return battleChara.IsEminentGriefImmune()
+            || battleChara.IsLOTAImmune()
             || battleChara.IsMesoImmune()
             || battleChara.IsJagdDollImmune()
             || battleChara.IsLyreImmune()
@@ -1157,6 +1220,41 @@ private static readonly HashSet<uint> IsOCUndeadSet =
             || battleChara.IsOmegaImmune()
             || battleChara.IsLimitlessBlue()
             || battleChara.IsHanselorGretelShielded();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool IsEminentGriefImmune(this IBattleChara battleChara)
+    {
+        if (DataCenter.TerritoryID == 1311 || DataCenter.TerritoryID == 1333 || DataCenter.TerritoryID == 1290)
+        {
+            var EminentGrief = battleChara.NameId == 14037;
+            var DevouredEater = battleChara.NameId == 14038;
+
+            var LightVengeance = Player.Object.HasStatus(false, StatusID.LightVengeance);
+            var DarkVengeance = Player.Object.HasStatus(false, StatusID.DarkVengeance);
+
+            if (EminentGrief && !LightVengeance)
+            {
+                if (Service.Config.InDebug)
+                {
+                    PluginLog.Information("IsEminentGriefImmune status found");
+                }
+                return true;
+            }
+
+            if (DevouredEater && !DarkVengeance)
+            {
+                if (Service.Config.InDebug)
+                {
+                    PluginLog.Information("IsEminentGriefImmune status found");
+                }
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

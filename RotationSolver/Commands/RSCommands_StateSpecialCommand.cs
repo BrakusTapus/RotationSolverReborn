@@ -237,13 +237,15 @@ namespace RotationSolver.Commands
             Service.Config.TargetingIndex = index;
         }
 
-        public static void UpdateState(StateCommandType stateType, JobRole role)
+public static void UpdateState(StateCommandType stateType, JobRole role)
         {
             switch (stateType)
             {
                 case StateCommandType.Off:
                     DataCenter.State = false;
                     DataCenter.IsManual = false;
+                    DataCenter.IsTargetOnly = false;
+                    DataCenter.IsAutoDuty = false;
                     DataCenter.ResetAllRecords();
                     ActionUpdater.NextAction = ActionUpdater.NextGCDAction = null;
                     DataCenter.TargetingTypeOverride = null;
@@ -252,15 +254,29 @@ namespace RotationSolver.Commands
 
                 case StateCommandType.Auto:
                     DataCenter.IsManual = false;
+                    DataCenter.IsTargetOnly = false;
+                    DataCenter.IsAutoDuty = false;
                     DataCenter.State = true;
                     ActionUpdater.AutoCancelTime = DateTime.MinValue;
                     DataCenter.TargetingTypeOverride = null;
                     if (Service.Config.ShowToggledSettingInChat) { Svc.Chat.Print($"Auto Targeting : {DataCenter.TargetingType}"); }
                     break;
 
+                case StateCommandType.TargetOnly:
+                    DataCenter.IsAutoDuty = false;
+                    DataCenter.IsManual = false;
+                    DataCenter.State = true;
+                    DataCenter.IsTargetOnly = true;
+                    ActionUpdater.AutoCancelTime = DateTime.MinValue;
+                    DataCenter.TargetingTypeOverride = null;
+                    if (Service.Config.ShowToggledSettingInChat) { Svc.Chat.Print($"Auto Targeting Only : {DataCenter.TargetingType}"); }
+                    break;
+
                 case StateCommandType.Manual:
                     DataCenter.IsManual = true;
                     DataCenter.State = true;
+                    DataCenter.IsTargetOnly = false;
+                    DataCenter.IsAutoDuty = false;
                     ActionUpdater.AutoCancelTime = DateTime.MinValue;
                     DataCenter.TargetingTypeOverride = null;
                     if (Service.Config.ShowToggledSettingInChat) { Svc.Chat.Print($"Targeting : Manual"); }
@@ -271,13 +287,15 @@ namespace RotationSolver.Commands
             UpdateToast();
         }
 
-        public static void AutodutyUpdateState(StateCommandType stateType, JobRole role, TargetingType targetingType)
+public static void AutodutyUpdateState(StateCommandType stateType, JobRole role, TargetingType targetingType)
         {
             switch (stateType)
             {
                 case StateCommandType.Off:
                     DataCenter.State = false;
+                    DataCenter.IsAutoDuty = false;
                     DataCenter.IsManual = false;
+                    DataCenter.IsTargetOnly = false;
                     DataCenter.ResetAllRecords();
                     ActionUpdater.NextAction = ActionUpdater.NextGCDAction = null;
                     DataCenter.TargetingTypeOverride = null;
@@ -286,14 +304,28 @@ namespace RotationSolver.Commands
 
                 case StateCommandType.Auto:
                     DataCenter.IsManual = false;
+                    DataCenter.IsAutoDuty = false;
+                    DataCenter.IsTargetOnly = false;
                     DataCenter.State = true;
                     ActionUpdater.AutoCancelTime = DateTime.MinValue;
                     DataCenter.TargetingTypeOverride = null;
                     if (Service.Config.ShowToggledSettingInChat) { Svc.Chat.Print($"Auto Targeting : {DataCenter.TargetingType}"); }
                     break;
 
+                case StateCommandType.TargetOnly:
+                    DataCenter.IsManual = false;
+                    DataCenter.IsAutoDuty = false;
+                    DataCenter.IsTargetOnly = true;
+                    DataCenter.State = true;
+                    ActionUpdater.AutoCancelTime = DateTime.MinValue;
+                    DataCenter.TargetingTypeOverride = targetingType;
+                    if (Service.Config.ShowToggledSettingInChat) { Svc.Chat.Print($"Auto Targeting Only : {DataCenter.TargetingType}"); }
+                    break;
+
                 case StateCommandType.Manual:
                     DataCenter.IsManual = true;
+                    DataCenter.IsAutoDuty = false;
+                    DataCenter.IsTargetOnly = false;
                     DataCenter.State = true;
                     ActionUpdater.AutoCancelTime = DateTime.MinValue;
                     DataCenter.TargetingTypeOverride = null;
@@ -302,6 +334,8 @@ namespace RotationSolver.Commands
 
                 case StateCommandType.AutoDuty:
                     DataCenter.IsManual = false;
+                    DataCenter.IsAutoDuty = true;
+                    DataCenter.IsTargetOnly = false;
                     DataCenter.State = true;
                     ActionUpdater.AutoCancelTime = DateTime.MinValue;
                     DataCenter.TargetingTypeOverride = targetingType;

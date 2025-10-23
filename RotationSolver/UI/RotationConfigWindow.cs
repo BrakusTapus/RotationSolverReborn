@@ -1274,6 +1274,7 @@ public partial class RotationConfigWindow : Window
         DisplayCommandHelp(StateCommandType.Manual);
         DisplayCommandHelp(StateCommandType.Off);
         DisplayCommandHelp(OtherCommandType.Cycle);
+        DisplayCommandHelp(StateCommandType.TargetOnly);
         ImGui.NewLine();
 
         // Display command help for other commands

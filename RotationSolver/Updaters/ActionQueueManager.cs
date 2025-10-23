@@ -72,6 +72,11 @@ namespace RotationSolver.Updaters
                         // Always compute adjusted ID first to keep logic consistent
                         uint adjustedActionId = Service.GetAdjustedActionId(actionID);
 
+                        if (adjustedActionId == 7419 && _useActionHook?.Original != null)
+                        {
+                            return _useActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
+                        }
+
                         if (ShouldInterceptAction(adjustedActionId))
                         {
                             // More efficient action lookup - avoid creating new collections

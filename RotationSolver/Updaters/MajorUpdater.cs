@@ -167,7 +167,13 @@ internal static class MajorUpdater
 
             StateUpdater.UpdateState();
 
-            ActionUpdater.UpdateNextAction();
+ActionUpdater.UpdateNextAction();
+
+            // In Target-Only mode, update the player's target from the computed next action without executing it.
+            if (DataCenter.IsTargetOnly)
+            {
+                RSCommands.UpdateTargetFromNextAction();
+            }
 
             ActionSequencerUpdater.UpdateActionSequencerAction();
         }

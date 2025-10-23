@@ -211,12 +211,30 @@ namespace RotationSolver.Commands
             DoSpecialCommandType(SpecialCommandType.EndSpecial, false);
         }
 
-        internal static void CancelState()
+internal static void CancelState()
         {
             DataCenter.ResetAllRecords();
             if (DataCenter.State)
             {
                 DoStateCommandType(StateCommandType.Off);
+            }
+        }
+
+        public static void UpdateTargetFromNextAction()
+        {
+            IAction? nextAction = ActionUpdater.NextAction;
+            if (nextAction is BaseAction baseAct)
+            {
+                if (baseAct.Target.Target is IBattleChara target && target != Player.Object && target.IsEnemy())
+                {
+                    DataCenter.HostileTarget = target;
+                    if (!DataCenter.IsManual &&
+                        (Service.Config.SwitchTargetFriendly || ((Svc.Targets.Target?.IsEnemy() ?? true)
+                        || Svc.Targets.Target.GetObjectKind() == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Treasure)))
+                    {
+                        Svc.Targets.Target = target;
+                    }
+                }
             }
         }
 
@@ -248,9 +266,9 @@ namespace RotationSolver.Commands
                     (Service.Config.AutoOffWhenDead && DataCenter.Territory != null && !DataCenter.Territory.IsPvP && Player.Object.CurrentHp == 0) ||
                     (Service.Config.AutoOffWhenDeadPvP && DataCenter.Territory != null && DataCenter.Territory.IsPvP && Player.Object.CurrentHp == 0) ||
                     (Service.Config.AutoOffPvPMatchEnd && Svc.Condition[ConditionFlag.PvPDisplayActive]) ||
-                    (Service.Config.AutoOffCutScene && Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]) ||
+                    (Service.Config.AutoOffCutScene && !DataCenter.IsAutoDuty && Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]) ||
                     (Service.Config.AutoOffSwitchClass && Player.Job != _previousJob) ||
-                    (Service.Config.AutoOffBetweenArea && (Svc.Condition[ConditionFlag.BetweenAreas] || Svc.Condition[ConditionFlag.BetweenAreas51])) ||
+                    (Service.Config.AutoOffBetweenArea && !DataCenter.IsAutoDuty && (Svc.Condition[ConditionFlag.BetweenAreas] || Svc.Condition[ConditionFlag.BetweenAreas51])) ||
                     (Service.Config.CancelStateOnCombatBeforeCountdown && Service.CountDownTime > 0.2f && DataCenter.InCombat) ||
                     (ActionUpdater.AutoCancelTime != DateTime.MinValue && DateTime.Now > ActionUpdater.AutoCancelTime) ||
 false)

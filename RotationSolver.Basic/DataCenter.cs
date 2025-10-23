@@ -239,6 +239,10 @@ internal static class DataCenter
 
     public static bool IsManual { get; set; } = false;
 
+public static bool IsAutoDuty { get; set; } = false;
+
+    public static bool IsTargetOnly { get; set; } = false;
+
     public static bool InCombat { get; set; } = false;
 
     public static bool DrawingActions { get; set; } = false;
