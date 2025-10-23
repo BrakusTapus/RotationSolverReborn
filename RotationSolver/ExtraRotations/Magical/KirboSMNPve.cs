@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿// TODO - demi summon losses 6th gcd because of summon/attunment timer
+
+using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Magical;
 
@@ -62,6 +64,12 @@ public sealed class KirboSMNPve : SummonerRotation
 
     #endregion
 
+    #region
+    private double LateWeaveWindow => (float)(RuinPvE.Cooldown.RecastTime * 0.50);
+    private static bool CanWeave => WeaponRemain > AnimationLock;
+    private bool CanLateWeave => WeaponRemain < LateWeaveWindow && CanWeave;
+    #endregion
+
     #region Tracking Properties
     public override void DisplayRotationStatus()
     {
@@ -78,7 +86,7 @@ public sealed class KirboSMNPve : SummonerRotation
         {
             return act;
         }
-        if (HasSummon && remainTime <= RuinPvE.Info.CastTime + CountDownAhead
+        if (HasSummon && remainTime <= RuinPvE.Info.CastTime
             && RuinPvE.CanUse(out act))
         {
             return act;
@@ -177,7 +185,7 @@ public sealed class KirboSMNPve : SummonerRotation
 
         if (burstInSolar)
         {
-            if (SearingLightPvE.CanUse(out act)) // TODO - add check to prevent use if target is dying
+            if (CanLateWeave && SearingLightPvE.CanUse(out act)) // TODO - add check to prevent use if target is dying
             {
                 return true;
             }
