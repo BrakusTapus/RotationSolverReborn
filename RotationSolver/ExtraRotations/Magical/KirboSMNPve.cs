@@ -74,6 +74,11 @@ public sealed class KirboSMNPve : SummonerRotation
     public override void DisplayRotationStatus()
     {
         ImGui.Text($"EnergyDrainPvE: Is Cooling Down: {EnergyDrainPvE.Cooldown.IsCoolingDown}");
+        ImGui.Text($"effective hpP: {Player.GetEffectiveHpPercent()}");
+        ImGui.Text($"effective hp: {Player.GetEffectiveHp()}");
+        ImGui.Text($"Current Hp: {Player.CurrentHp}");
+        ImGui.Text($"Hp ratio: {Player.GetHealthRatio()}");
+        ImGui.Text($"AnimationLock: {AnimationLock}s");
 
         base.DisplayBaseStatus();
     }
@@ -100,20 +105,52 @@ public sealed class KirboSMNPve : SummonerRotation
     [RotationDesc(ActionID.LuxSolarisPvE, ActionID.EverlastingFlightPvE)]
     protected override bool HealAreaAbility(IAction nextGCD, out IAction? act)
     {
-        if (LuxSolarisPvE.CanUse(out act))
+        //if (LuxSolarisPvE.CanUse(out act))
+        //{
+        //    return true;
+        //}
+
+        if (Player.HasStatus(true, StatusID.RefulgentLux) && CanWeave)
         {
-            return true;
+            if (Player.WillStatusEndGCD(3, 0, true, StatusID.RefulgentLux) || Player.CurrentHp <= Player.MaxHp * 0.85f)
+            {
+                if (LuxSolarisPvE.CanUse(out act))
+                {
+                    return true;
+                }
+            }
         }
+
         return base.HealAreaAbility(nextGCD, out act);
     }
 
     [RotationDesc(ActionID.RekindlePvE)]
     protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
     {
-        if (RekindlePvE.CanUse(out act))
+        //if (RekindlePvE.CanUse(out act))
+        //{
+        //    return true;
+        //}
+
+        if (Player.WillStatusEndGCD(2, 0, true, StatusID.FirebirdTrance))
         {
-            return true;
+            if (RekindlePvE.CanUse(out act))
+            {
+                return true;
+            }
         }
+
+        if (Player.WillStatusEndGCD(3, 0, true, StatusID.FirebirdTrance))
+        {
+            if (RekindlePvE.CanUse(out act))
+            {
+                if (RekindlePvE.Target.Target == LowestHealthPartyMember)
+                {
+                    return true;
+                }
+            }
+        }
+
         return base.HealSingleAbility(nextGCD, out act);
     }
 
@@ -142,34 +179,37 @@ public sealed class KirboSMNPve : SummonerRotation
     [RotationDesc(ActionID.LuxSolarisPvE, ActionID.RekindlePvE)]
     protected override bool GeneralAbility(IAction nextGCD, out IAction? act)
     {
-        if (Player.WillStatusEndGCD(3, 0, true, StatusID.RefulgentLux))
-        {
-            if (LuxSolarisPvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
+        //if (Player.HasStatus(true, StatusID.RefulgentLux) && CanWeave)
+        //{
+        //    if (Player.WillStatusEndGCD(3, 0, true, StatusID.RefulgentLux) || Player.CurrentHp <= Player.MaxHp * 0.85f)
+        //    {
+        //        if (LuxSolarisPvE.CanUse(out act))
+        //        {
+        //            return true;
+        //        }
+        //    }
+        //}
 
-        if (Player.WillStatusEndGCD(2, 0, true, StatusID.FirebirdTrance))
-        {
-            if (RekindlePvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
+        //if (Player.WillStatusEndGCD(2, 0, true, StatusID.FirebirdTrance))
+        //{
+        //    if (RekindlePvE.CanUse(out act))
+        //    {
+        //        return true;
+        //    }
+        //}
 
-        if (Player.WillStatusEndGCD(3, 0, true, StatusID.FirebirdTrance))
-        {
-            if (RekindlePvE.CanUse(out act))
-            {
-                if (RekindlePvE.Target.Target == LowestHealthPartyMember)
-                {
-                    return true;
-                }
-            }
-        }
+        //if (Player.WillStatusEndGCD(3, 0, true, StatusID.FirebirdTrance))
+        //{
+        //    if (RekindlePvE.CanUse(out act))
+        //    {
+        //        if (RekindlePvE.Target.Target == LowestHealthPartyMember)
+        //        {
+        //            return true;
+        //        }
+        //    }
+        //}
 
-        if (HasSearingLight && InCombat && UseBurstMedicine(out act))
+        if (HasSearingLight && InCombat && UseBurstMedicine(out act)) //TODO - tincture should be used BEFORE Searing light
         {
             return true;
         }
@@ -340,7 +380,7 @@ public sealed class KirboSMNPve : SummonerRotation
             }
         }
 
-        if (SearingFlashPvE.CanUse(out act)) 
+        if (SearingFlashPvE.CanUse(out act))
         {
             if ((SearingFlashPvE.Target.Target.IsBossFromTTK() || SearingFlashPvE.Target.Target.IsBossFromIcon()) && SearingFlashPvE.Target.Target.IsDying())
             {
