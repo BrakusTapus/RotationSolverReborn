@@ -464,9 +464,21 @@ public sealed class KirboSMNPve : SummonerRotation
             return true;
         }
 
-        if (IsBurst && !SearingLightPvE.Cooldown.IsCoolingDown && SummonSolarBahamutPvE.CanUse(out act))
+        var solarTargetIsBoss = SummonSolarBahamutPvE.Target.Target.IsBossFromTTK() || SummonSolarBahamutPvE.Target.Target.IsBossFromIcon();
+
+        if (solarTargetIsBoss)
         {
-            return true;
+            if (IsBurst && !SearingLightPvE.Cooldown.IsCoolingDown && SummonSolarBahamutPvE.CanUse(out act))
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (IsBurst && !SearingLightPvE.Cooldown.IsCoolingDown && SummonSolarBahamutPvE.Target.Target.GetTTK() >= 15 && CombatTime > 2.5f && SummonSolarBahamutPvE.CanUse(out act))
+            {
+                return true;
+            }
         }
 
         if (SlipstreamPvE.CanUse(out act, skipCastingCheck: AddSwiftcastOnGaruda && ((!SwiftcastPvE.Cooldown.IsCoolingDown && IsMoving) || HasSwift)))
