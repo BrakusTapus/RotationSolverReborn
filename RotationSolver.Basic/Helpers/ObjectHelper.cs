@@ -296,7 +296,7 @@ public static class ObjectHelper
                 TargetHostileType.AllTargetsWhenSolo => DataCenter.PartyMembers.Count == 1 || battleChara.TargetObject is not null,
                 TargetHostileType.AllTargetsWhenSoloInDuty => (DataCenter.PartyMembers.Count == 1 && (Svc.Condition[ConditionFlag.BoundByDuty] || Svc.Condition[ConditionFlag.BoundByDuty56]))
                                     || battleChara.TargetObject is not null,
-                TargetHostileType.SoloDeepDungeonSmart => IsSoloDeepDungeonSmartAttackable(battleChara),
+                TargetHostileType.SoloDeepDungeonSmart => (battleChara.TargetObject is not null && DataCenter.PartyMembers.Count > 1) || IsSoloDeepDungeonSmartAttackable(battleChara),
                 _ => true,
             };
     }

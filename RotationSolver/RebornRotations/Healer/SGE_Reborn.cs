@@ -434,7 +434,7 @@ public sealed class SGE_Reborn : SageRotation
         {
             _lastEukrasiaActionAim = _EukrasiaActionAim;
             _EukrasiaActionAim = null;
-            if (HasEukrasia)
+            if (HasEukrasia && !InCombat)
             {
                 StatusHelper.StatusOff(StatusID.Eukrasia);
             }

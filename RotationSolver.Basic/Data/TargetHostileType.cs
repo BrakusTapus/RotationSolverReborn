@@ -32,7 +32,7 @@ public enum TargetHostileType : byte
     /// <summary>
     /// Solo Deep Dungeons: out of combat pull the nearest single enemy; in combat only previously engaged.
     /// </summary>
-    [Description("Solo Deep Dungeons: out of combat pull the nearest single enemy; in combat only previously engaged.")]
+    [Description("Solo Deep Dungeons: if solo, out of combat pull the nearest single enemy; in combat only previously engaged.")]
     SoloDeepDungeonSmart,
 
     //[Description("Only attack targets in your parties enemy list")]

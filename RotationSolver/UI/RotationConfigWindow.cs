@@ -1414,20 +1414,6 @@ public partial class RotationConfigWindow : Window
     {
         float width = ImGui.GetWindowWidth();
 
-        // Display GitHub link button
-        if (IconSet.GetTexture("https://GitHub-readme-stats.vercel.app/api/pin/?username=FFXIV-CombatReborn&repo=RotationSolverReborn&theme=dark", out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? icon))
-        {
-            if (ImGuiHelper.TextureButton(icon, width, width))
-            {
-                Util.OpenLink($"https://GitHub.com/{Service.USERNAME}/{Service.REPO}");
-            }
-        }
-        else
-        {
-            // Handle the case where the texture is not found
-            ImGui.Text("Failed to load GitHub icon.");
-        }
-
         ImGui.Spacing();
 
         // Display button to open the configuration folder
@@ -1448,6 +1434,21 @@ public partial class RotationConfigWindow : Window
                 }
             }
         }, width, textWidth);
+
+        ImGui.Spacing();
+        // Display GitHub link button
+        if (IconSet.GetTexture("https://GitHub-readme-stats.vercel.app/api/pin/?username=FFXIV-CombatReborn&repo=RotationSolverReborn&show_icons=true&theme=dark", out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? icon))
+        {
+            if (ImGuiHelper.TextureButton(icon, width, width))
+            {
+                Util.OpenLink($"https://GitHub.com/{Service.USERNAME}/{Service.REPO}");
+            }
+        }
+        else
+        {
+            // Handle the case where the texture is not found
+            ImGui.Text("Failed to load GitHub icon.");
+        }
     }
     #endregion
 
