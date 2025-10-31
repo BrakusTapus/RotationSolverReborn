@@ -626,6 +626,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion
 
     #region MCH LB
+    // Animation lock time for Marksman's Spite is ~1.60s (1600ms)
     private static IBaseAction MarksmansSpitePvP { get; } = new BaseAction((ActionID)29415);
     //private IBaseAction MarksmansSpitePvP2 => _MarksmansSpitePvPCreator.Value;
     //private readonly Lazy<IBaseAction> _MarksmansSpitePvPCreator = new Lazy<IBaseAction>(delegate
