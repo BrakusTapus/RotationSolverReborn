@@ -3,13 +3,15 @@
 [Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
 [SourceCode(Path = "main/RebornRotations/Tank/PLD_Reborn.cs")]
 
-
 public sealed class PLD_Reborn : PaladinRotation
 {
     #region Config Options
 
     [RotationConfig(CombatType.PvE, Name = "Use GCDs to heal. (Ignored if there are no healers alive in party)")]
     public bool GCDHeal { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "Use Divine Veil during countdown")]
+    public bool DivineVeilCountdown { get; set; } = false;
 
     [RotationConfig(CombatType.PvE, Name = "Only use Fight or Flight while in melee range of an enemy")]
     public bool MeleeFoF { get; set; } = true;
@@ -76,7 +78,7 @@ public sealed class PLD_Reborn : PaladinRotation
             return act;
         }
 
-        if (remainTime < 15 && DivineVeilPvE.CanUse(out act))
+        if (DivineVeilCountdown && remainTime < 15 && DivineVeilPvE.CanUse(out act))
         {
             return act;
         }
@@ -339,10 +341,9 @@ public sealed class PLD_Reborn : PaladinRotation
     [RotationDesc(ActionID.ClemencyPvE)]
     protected override bool HealSingleGCD(out IAction? act)
     {
-        act = null;
         if (PassageProtec && Player.HasStatus(true, StatusID.PassageOfArms))
         {
-            return false;
+            return base.HealSingleGCD(out act);
         }
 
         if (RequiescatHealBot && RequiescatStacks > 0 && ClemencyPvE.CanUse(out act, skipCastingCheck: true) && ClemencyPvE.Target.Target?.GetHealthRatio() < ClemencyRequi)
@@ -402,7 +403,7 @@ public sealed class PLD_Reborn : PaladinRotation
 
         if (((!HasAtonementReady && (SepulchreReady || SupplicationReady || HasDivineMight)) ||
              (HasAtonementReady && !HasDivineMight)) &&
-            !Player.HasStatus(true, StatusID.Medicated) && !HasFightOrFlight && !RageOfHalonePvE.CanUse(out act, skipComboCheck: false))
+            !Player.HasStatus(true, StatusID.Medicated) && !HasFightOrFlight && !RageOfHalonePvE.CanUse(out _, skipComboCheck: false))
         {
             if (!TotalEclipsePvE.CanUse(out _) && (RiotBladePvE.CanUse(out act) || FastBladePvE.CanUse(out act)))
             {
