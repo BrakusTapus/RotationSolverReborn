@@ -8,14 +8,17 @@ namespace RotationSolver.ExtraRotations.Ranged;
 public sealed class KirboMCHPve : MachinistRotation
 {
     #region Config Options
-    [RotationConfig(CombatType.PvE, Name = "Use burst medicine in countdown (requires auto burst option on)")]
-    private bool OpenerBurstMeds { get; set; } = false;
-
     [RotationConfig(CombatType.PvE, Name = "Use Bioblaster while moving")]
     private bool BioMove { get; set; } = true;
 
     [RotationConfig(CombatType.PvE, Name = "Only use Wildfire on Boss targets")]
     private bool WildfireBoss { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "Use burst medicine in countdown (requires auto burst option on)")]
+    private bool OpenerBurstMeds { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "M8S P1 2nd potion. [Test config]")]
+    private bool M8S2ndPotionTest { get; set; } = false;
     #endregion
 
     #region Countdown logic
@@ -31,6 +34,11 @@ public sealed class KirboMCHPve : MachinistRotation
             return act;
         }
 
+        //if (remainTime < 0.6f && AirAnchorPvE.CanUse(out IAction? act1) && Player.HasStatus(true, StatusID.Reassembled) && IsInHighEndDuty)
+        //{
+        //    return act1;
+        //}
+
         return base.CountDownAction(remainTime);
     }
     #endregion
@@ -42,6 +50,11 @@ public sealed class KirboMCHPve : MachinistRotation
             UpdateQueenStep();
             UpdateFoundStepPair();
         }
+
+        //if (M8S2ndPotionTest && CombatTime > 368 && CombatTime <= 373 && IsInTerritory(1263))
+        //{
+
+        //}
 
         if (HyperchargePvE.EnoughLevel)
         {
