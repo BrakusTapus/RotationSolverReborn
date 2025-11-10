@@ -195,11 +195,11 @@ public sealed class KirboMCHPve : MachinistRotation
             {
                 if (Heat >= 50 || HasHypercharged)
                 {
-                    if (WeaponRemain < (GCDTime(1) / 2) && nextGCD.IsTheSameTo(false, FullMetalFieldPvE)) //TODO maybe change weaponremain to check against wildfire's animation lock
+                    if (WeaponRemain < (GCDTime(1) / 2) && (nextGCD.IsTheSameTo(false, FullMetalFieldPvE) || FullMetalFieldPvE.Cooldown.JustUsedAfter(0.8f))) //TODO maybe change weaponremain to check against wildfire's animation lock
                     {
                         if (WildfirePvE.CanUse(out act))
                         {
-                            if ((WildfirePvE.Target.Target.IsBossFromIcon() && WildfireBoss) || !WildfireBoss)
+                            if (((WildfirePvE.Target.Target.IsBossFromIcon() || WildfirePvE.Target.Target.IsBossFromTTK()) && WildfireBoss) || !WildfireBoss)
                             {
                                 return true;
                             }
@@ -370,8 +370,19 @@ public sealed class KirboMCHPve : MachinistRotation
             return true;
         }
 
-        if (!AirAnchorPvE.CanUse(out _) && !ChainSawPvE.CanUse(out _) && !ExcavatorPvE.CanUse(out _) && !HasExcavatorReady
-            && !IsLastGCD(false, ChainSawPvE) && DrillPvE.Cooldown.CurrentCharges < 2 && (!WildfirePvE.Cooldown.IsCoolingDown || IsLastAction(false, WildfirePvE)))
+        if (!AirAnchorPvE.CanUse(out _) 
+            && 
+            !ChainSawPvE.CanUse(out _) 
+            && 
+            !ExcavatorPvE.CanUse(out _) 
+            &&
+            !HasExcavatorReady
+            && 
+            !IsLastGCD(false, ChainSawPvE) 
+            && 
+            DrillPvE.Cooldown.CurrentCharges < 2 
+            && 
+            (!WildfirePvE.Cooldown.IsCoolingDown || IsLastAction(false, WildfirePvE)))
         {
             if (FullMetalFieldPvE.CanUse(out act))
             {
