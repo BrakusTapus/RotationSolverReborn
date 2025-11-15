@@ -195,13 +195,16 @@ public sealed class KirboMCHPve : MachinistRotation
             {
                 if (Heat >= 50 || HasHypercharged)
                 {
-                    if (WeaponRemain < (GCDTime(1) / 2) && nextGCD.IsTheSameTo(false, FullMetalFieldPvE)) //TODO maybe change weaponremain to check against wildfire's animation lock
+                    if (WeaponRemain < (GCDTime(1) / 2)) //TODO maybe change weaponremain to check against wildfire's animation lock
                     {
-                        if (WildfirePvE.CanUse(out act))
+                        if (nextGCD.IsTheSameTo(false, FullMetalFieldPvE))
                         {
-                            if ((WildfirePvE.Target.Target.IsBossFromIcon() && WildfireBoss) || !WildfireBoss)
+                            if (WildfirePvE.CanUse(out act))
                             {
-                                return true;
+                                if ((WildfirePvE.Target.Target.IsBossFromIcon() && WildfireBoss) || !WildfireBoss)
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }
