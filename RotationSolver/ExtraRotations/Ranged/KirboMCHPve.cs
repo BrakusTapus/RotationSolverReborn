@@ -8,14 +8,17 @@ namespace RotationSolver.ExtraRotations.Ranged;
 public sealed class KirboMCHPve : MachinistRotation
 {
     #region Config Options
+    [RotationConfig(CombatType.PvE, Name = "Use burst medicine in countdown (requires auto burst option on)")]
+    private bool OpenerBurstMeds { get; set; } = false;
+
     [RotationConfig(CombatType.PvE, Name = "Use Bioblaster while moving")]
     private bool BioMove { get; set; } = true;
 
     [RotationConfig(CombatType.PvE, Name = "Only use Wildfire on Boss targets")]
     private bool WildfireBoss { get; set; } = false;
 
-    [RotationConfig(CombatType.PvE, Name = "Use burst medicine in countdown (requires auto burst option on)")]
-    private bool OpenerBurstMeds { get; set; } = false;
+    [RotationConfig(CombatType.PvE, Name = "Restrict mitigations to not overlap")]
+    private bool MitOverlap { get; set; } = false;
 
     [RotationConfig(CombatType.PvE, Name = "M8S P1 2nd potion. [Test config]")]
     private bool M8S2ndPotionTest { get; set; } = false;
@@ -307,10 +310,14 @@ public sealed class KirboMCHPve : MachinistRotation
             {
                 return true;
             }
-            if (!HeatedSlugShotPvE.EnoughLevel && SlugShotPvE.CanUse(out act))
+            if (!HeatedSlugShotPvE.Info.EnoughLevelAndQuest() && SlugShotPvE.CanUse(out act))
             {
                 return true;
             }
+            //if (!HeatedSlugShotPvE.EnoughLevel && SlugShotPvE.CanUse(out act))
+            //{
+            //    return true;
+            //}
         }
 
         // Overheated AOE
@@ -436,7 +443,11 @@ public sealed class KirboMCHPve : MachinistRotation
         {
             return true;
         }
-        if (!HeatedSlugShotPvE.EnoughLevel && SlugShotPvE.CanUse(out act))
+        //if (!HeatedSlugShotPvE.EnoughLevel && SlugShotPvE.CanUse(out act))
+        //{
+        //    return true;
+        //}
+        if (!HeatedSlugShotPvE.Info.EnoughLevelAndQuest() && SlugShotPvE.CanUse(out act))
         {
             return true;
         }
@@ -445,10 +456,14 @@ public sealed class KirboMCHPve : MachinistRotation
         {
             return true;
         }
-        if (!HeatedSplitShotPvE.EnoughLevel && SplitShotPvE.CanUse(out act))
+        if (!HeatedSplitShotPvE.Info.EnoughLevelAndQuest() && SplitShotPvE.CanUse(out act))
         {
             return true;
         }
+        //if (!HeatedSplitShotPvE.EnoughLevel && SplitShotPvE.CanUse(out act))
+        //{
+        //    return true;
+        //}
 
         return base.GeneralGCD(out act);
     }
