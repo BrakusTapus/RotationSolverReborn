@@ -197,11 +197,11 @@ public sealed class KirboMCHPve : MachinistRotation
                 {
                     if (WeaponRemain < (GCDTime(1) / 2)) //TODO maybe change weaponremain to check against wildfire's animation lock
                     {
-                        if (nextGCD.IsTheSameTo(false, FullMetalFieldPvE))
+                        if (nextGCD.IsTheSameTo(false, FullMetalFieldPvE) || IsLastGCD(false, FullMetalFieldPvE)) // NOTE: added islastGCD check
                         {
                             if (WildfirePvE.CanUse(out act))
                             {
-                                if ((WildfirePvE.Target.Target.IsBossFromIcon() && WildfireBoss) || !WildfireBoss)
+                                if (((WildfirePvE.Target.Target.IsBossFromIcon() || WildfirePvE.Target.Target.IsBossFromTTK()) && WildfireBoss) || !WildfireBoss) // NOTE: added isbosfromTTK check
                                 {
                                     return true;
                                 }
