@@ -7,7 +7,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -367,6 +366,15 @@ public partial class RotationConfigWindow : Window
             _ = diagInfo.AppendLine($"Intercept: {Service.Config.InterceptAction2}");
             _ = diagInfo.AppendLine($"Player Level: {Player.Level}");
             _ = diagInfo.AppendLine($"Player Job: {Player.Job}");
+            _ = diagInfo.AppendLine($"AutoFaceTargetOnActionSetting: {DataCenter.AutoFaceTargetOnActionSetting()}");
+            var moveModeValue = DataCenter.MoveModeSetting();
+            string moveModeText = moveModeValue switch
+            {
+                0 => "Standard",
+                1 => "Legacy",
+                _ => moveModeValue.ToString()
+            };
+            _ = diagInfo.AppendLine($"MoveModeSetting: {moveModeText}");
         }
 
         // Ensure that IncompatiblePlugins is not null
@@ -3466,6 +3474,8 @@ public partial class RotationConfigWindow : Window
         ImGui.Text($"Merged Status: {DataCenter.MergedStatus}");
         ImGui.Text($"PlayerHasLockActions: {ActionUpdater.PlayerHasLockActions()}");
         ImGui.Text($"Height: {Player.Character->ModelContainer.CalculateHeight()}");
+        ImGui.Text($"AutoFaceTargetOnActionSetting: {DataCenter.AutoFaceTargetOnActionSetting()}");
+        ImGui.Text($"MoveModeSetting: {DataCenter.MoveModeSetting()}");
         Dalamud.Game.ClientState.Conditions.ConditionFlag[] conditions = [.. Svc.Condition.AsReadOnlySet()];
         ImGui.Text("InternalCondition:");
         foreach (Dalamud.Game.ClientState.Conditions.ConditionFlag condition in conditions)
