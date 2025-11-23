@@ -34,7 +34,7 @@ public sealed class RotationSolverPlugin : IDalamudPlugin, IDisposable
     private static WelcomeWindow? _changelogWindow;
     private static OverlayWindow? _overlayWindow;
     private static EasterEggWindow? _easterEggWindow;
-
+    private static TTKWindow? _ttkWindow;
     private static readonly List<IDisposable> _dis = [];
     public static string Name => "Rotation Solver Reborn";
     internal static readonly List<DrawingHighlightHotbarBase> _drawingElements = [];
@@ -92,7 +92,7 @@ public sealed class RotationSolverPlugin : IDalamudPlugin, IDisposable
         _changelogWindow = new();
         _overlayWindow = new();
         _easterEggWindow = new();
-
+        _ttkWindow = new();
         // Start cactbot bridge if enabled
         //try
         //{
@@ -116,7 +116,7 @@ public sealed class RotationSolverPlugin : IDalamudPlugin, IDisposable
         windowSystem.AddWindow(_changelogWindow);
         windowSystem.AddWindow(_overlayWindow);
         windowSystem.AddWindow(_easterEggWindow);
-        //Notify.Success("Overlay Window was added!");
+        windowSystem.AddWindow(_ttkWindow);  //Notify.Success("Overlay Window was added!");
 
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OnOpenConfigUi;
         Svc.PluginInterface.UiBuilder.OpenMainUi += OnOpenConfigUi;
@@ -301,6 +301,7 @@ public sealed class RotationSolverPlugin : IDalamudPlugin, IDisposable
         }
 
         _overlayWindow!.IsOpen = isValid && Service.Config.TeachingMode;
+        _ttkWindow!.IsOpen = Service.Config.InDebug;
     }
 
     private static bool AnyHostileTargetWithinDistance(float distance)
