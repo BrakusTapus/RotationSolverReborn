@@ -8,8 +8,14 @@ namespace RotationSolver.ExtraRotations.Ranged;
 public sealed class KirboMCHPve : MachinistRotation
 {
     #region Config Options
+    //[RotationConfig(CombatType.PvE, Name = "Use Potions")]
+    //public bool UsePotions { get; set; } = true;
+
     [RotationConfig(CombatType.PvE, Name = "Use burst medicine in countdown (requires auto burst option on)")]
     private bool OpenerBurstMeds { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "M8S P1 2nd potion. [Test config]")]
+    private bool M8S2ndPotionTest { get; set; } = false;
 
     [RotationConfig(CombatType.PvE, Name = "Use Bioblaster while moving")]
     private bool BioMove { get; set; } = true;
@@ -19,9 +25,6 @@ public sealed class KirboMCHPve : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "Restrict mitigations to not overlap")]
     private bool MitOverlap { get; set; } = false;
-
-    [RotationConfig(CombatType.PvE, Name = "M8S P1 2nd potion. [Test config]")]
-    private bool M8S2ndPotionTest { get; set; } = false;
     #endregion
 
     #region Countdown logic
