@@ -1,5 +1,4 @@
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.Config;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
@@ -355,7 +354,15 @@ internal static class MajorUpdater
 
                         if (closestEnemy != null)
                         {
-                            Svc.Targets.Target = closestEnemy;
+                            if (!Service.Config.TargetDelayEnable)
+                            {
+                                Svc.Targets.Target = closestEnemy;
+                            }
+                            // Respect TargetDelay before auto-targeting the closest enemy
+                            if (Service.Config.TargetDelayEnable)
+                            {
+                                RSCommands.SetTargetWithDelay(closestEnemy);
+                            }
                             PluginLog.Information($"Targeting {closestEnemy}");
                         }
                     }
