@@ -42,6 +42,25 @@ internal static class DataCenter
 
     public static bool ResetActionConfigs { get; set; } = false;
 
+    public static int PlayerSyncedLevel()
+    {
+        if (Player.IsLevelSynced)
+        {
+            return Player.SyncedLevel;
+        }
+
+        if (PlayerCurrentLevel < PlayerUnsyncedLevel)
+        {
+            return PlayerCurrentLevel;
+        }
+
+        return PlayerUnsyncedLevel;
+    }
+
+    public unsafe static int PlayerCurrentLevel => PlayerState.Instance()->CurrentLevel;
+
+    public static int PlayerUnsyncedLevel => Player.UnsyncedLevel;
+
     public static bool IsActivated()
     {
         return Player.AvailableThreadSafe && (State || IsManual || Service.Config.TeachingMode);
@@ -260,6 +279,8 @@ internal static class DataCenter
 
     public static bool IsHenched { get; set; } = false;
 
+    public static bool IsPvPStateEnabled { get; set; } = false;
+
     public static bool IsTargetOnly { get; set; } = false;
 
     public static bool InCombat { get; set; } = false;
@@ -410,7 +431,7 @@ internal static class DataCenter
             {
                 if ((IntPtr)FateManager.Instance() != IntPtr.Zero
                     && (IntPtr)FateManager.Instance()->CurrentFate != IntPtr.Zero
-                    && Player.Level <= FateManager.Instance()->CurrentFate->MaxLevel)
+                    && DataCenter.PlayerSyncedLevel() <= FateManager.Instance()->CurrentFate->MaxLevel)
                 {
                     return FateManager.Instance()->CurrentFate->FateId;
                 }
@@ -542,11 +563,11 @@ internal static class DataCenter
             return true;
         }
 
-        if ((Role == JobRole.Healer || Job == Job.SMN) && Player.Level >= 12)
+        if ((Role == JobRole.Healer || Job == Job.SMN) && DataCenter.PlayerSyncedLevel() >= 12)
         {
             return true;
         }
-        if (Job == Job.RDM && Player.Level >= 64)
+        if (Job == Job.RDM && DataCenter.PlayerSyncedLevel() >= 64)
         {
             return true;
         }

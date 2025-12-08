@@ -1210,7 +1210,8 @@ private static readonly HashSet<uint> IsOCUndeadSet =
     /// <returns>True if the target is immune due to any special mechanic; otherwise, false.</returns>
     public static bool IsSpecialImmune(this IBattleChara battleChara)
     {
-        return battleChara.IsTrueHeartImmune()
+        return battleChara.IsColossusRubricatusImmune()
+            || battleChara.IsTrueHeartImmune()
             || battleChara.IsEminentGriefImmune()
             || battleChara.IsLOTAImmune()
             || battleChara.IsMesoImmune()
@@ -1227,6 +1228,32 @@ private static readonly HashSet<uint> IsOCUndeadSet =
             || battleChara.IsOmegaImmune()
             || battleChara.IsLimitlessBlue()
             || battleChara.IsHanselorGretelShielded();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool IsColossusRubricatusImmune(this IBattleChara battleChara)
+    {
+        if (DataCenter.TerritoryID == 1174)
+        {
+            var ColossusRubricatus = battleChara.NameId == 9511;
+
+            if (ColossusRubricatus)
+            {
+                if (battleChara.CastActionId == 14574)
+                {
+                    if (Service.Config.InDebug)
+                    {
+                        PluginLog.Information("IsColossusRubricatusImmune action found, ignoring mob");
+                    }
+                }
+                return true;
+            }
+
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -2239,7 +2266,7 @@ internal static float GetTTK(this IBattleChara battleChara, bool wholeTime = fal
         public long ExpiresAt;
         public bool Visible;
     }
-    private static readonly ConcurrentDictionary<ulong, LosCacheEntry> _losCache = new();
+    private static readonly ConcurrentDictionary<ulong, LosCacheEntry> _losCache = [];
     private const float LosPosEpsilonSq = 0.04f;   // ~20 cm tolerance
     private const long LosTtlMs = 33;      // one 30–60 FPS frame
 
