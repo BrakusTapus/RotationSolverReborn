@@ -99,7 +99,7 @@ public sealed class KirboMCHPve : MachinistRotation
             return base.DefenseAreaAbility(nextGCD, out act);
         }
 
-        if (TacticianPvE.CanUse(out act) && !TacticianPvE.Target.Target.HasStatus(false, StatusID.ShieldSamba, StatusID.Troubadour, StatusID.Tactician_1951, StatusID.Tactician_2177))
+        if (TacticianPvE.CanUse(out act) && !Player.HasStatus(false, StatusID.ShieldSamba, StatusID.Troubadour, StatusID.Tactician_1951, StatusID.Tactician_2177))
         {
             return true;
         }
@@ -120,7 +120,7 @@ public sealed class KirboMCHPve : MachinistRotation
             return base.DefenseSingleAbility(nextGCD, out act);
         }
 
-        if (TacticianPvE.CanUse(out act) && !TacticianPvE.Target.Target.HasStatus(false, StatusID.ShieldSamba, StatusID.Troubadour, StatusID.Tactician_1951, StatusID.Tactician_2177))
+        if (TacticianPvE.CanUse(out act) && !Player.HasStatus(false, StatusID.ShieldSamba, StatusID.Troubadour, StatusID.Tactician_1951, StatusID.Tactician_2177))
         {
             return true;
         }
