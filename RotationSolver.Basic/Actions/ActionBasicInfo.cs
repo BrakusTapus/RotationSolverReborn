@@ -246,8 +246,13 @@ public readonly struct ActionBasicInfo
     /// <returns>True if the action passes the basic check; otherwise, false.</returns>
     internal readonly unsafe bool BasicCheck(bool skipStatusProvideCheck, bool skipStatusNeed,  bool skipComboCheck, bool skipCastingCheck, bool checkActionManager = false)
     {
-        // 1. Player and action slot checks
-        if (Player.Object.StatusList == null)
+		if (Player.Object == null)
+		{
+			return false;
+		}
+
+		// 1. Player and action slot checks
+		if (Player.Object.StatusList == null)
         {
             return false;
         }
@@ -260,7 +265,7 @@ public readonly struct ActionBasicInfo
         var type = ActionHelper.GetActionCate(_action.Action);
         if (type is ActionCate.Weaponskill)
         {
-            if (Player.Object.HasStatus(false, StatusID.Pacification_620))
+            if (StatusHelper.PlayerHasStatus(false, StatusID.Pacification_620))
             {
                 return false;
             }
@@ -268,7 +273,7 @@ public readonly struct ActionBasicInfo
 
         if (type is ActionCate.Spell)
         {
-            if (Player.Object.HasStatus(false, StatusID.Silence))
+            if (StatusHelper.PlayerHasStatus(false, StatusID.Silence))
             {
                 return false;
             }
@@ -342,8 +347,13 @@ public readonly struct ActionBasicInfo
 
     private bool NeedsCasting(bool skipCastingCheck)
     {
-        // Must have a cast time
-        if (CastTime <= 0f)
+		if (Player.Object == null)
+		{
+			return false;
+		}
+
+		// Must have a cast time
+		if (CastTime <= 0f)
             return false;
 
         // Must not have a instant cast status
@@ -378,7 +388,12 @@ public readonly struct ActionBasicInfo
     /// </summary>
     public bool HasEnoughMP()
     {
-        if (DataCenter.CurrentMp >= MPNeed)
+		if (Player.Object == null)
+		{
+			return false;
+		}
+
+		if (DataCenter.CurrentMp >= MPNeed)
         {
             return true;
         }
@@ -386,13 +401,13 @@ public readonly struct ActionBasicInfo
         if (Player.Job == Job.WHM)
         {
             // Freecure makes the next Cure II cost 0 MP
-            if (ID == (uint)ActionID.CureIiPvE && Player.Object.HasStatus(true, StatusID.Freecure))
+            if (ID == (uint)ActionID.CureIiPvE && StatusHelper.PlayerHasStatus(true, StatusID.Freecure))
             {
                 return true;
             }
 
             // Thin Air covers any expensive spell (including Raise)
-            if (Player.Object.HasStatus(true, StatusID.ThinAir) || CustomRotation.IsLastAction(ActionID.ThinAirPvE))
+            if (StatusHelper.PlayerHasStatus(true, StatusID.ThinAir) || CustomRotation.IsLastAction(ActionID.ThinAirPvE))
             {
                 return true;
             }
@@ -403,12 +418,22 @@ public readonly struct ActionBasicInfo
 
     private bool IsStatusNeeded(bool skipStatusNeed)
     {
-        return Player.Object.StatusList != null && !skipStatusNeed && _action.Setting.StatusNeed != null && Player.Object.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusNeed);
+		if (Player.Object == null)
+		{
+			return false;
+		}
+
+		return Player.Object.StatusList != null && !skipStatusNeed && _action.Setting.StatusNeed != null && Player.Object.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusNeed);
     }
 
     private bool IsStatusProvided(bool skipStatusProvideCheck)
     {
-        return Player.Object.StatusList != null && !skipStatusProvideCheck && _action.Setting.StatusProvide != null && !Player.Object.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusProvide);
+		if (Player.Object == null)
+		{
+			return false;
+		}
+
+		return Player.Object.StatusList != null && !skipStatusProvideCheck && _action.Setting.StatusProvide != null && !Player.Object.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusProvide);
     }
 
     private bool IsComboValid(bool skipComboCheck)

@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.PVPRotations.Melee;
 
-[Rotation("Default PVP", CombatType.PvP, GameVersion = "7.35")]
+[Rotation("Default PVP", CombatType.PvP, GameVersion = "7.4")]
 [SourceCode(Path = "main/RebornRotations/PVPRotations/Melee/SAM_Default.PvP.cs")]
 
 public sealed class SAM_DefaultPvP : SamuraiRotation
@@ -28,7 +28,7 @@ public sealed class SAM_DefaultPvP : SamuraiRotation
     #region oGCDs
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.EmergencyAbility(nextGCD, out action);
         }
@@ -40,7 +40,7 @@ public sealed class SAM_DefaultPvP : SamuraiRotation
 
         if (BloodbathPvP.CanUse(out action))
         {
-            if (Player.GetHealthRatio() < BloodBathPvPPercent)
+            if (Player?.GetHealthRatio() < BloodBathPvPPercent)
             {
                 return true;
             }
@@ -69,7 +69,7 @@ public sealed class SAM_DefaultPvP : SamuraiRotation
 
     protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.DefenseSingleAbility(nextGCD, out action);
         }
@@ -84,7 +84,7 @@ public sealed class SAM_DefaultPvP : SamuraiRotation
 
     protected override bool AttackAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.AttackAbility(nextGCD, out action);
         }
@@ -129,7 +129,7 @@ public sealed class SAM_DefaultPvP : SamuraiRotation
     [RotationDesc(ActionID.HissatsuSotenPvP)]
     protected override bool MoveForwardAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.MoveForwardAbility(nextGCD, out action);
         }
@@ -146,7 +146,7 @@ public sealed class SAM_DefaultPvP : SamuraiRotation
     #region GCDs
     protected override bool GeneralGCD(out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.GeneralGCD(out action);
         }

@@ -1,6 +1,6 @@
 namespace RotationSolver.RebornRotations.Tank;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.4")]
 [SourceCode(Path = "main/RebornRotations/Tank/DRK_Reborn.cs")]
 
 public sealed class DRK_Reborn : DarkKnightRotation
@@ -328,12 +328,12 @@ public sealed class DRK_Reborn : DarkKnightRotation
                 return true;
             }
 
-            if (Player.HasStatus(true, StatusID.Delirium_3836))
+            if (StatusHelper.PlayerHasStatus(true, StatusID.Delirium_3836))
             {
                 return true;
             }
 
-            if ((Player.HasStatus(true, StatusID.Delirium_1972) || Player.HasStatus(true, StatusID.Delirium_3836)) && LivingShadowPvE.Cooldown.IsCoolingDown)
+            if ((StatusHelper.PlayerHasStatus(true, StatusID.Delirium_1972) || StatusHelper.PlayerHasStatus(true, StatusID.Delirium_3836)) && LivingShadowPvE.Cooldown.IsCoolingDown)
             {
                 return true;
             }
@@ -359,7 +359,7 @@ public sealed class DRK_Reborn : DarkKnightRotation
                 return false;
             }
 
-            if ((InTwoMIsBurst && HasDarkArts) || (HasDarkArts && Player.HasStatus(true, StatusID.BlackestNight)) || (HasDarkArts && DarkSideEndAfterGCD(3)))
+            if ((InTwoMIsBurst && HasDarkArts) || (HasDarkArts && StatusHelper.PlayerHasStatus(true, StatusID.BlackestNight)) || (HasDarkArts && DarkSideEndAfterGCD(3)))
             {
                 return true;
             }

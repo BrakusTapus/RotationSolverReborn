@@ -2,7 +2,7 @@
 
 namespace RotationSolver.RebornRotations.Magical;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.35")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.4")]
 [SourceCode(Path = "main/RebornRotations/Magical/SMN_Reborn.cs")]
 
 public sealed class SMN_Reborn : SummonerRotation
@@ -122,7 +122,7 @@ public sealed class SMN_Reborn : SummonerRotation
     [RotationDesc(ActionID.LuxSolarisPvE)]
     protected override bool GeneralAbility(IAction nextGCD, out IAction? act)
     {
-        if (Player.WillStatusEndGCD(3, 0, true, StatusID.RefulgentLux))
+        if (StatusHelper.PlayerWillStatusEndGCD(3, 0, true, StatusID.RefulgentLux))
         {
             if (LuxSolarisPvE.CanUse(out act))
             {
@@ -130,7 +130,7 @@ public sealed class SMN_Reborn : SummonerRotation
             }
         }
 
-        if (Player.WillStatusEndGCD(2, 0, true, StatusID.FirebirdTrance))
+        if (StatusHelper.PlayerWillStatusEndGCD(2, 0, true, StatusID.FirebirdTrance))
         {
             if (RekindlePvE.CanUse(out act))
             {
@@ -138,7 +138,7 @@ public sealed class SMN_Reborn : SummonerRotation
             }
         }
 
-        if (Player.WillStatusEndGCD(3, 0, true, StatusID.FirebirdTrance))
+        if (StatusHelper.PlayerWillStatusEndGCD(3, 0, true, StatusID.FirebirdTrance))
         {
             if (RekindlePvE.CanUse(out act))
             {

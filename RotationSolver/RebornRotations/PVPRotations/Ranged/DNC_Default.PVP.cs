@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.PVPRotations.Ranged;
 
-[Rotation("Default PVP", CombatType.PvP, GameVersion = "7.35")]
+[Rotation("Default PVP", CombatType.PvP, GameVersion = "7.4")]
 [SourceCode(Path = "main/RebornRotations/PVPRotations/Ranged/DNC_Default.PvP.cs")]
 
 public sealed class DNC_DefaultPvP : DancerRotation
@@ -14,12 +14,12 @@ public sealed class DNC_DefaultPvP : DancerRotation
     #region oGCDs
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.EmergencyAbility(nextGCD, out action);
         }
 
-        if (Player.HasStatus(true, StatusID.HoningDance))
+        if (StatusHelper.PlayerHasStatus(true, StatusID.HoningDance))
         {
             return base.EmergencyAbility(nextGCD, out action);
         }
@@ -29,7 +29,7 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return true;
         }
 
-        if (ClosedPositionPvP.CanUse(out action) && !Player.HasStatus(true, StatusID.ClosedPosition_2026))
+        if (ClosedPositionPvP.CanUse(out action) && !StatusHelper.PlayerHasStatus(true, StatusID.ClosedPosition_2026))
         {
             return true;
         }
@@ -49,7 +49,7 @@ public sealed class DNC_DefaultPvP : DancerRotation
 
     protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? action)
     {
-        if (!RespectGuard || !Player.HasStatus(true, StatusID.Guard))
+        if (!RespectGuard || !HasPVPGuard)
         {
             return base.DefenseSingleAbility(nextGCD, out action);
         }
@@ -59,12 +59,12 @@ public sealed class DNC_DefaultPvP : DancerRotation
 
     protected override bool HealAreaAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.HealAreaAbility(nextGCD, out action);
         }
 
-        if (Player.HasStatus(true, StatusID.HoningDance))
+        if (HasHoningDance)
         {
             return base.HealAreaAbility(nextGCD, out action);
         }
@@ -79,7 +79,7 @@ public sealed class DNC_DefaultPvP : DancerRotation
 
     protected override bool MoveBackAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.MoveBackAbility(nextGCD, out action);
         }
@@ -91,12 +91,12 @@ public sealed class DNC_DefaultPvP : DancerRotation
 
     protected override bool AttackAbility(IAction nextGCD, out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.AttackAbility(nextGCD, out action);
         }
 
-        if (Player.HasStatus(true, StatusID.HoningDance))
+        if (HasHoningDance)
         {
             return base.AttackAbility(nextGCD, out action);
         }
@@ -118,12 +118,12 @@ public sealed class DNC_DefaultPvP : DancerRotation
     #region GCDs
     protected override bool GeneralGCD(out IAction? action)
     {
-        if (RespectGuard && Player.HasStatus(true, StatusID.Guard))
+        if (RespectGuard && HasPVPGuard)
         {
             return base.GeneralGCD(out action);
         }
 
-        if (Player.HasStatus(true, StatusID.HoningDance))
+        if (HasHoningDance)
         {
             return base.GeneralGCD(out action);
         }
@@ -138,7 +138,7 @@ public sealed class DNC_DefaultPvP : DancerRotation
             return true;
         }
 
-        if (NumberOfHostilesInRangeOf(6) > 0 && HoningDancePvP.CanUse(out action) && !Player.HasStatus(true, StatusID.EnAvant))
+        if (NumberOfHostilesInRangeOf(6) > 0 && HoningDancePvP.CanUse(out action) && !StatusHelper.PlayerHasStatus(true, StatusID.EnAvant))
         {
             return true;
         }
