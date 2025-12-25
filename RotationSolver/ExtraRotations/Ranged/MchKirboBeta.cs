@@ -68,6 +68,7 @@ public sealed class MchKirboBeta : MachinistRotation
     private static TerritoryContentType ContentType => CustomRotation.TerritoryContentType;
     private const float HYPERCHARGE_DURATION = 8f;
 
+    internal static int Phase { get; set; } = 0;
     #endregion
 
     #region Countdown logic
@@ -1001,7 +1002,6 @@ public sealed class MchKirboBeta : MachinistRotation
         ResetOpenerProperties();
     }
 
-    internal static int Phase { get; set; } = 0;
 
     #region Opener related
     internal static bool IsInHighEndContent => CustomRotation.IsInHighEndDuty;
@@ -1496,9 +1496,8 @@ public sealed class MchKirboBeta : MachinistRotation
     #endregion Opener related
 
     #region UI related
-    /// <summary>
-    /// Displays extra status information.
-    /// </summary>
+
+    #region Windows
     public unsafe override void DisplayRotationStatus()
     {
         BeginPaddedChild("The CustomRotation's status window", true, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar);
@@ -1574,77 +1573,6 @@ public sealed class MchKirboBeta : MachinistRotation
         DrawInfoCollapsible();
         //ImGui.Text($"TTK: {CurrentTarget.GetTTK()}");
         EndPaddedChild();
-    }
-
-    public static bool BeginPaddedChild(string str_id, bool border = false, ImGuiWindowFlags flags = 0)
-    {
-        float padding = ImGui.GetStyle().WindowPadding.X;
-        // Set cursor position with padding
-        float cursorPosX = ImGui.GetCursorPosX() + padding;
-        ImGui.SetCursorPosX(cursorPosX);
-
-        // Adjust the size to account for padding
-        // Get the available size and adjust it to account for padding
-        Vector2 size = ImGui.GetContentRegionAvail();
-        size.X -= 2 * padding;
-        size.Y -= 2 * padding;
-
-        // Begin the child window
-        return ImGui.BeginChild(str_id, size, border, flags);
-    }
-
-    public static void EndPaddedChild()
-    {
-        ImGui.EndChild();
-    }
-
-    internal static void DrawItemMiddle(System.Action drawAction, float wholeWidth, float width, bool leftAlign = true)
-    {
-        if (drawAction == null) return;
-        var distance = (wholeWidth - width) / 2;
-        if (leftAlign) distance = MathF.Max(distance, 0);
-        ImGui.SetCursorPosX(distance);
-        drawAction();
-    }
-
-    internal static void TripleSpacing()
-    {
-        ImGui.Spacing();
-        ImGui.Spacing();
-        ImGui.Spacing();
-    }
-
-    internal static void SeparatorWithSpacing()
-    {
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.Spacing();
-    }
-
-    /// <summary>
-    /// adds a DrawList command to draw a border around the group
-    /// </summary>
-    public static void BeginBorderedGroup()
-    {
-        ImGui.BeginGroup();
-    }
-
-    public static void EndBorderedGroup() => EndBorderedGroup(new Vector2(3, 2), new Vector2(0, 3));
-
-    public static void EndBorderedGroup(Vector2 minPadding, Vector2 maxPadding = default(Vector2))
-    {
-        ImGui.EndGroup();
-
-        // attempt to size the border around the content to frame it
-        var color = ImGui.GetStyle().Colors[(int) ImGuiCol.Border];
-
-        var min = ImGui.GetItemRectMin();
-        var max = ImGui.GetItemRectMax();
-        max.X = min.X + ImGui.GetContentRegionAvail().X;
-        ImGui.GetWindowDrawList().AddRect(min - minPadding, max + maxPadding, ImGui.ColorConvertFloat4ToU32(color));
-
-        // this fits just the content, not the full width
-        //ImGui.GetWindowDrawList().AddRect( ImGui.GetItemRectMin() - padding, ImGui.GetItemRectMax() + padding, packedColor );
     }
 
     public static void DisplayGCDStatus()
@@ -1740,5 +1668,81 @@ public sealed class MchKirboBeta : MachinistRotation
         }
 
     }
+    #endregion
+
+    #region methods
+    internal static void DrawItemMiddle(System.Action drawAction, float wholeWidth, float width, bool leftAlign = true)
+    {
+        if (drawAction == null) return;
+        var distance = (wholeWidth - width) / 2;
+        if (leftAlign) distance = MathF.Max(distance, 0);
+        ImGui.SetCursorPosX(distance);
+        drawAction();
+    }
+
+    internal static void TripleSpacing()
+    {
+        ImGui.Spacing();
+        ImGui.Spacing();
+        ImGui.Spacing();
+    }
+
+    internal static void SeparatorWithSpacing()
+    {
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+    }
+    #endregion
+    #region sub-windows
+    /// <summary>
+    /// adds a DrawList command to draw a border around the group
+    /// </summary>
+    public static void BeginBorderedGroup()
+    {
+        ImGui.BeginGroup();
+    }
+
+    public static void EndBorderedGroup() => EndBorderedGroup(new Vector2(3, 2), new Vector2(0, 3));
+
+    public static void EndBorderedGroup(Vector2 minPadding, Vector2 maxPadding = default(Vector2))
+    {
+        ImGui.EndGroup();
+
+        // attempt to size the border around the content to frame it
+        var color = ImGui.GetStyle().Colors[(int) ImGuiCol.Border];
+
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        max.X = min.X + ImGui.GetContentRegionAvail().X;
+        ImGui.GetWindowDrawList().AddRect(min - minPadding, max + maxPadding, ImGui.ColorConvertFloat4ToU32(color));
+
+        // this fits just the content, not the full width
+        //ImGui.GetWindowDrawList().AddRect( ImGui.GetItemRectMin() - padding, ImGui.GetItemRectMax() + padding, packedColor );
+    }
+
+    public static bool BeginPaddedChild(string str_id, bool border = false, ImGuiWindowFlags flags = 0)
+    {
+        float padding = ImGui.GetStyle().WindowPadding.X;
+        // Set cursor position with padding
+        float cursorPosX = ImGui.GetCursorPosX() + padding;
+        ImGui.SetCursorPosX(cursorPosX);
+
+        // Adjust the size to account for padding
+        // Get the available size and adjust it to account for padding
+        Vector2 size = ImGui.GetContentRegionAvail();
+        size.X -= 2 * padding;
+        size.Y -= 2 * padding;
+
+        // Begin the child window
+        return ImGui.BeginChild(str_id, size, border, flags);
+    }
+
+    public static void EndPaddedChild()
+    {
+        ImGui.EndChild();
+    }
+    #endregion
+
     #endregion
 }
