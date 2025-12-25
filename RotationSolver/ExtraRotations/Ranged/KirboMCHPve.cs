@@ -2,7 +2,7 @@
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
-[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.35")]
+[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.4")]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
 [ExtraRotation]
 public sealed class KirboMCHPve : MachinistRotation

@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
-[Rotation("KirboMCH", CombatType.PvP, GameVersion = "7.3", Description = "Kirbo's Machinist PvP Rotation!")]
+[Rotation("KirboMCH", CombatType.PvP, GameVersion = "7.4", Description = "Kirbo's Machinist PvP Rotation!")]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPvp.cs")]
 [ExtraRotation]
 public sealed class KirboMCHPvp : MachinistRotation
