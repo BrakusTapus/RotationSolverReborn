@@ -5,6 +5,7 @@ using ECommons.GameHelpers;
 using ECommons.Logging;
 using Lumina.Excel.Sheets;
 using RotationSolver.Commands;
+using RotationSolver.IPC;
 using RotationSolver.UI.HighlightTeachingMode;
 using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 
@@ -173,7 +174,8 @@ internal static class MajorUpdater
             }
 
             ActionSequencerUpdater.UpdateActionSequencerAction();
-        }
+			Wrath_IPCSubscriber.DisableAutoRotation();
+		}
         catch (Exception ex)
         {
             LogOnce("RSRUpdate DC Exception", ex);
@@ -330,7 +332,7 @@ internal static class MajorUpdater
         {
             MiscUpdater.UpdateMisc();
 
-            if (Service.Config.TargetFreely && !DataCenter.IsPvP)
+            if (Service.Config.TargetFreely && !DataCenter.IsPvP && DataCenter.State)
             {
                 IAction? nextAction2 = ActionUpdater.NextAction;
                 if (nextAction2 == null)
