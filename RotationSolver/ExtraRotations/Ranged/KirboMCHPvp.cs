@@ -47,12 +47,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion
 
     #region Config Options
-    [RotationConfig(CombatType.PvP, Name = "GuardCancel")]
-    private bool GuardCancel { get; set; } = true;
-
-    [RotationConfig(CombatType.PvP, Name = "Emergency Healing")]
-    private bool EmergencyHealing { get; set; } = false;
-
     /* TODO should consider removing this
     //[RotationConfig(CombatType.PvP, Name = "LowHPNoBlastCharge")]
     //public bool LowHPNoBlastCharge { get; set; } = true;
@@ -60,6 +54,9 @@ public sealed class KirboMCHPvp : MachinistRotation
     //[RotationConfig(CombatType.PvP, Name = "LowHPNoBlastChargeThreshold")]
     //public int LowHPNoBlastChargeThreshold { get; set; } = 15000;
     */
+
+    [RotationConfig(CombatType.PvP, Name = "LB method")]
+    private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
 
     [RotationConfig(CombatType.PvP, Name = "AnalysisOnDrill")]
     private bool AnalysisOnDrill { get; set; } = true;
@@ -76,11 +73,21 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Auto Bishop")]
     private bool AutoBishop { get; set; } = false;
 
+    [RotationConfig(CombatType.PvP, Name = "GuardCancel")]
+    private bool GuardCancel { get; set; } = true;
+
+    [RotationConfig(CombatType.PvP, Name = "Emergency Healing")]
+    private bool EmergencyHealing { get; set; } = false;
+
     [RotationConfig(CombatType.PvP, Name = "Use Purify")]
     public bool UsePurifyPvP { get; set; } = false;
 
-    [RotationConfig(CombatType.PvP, Name = "LB method")]
-    private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
+    [RotationConfig(CombatType.PvP, Name = "Player movement speed")]
+    private bool MoveSpeed { get; set; } = false;
+
+    [Range(1, 1.3f, ConfigUnitType.Seconds)]
+    [RotationConfig(CombatType.PvP, Name = "Value", Parent = nameof(MoveSpeed), ParentValue = "Player movement speed")]
+    private float MoveSpeedMultiplier { get; set; } = 1f;
     #endregion Rotation Config
 
     #region oGCD Logic
@@ -303,6 +310,18 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion GCD Logic
 
     #region Extra Methods
+
+    protected override void UpdateInfo()
+    {
+        if (!MoveSpeed) // TODO: add logic to prevent player speed going over 7.80, ideally dynamicly
+        {
+            ECommons.GameHelpers.Player.Speed = 1;
+        }
+        else
+        {
+            ECommons.GameHelpers.Player.Speed = MoveSpeedMultiplier;
+        }
+    }
 
     #region Common
     // TODO can prolly be removed
@@ -661,6 +680,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                 //ImGui.Text("MO name: " + test?.Name);
                 //ImGui.Text($"Target is PC: {(CurrentTarget != null && IsPlayerCharacter(CurrentTarget) ? "Yes" : "No")}");
                 ImGui.Text("Player HPP: " + Player.GetHealthRatio());
+                ImGui.Text($"speed:  {ECommons.GameHelpers.Player.Speed}");
                 ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
                 ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
                 ImguiTooltips.HoveredTooltip("CurrentUnits: " + CurrentCurrentUnits);
