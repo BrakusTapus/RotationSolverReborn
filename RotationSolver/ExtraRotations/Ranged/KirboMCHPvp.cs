@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
+﻿// TODO: add logic to prevent player speed going over 7.80, ideally dynamicly
+
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
@@ -82,16 +84,17 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Use Purify")]
     public bool UsePurifyPvP { get; set; } = false;
 
-    [RotationConfig(CombatType.PvP, Name = "Player movement speed")]
-    private bool MoveSpeed { get; set; } = false;
+    //[RotationConfig(CombatType.PvP, Name = "Player movement speed")]
+    //private bool MoveSpeed { get; set; } = false;
 
-    [Range(1, 1.3f, ConfigUnitType.Seconds)]
-    [RotationConfig(CombatType.PvP, Name = "Value", Parent = nameof(MoveSpeed), ParentValue = "Player movement speed")]
-    private float MoveSpeedMultiplier { get; set; } = 1f;
+    //[Range(1, 1.3f, ConfigUnitType.Seconds)]
+    //[RotationConfig(CombatType.PvP, Name = "Value", Parent = nameof(MoveSpeed), ParentValue = "Player movement speed")]
+    //private float MoveSpeedMultiplier { get; set; } = 1f;
     #endregion Rotation Config
 
     #region oGCD Logic
-    [RotationDesc(DescType.BurstActions)][RotationDesc(ActionID.WildfirePvP)]
+    [RotationDesc(DescType.BurstActions)]
+    [RotationDesc(ActionID.WildfirePvP)]
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
         act = null;
@@ -311,17 +314,27 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     #region Extra Methods
 
-    protected override void UpdateInfo()
-    {
-        if (!MoveSpeed) // TODO: add logic to prevent player speed going over 7.80, ideally dynamicly
-        {
-            ECommons.GameHelpers.Player.Speed = 1;
-        }
-        else
-        {
-            ECommons.GameHelpers.Player.Speed = MoveSpeedMultiplier;
-        }
-    }
+    //protected override void UpdateInfo()
+    //{
+
+    //}
+
+    //private void MoveSpeedHandler()
+    //{
+    //    if (ECommons.GameHelpers.Player.Mounted)
+    //    {
+    //        return;
+    //    }
+    //    // Svc.Condition[ConditionFlag.Mounted]
+    //    if (!MoveSpeed)
+    //    {
+    //        ECommons.GameHelpers.Player.Speed = 1;
+    //    }
+    //    else
+    //    {
+    //        ECommons.GameHelpers.Player.Speed = MoveSpeedMultiplier;
+    //    }
+    //}
 
     #region Common
     // TODO can prolly be removed
