@@ -417,7 +417,8 @@ public partial class RotationConfigWindow : Window
             _ = diagInfo.AppendLine($"Update Frequency: {Service.Config.MinUpdatingTime}");
             _ = diagInfo.AppendLine($"Intercept: {Service.Config.InterceptAction2}");
             _ = diagInfo.AppendLine($"Player Level: {DataCenter.PlayerSyncedLevel()}");
-            _ = diagInfo.AppendLine($"Player Job: {Player.Job}");
+			_ = diagInfo.AppendLine($"Rotation Name: {_curRotationAttribute?.Name ?? string.Empty}");
+			_ = diagInfo.AppendLine($"Player Job: {Player.Job}");
             _ = diagInfo.AppendLine($"AutoFaceTargetOnActionSetting: {DataCenter.AutoFaceTargetOnActionSetting()}");
             var moveModeValue = DataCenter.MoveModeSetting();
             string moveModeText = moveModeValue switch
@@ -3914,7 +3915,11 @@ public partial class RotationConfigWindow : Window
         ImGui.Text($"IsHostileCastingAOE: {DataCenter.IsHostileCastingAOE}");
         ImGui.Text($"IsHostileCastingToTank: {DataCenter.IsHostileCastingToTank}");
         ImGui.Text($"IsHostileCastingStop: {DataCenter.IsHostileCastingStop}");
-    }
+		ImGui.Spacing();
+		StatusID HellInACell = (StatusID)4734;
+		var HasHellInACell = StatusHelper.PlayerHasStatus(false, HellInACell);
+		ImGui.Text($"HasHellInACell: {HasHellInACell}");
+	}
 
     private static unsafe void DrawParty()
     {
@@ -3933,8 +3938,8 @@ public partial class RotationConfigWindow : Window
         // AST-only card target preview
         if (Player.Object != null && Player.Object.IsJobs(Job.AST))
         {
-            IBattleChara? spear = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheSpear, 0, SpecialActionType.None);
-            IBattleChara? balance = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheBalance, 0, SpecialActionType.None);
+            IBattleChara? spear = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheSpear, 0, SpecialActionType.None, TargetType.TheSpear, true);
+            IBattleChara? balance = ActionTargetInfo.FindTargetByType(DataCenter.PartyMembers, TargetType.TheBalance, 0, SpecialActionType.None, TargetType.TheBalance, true);
             ImGui.Spacing();
             ImGui.Text("AST Card Targets (Preview):");
             ImGui.Text($"- The Spear: {spear?.Name ?? "None"}");
@@ -4052,7 +4057,9 @@ public partial class RotationConfigWindow : Window
             ImGui.Text($"IsOCFreezeImmuneTarget: {battleChara.IsOCFreezeImmuneTarget()}");
             ImGui.Text($"IsOCBlindImmuneTarget: {battleChara.IsOCBlindImmuneTarget()}");
             ImGui.Text($"IsOCParalysisImmuneTarget: {battleChara.IsOCParalysisImmuneTarget()}");
-            ImGui.Spacing();
+			ImGui.Spacing();
+			ImGui.Text($"IsM9SavageImmune: {battleChara.IsM9SavageImmune()}");
+			ImGui.Spacing();
             ImGui.Text($"Is Current Focus Target: {battleChara.IsFocusTarget()}");
             ImGui.Text($"TTK: {battleChara.GetTTK()}");
             ImGui.Text($"Is Boss TTK: {battleChara.IsBossFromTTK()}");
