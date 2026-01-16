@@ -15,6 +15,7 @@ using RotationSolver.Basic.Configuration.Conditions;
 using RotationSolver.Basic.Rotations.Duties;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
 using Action = Lumina.Excel.Sheets.Action;
 using CharacterManager = FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterManager;
 using CombatRole = RotationSolver.Basic.Data.CombatRole;
@@ -1248,9 +1249,10 @@ internal static class DataCenter
 	// Cached, case-insensitive path sets modeled after WrathCombo VFX.cs
 	private static readonly FrozenSet<string> TankbusterPaths = FrozenSet.ToFrozenSet(
     [
-        "vfx/lockon/eff/tank",                    // Generic TB check
+		"vfx/lockon/eff/tank_lockon",
+		"vfx/lockon/eff/tank_laser",
 		"vfx/lockon/eff/x6fe_fan100_50_0t1",     // Necron Blue Shockwave - Cone Tankbuster
-		"vfx/common/eff/mon_eisyo03t",           // M10 Deep Impact AoE TB (also generic?)
+		//"vfx/common/eff/mon_eisyo03t",           // M10 Deep Impact AoE TB need different path for this, this is the generic target vfx part
 		"vfx/lockon/eff/m0676trg_tw_d0t1p",      // M10 Hot Impact shared TB
 		"vfx/lockon/eff/m0676trg_tw_s6_d0t1p",   // M11 Raw Steel
 		"vfx/lockon/eff/z6r2b3_8sec_lockon_c0a1",// Kam'lanaut Princely Blow
@@ -1456,7 +1458,6 @@ internal static class DataCenter
 		});
 	}
 
-	// Improved tank VFX detection: recognizes generic and specific TB paths, plus preserves original tank lock-on checks
 	public static bool IsCastingTankVfx()
 	{
 		return IsCastingVfx(VfxDataQueue, s =>
@@ -1471,19 +1472,25 @@ internal static class DataCenter
 				return false;
 			}
 
-			// Specific tankbuster effect paths (priority)
+			bool isTank = TargetFilter.PlayerJobCategory(JobRole.Tank);
+			bool isPlayerTarget = s.ObjectId == Player.Object.GameObjectId;
+
 			foreach (var p in TankbusterPaths)
 			{
 				if (s.Path.StartsWith(p, PathCmp))
 				{
-					return true;
+					if (!isTank || isPlayerTarget)
+					{
+						if (Service.Config.InDebug)
+						{
+							PluginLog.Debug($"Tank lock-on VFX triggered: {s.Path}, ObjectId: {s.ObjectId}");
+						}
+						return true;
+					}
 				}
 			}
 
-			// Preserve original checks for other tank lock-on effects.
-			return (!TargetFilter.PlayerJobCategory(JobRole.Tank) || s.ObjectId == Player.Object.GameObjectId)
-				   && (s.Path.StartsWith("vfx/lockon/eff/tank_lockon", PathCmp)
-					   || s.Path.StartsWith("vfx/lockon/eff/tank_laser", PathCmp));
+			return false;
 		});
 	}
 
