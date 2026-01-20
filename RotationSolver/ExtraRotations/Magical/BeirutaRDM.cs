@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace RotationSolver.ExtraRotations.Magical;
 
 [Rotation("BeirutaRDM", CombatType.PvE, GameVersion = "7.4")]
@@ -15,6 +17,7 @@ public sealed class BeirutaRDM : RedMageRotation
 // Melee combo hold when out of range
 // Prevent cap for mana pooling
 // Prevent wasting Swift/Dual on short casts
+
 
 {
     #region Config Options
@@ -48,6 +51,17 @@ public sealed class BeirutaRDM : RedMageRotation
     [RotationConfig(CombatType.PvE, Name = "Delay Prefulgence/Vice of Thorns for buff alignment (about 3 gcd after Embolden)")]
     public bool DelayBuffOGCDs { get; set; } = true;
 
+    [RotationConfig(CombatType.PvE, Name = "Opener/Burst open window (GCDs)")]
+[Range(1, 3, ConfigUnitType.None, 1)]
+public OpenWindowGcd OpenWindow { get; set; } = OpenWindowGcd.TwoGcd; // default = 2 GCD
+
+public enum OpenWindowGcd : byte
+{
+    [Description("0 GCD (0.0s)")] ZeroGcd,
+    [Description("1 GCD (2.5s)")] OneGcd,
+    [Description("2 GCD (5.0s)")] TwoGcd,
+}
+
     #endregion
 
 private static BaseAction VeraeroPvEStartUp { get; } = new BaseAction(ActionID.VeraeroPvE, false);
@@ -59,7 +73,20 @@ private long _meleeHoldUntilMs = 0;
 private long _emboldenUsedAtMs = 0;
 
 // Opener window = first 5 seconds of combat
-private bool IsOpen => InCombat && CombatTime < 5f;
+private float OpenWindowSeconds => OpenWindow switch
+{
+    OpenWindowGcd.ZeroGcd => 0f,
+    OpenWindowGcd.OneGcd  => 2.2f,
+    _                     => 5.1f, // TwoGcd
+};
+
+// Opener/Burst open window = first N seconds of combat (based on selection)
+private bool IsOpen => InCombat && CombatTime < OpenWindowSeconds;
+private const float GrandImpactExtraDelaySeconds = 1.0f;
+
+private bool IsOpenForGrandImpact =>
+    InCombat && CombatTime < (OpenWindowSeconds + GrandImpactExtraDelaySeconds);
+
 
 
 // Only checks the *correct next melee step* for the combo we are currently in.
@@ -102,6 +129,14 @@ private bool TryContinueCurrentMeleeCombo(out IAction? act)
     // we don't force anything here—just report we can't continue.
     // (This avoids accidentally starting the wrong chain.)
     return false;
+}
+private bool InFinisherChain()
+{
+    return
+        ManaStacks == 3 ||
+        IsLastGCD(ActionID.VerholyPvE, ActionID.VerflarePvE, ActionID.ScorchPvE) ||
+        ScorchPvE.CanUse(out _) ||
+        ResolutionPvE.CanUse(out _);
 }
 
     #region Countdown Logic
@@ -253,7 +288,7 @@ bool blockAccel = burstPrepHoldAccel || inFirst5sAfterEmbolden;
 
 
     // "Next GCD is instant" approximation ---
-    bool nextIsInstant = HasDualcast || HasSwift || HasAccelerate || (!IsOpen && CanGrandImpact);
+    bool nextIsInstant = HasDualcast || HasSwift || HasAccelerate || (!IsOpenForGrandImpact && CanGrandImpact);
 bool openerNeedsInstant = IsOpen && !nextIsInstant;
 bool needsMovementRescue =
     InCombat && HasHostilesInMaxRange && (IsMoving || openerNeedsInstant) && !nextIsInstant;
@@ -312,8 +347,8 @@ if (IsOpen)
 
 
 // ---------------------------
-    // Acceleration usage (skip if movement rescue needed this frame)
-    // ---------------------------
+// Acceleration usage (skip if movement rescue needed this frame)
+// ---------------------------
 if (!needsMovementRescue && AccelerationPvE.EnoughLevel && !Meleecheck && !blockAccel)
 {
     if (!CanGrandImpact && InCombat && HasHostilesInMaxRange)
@@ -380,8 +415,9 @@ if (!needsMovementRescue && AccelerationPvE.EnoughLevel && !Meleecheck && !block
     if (FlechePvE.CanUse(out act))
         return true;
 
-if (!IsOpen && ContreSixtePvE.CanUse(out act))
+if (!IsOpenForGrandImpact && ContreSixtePvE.CanUse(out act))
     return true;
+
 
 // ---------------------------
 // Prefulgence / Vice alignment option
@@ -509,6 +545,8 @@ else
 
     protected override bool GeneralGCD(out IAction? act)
     {
+        bool hasInstantBuffToSpend = HasDualcast || HasSwift || (IsOpen && HasAccelerate);
+
 // ---------------------------
 // Opener: first 5s of combat
 // Countdown already gives Dualcast from Veraero.
@@ -523,41 +561,21 @@ if (IsOpen
     bool hasInstant = HasDualcast || HasSwift || HasAccelerate;
     if (hasInstant)
     {
-        // Prefer Impact for AoE, otherwise balance with Thunder/Aero
-        if (NumberOfHostilesInRangeOf(5) >= 2 && ImpactPvE.CanUse(out act))
+        int targets = NumberOfHostilesInRangeOf(5);
+
+        // Opener AoE rule:
+        // - If Accel is up, Impact is worth it at 2+
+        // - Otherwise, only at 3+
+        int impactThreshold = HasAccelerate ? 2 : 3;
+
+        if (targets >= impactThreshold && ImpactPvE.CanUse(out act))
             return true;
 
-        int diff = BlackMana - WhiteMana;
-
-        bool TryAero2(out IAction? a)
-        {
-            if (VeraeroIiiPvE.CanUse(out a)) return true;
-            if (VeraeroPvE.CanUse(out a)) return true;
-            a = null;
-            return false;
-        }
-
-        bool TryThunder2(out IAction? a)
-        {
-            if (VerthunderIiiPvE.CanUse(out a)) return true;
-            if (VerthunderPvE.CanUse(out a)) return true;
-            a = null;
-            return false;
-        }
-
-        if (diff > 0)
-        {
-            if (TryAero2(out act)) return true;
-            if (TryThunder2(out act)) return true;
-        }
-        else
-        {
-            if (TryThunder2(out act)) return true;
-            if (TryAero2(out act)) return true;
-        }
+        // ST opener rule: always Verthunder line (ignore mana/procs)
+        if (VerthunderIiiPvE.CanUse(out act)) return true;
+        if (VerthunderPvE.CanUse(out act)) return true;
     }
 }
-
 
 
 		if (ManaStacks == 3)
@@ -671,44 +689,6 @@ else
 {
     _meleeHoldUntilMs = 0;
 }
-// ===========================
-// Swift/Dual protection:
-// If Swift or Dualcast is up, do NOT spend it on Verfire/Verstone/Jolt.
-// Force a balanced "2" (Thunder/Aero/Impact) immediately.
-// ===========================
-if (!IsInMeleeCombo
-    && ManaStacks != 3
-    && (HasSwift || HasDualcast)
-    && InCombat
-    && HasHostilesInMaxRange)
-{
-    // Impact under Swift/Dual only at 3+ targets (keep your policy)
-    if (NumberOfHostilesInRangeOf(5) >= 3 && ImpactPvE.CanUse(out act))
-        return true;
-
-    // Mana balance:
-    // - If Black > White, we want White -> cast Aero
-    // - If White > Black, we want Black -> cast Thunder
-    // - If equal, pick a stable default (Thunder first here)
-    if (BlackMana > WhiteMana)
-    {
-        if (VeraeroIiiPvE.CanUse(out act)) return true;
-        if (VeraeroPvE.CanUse(out act)) return true;
-
-        // fallback if Aero not available for some reason
-        if (VerthunderIiiPvE.CanUse(out act)) return true;
-        if (VerthunderPvE.CanUse(out act)) return true;
-    }
-    else
-    {
-        if (VerthunderIiiPvE.CanUse(out act)) return true;
-        if (VerthunderPvE.CanUse(out act)) return true;
-
-        // fallback if Thunder not available for some reason
-        if (VeraeroIiiPvE.CanUse(out act)) return true;
-        if (VeraeroPvE.CanUse(out act)) return true;
-    }
-}
 
 //Melee AOE combo
 if (IsLastGCD(false, EnchantedMoulinetDeuxPvE) && EnchantedMoulinetTroisPvE.CanUse(out act))
@@ -758,7 +738,7 @@ bool EnoughMana =
 // ---------------------------
 // Check if you can start melee combo
 // ---------------------------
-if (EnoughMana)
+if (EnoughMana && !InFinisherChain())
 {
     // Burst-start condition:
     // - Manafication active is good enough (we're committing to burst sequencing).
@@ -798,19 +778,18 @@ if (burstStartOK && !IsLastRiposteStarter() && TryRiposteStarter(out act))
 
 }
 
-
 		//Grand impact usage if not interrupting melee combo
-		if (!IsOpen && GrandImpactPvE.CanUse(out act, skipStatusProvideCheck: CanGrandImpact, skipCastingCheck: true))
-        {
-            return true;
-        }
+		if (!IsOpenForGrandImpact && GrandImpactPvE.CanUse(out act, skipStatusProvideCheck: CanGrandImpact, skipCastingCheck: true))
+{
+    return true;
+}
+
 // ============================================================
 // VerBoth + standstill:
 // - If we have Dualcast/Swift, DO NOT spend them on "1" (proc).
 //   Let the later "instant -> force a 2" logic handle it.
 // - Otherwise, use proc "1" first to avoid proc overcap.
 // ============================================================
-bool hasInstantBuffToSpend = HasDualcast || HasSwift;
 
 if (!IsInMeleeCombo
     && ManaStacks != 3
@@ -985,51 +964,6 @@ if (!IsInMeleeCombo
     }
 }
 
-// ---------------------------
-// Hard rule: do NOT spend Swiftcast/Dualcast on Verfire/Verstone ("1").
-// If we have an instant buff, force a "2" (Aero/Thunder, or III versions).
-// This prevents long-movement cases where Swift accidentally goes on a proc.
-// ---------------------------
-if (!IsInMeleeCombo
-    && ManaStacks != 3
-    && (HasSwift || HasDualcast)
-    && InCombat
-    && HasHostilesInMaxRange)
-{
-// Impact under Swift/Dual only at 3+ targets
-if (NumberOfHostilesInRangeOf(5) >= 3 && ImpactPvE.CanUse(out act))
-    return true;
-
-    int diff = BlackMana - WhiteMana;
-
-    bool TryAero2(out IAction? a)
-    {
-        if (VeraeroIiiPvE.CanUse(out a)) return true;
-        if (VeraeroPvE.CanUse(out a)) return true;
-        a = null;
-        return false;
-    }
-
-    bool TryThunder2(out IAction? a)
-    {
-        if (VerthunderIiiPvE.CanUse(out a)) return true;
-        if (VerthunderPvE.CanUse(out a)) return true;
-        a = null;
-        return false;
-    }
-
-    // Prefer closing the gap, but always spend on a "2".
-    if (diff > 0)
-    {
-        if (TryAero2(out act)) return true;      // Black leads -> add White
-        if (TryThunder2(out act)) return true;
-    }
-    else
-    {
-        if (TryThunder2(out act)) return true;   // White leads -> add Black
-        if (TryAero2(out act)) return true;
-    }
-}
 // Can we fix movement with oGCDs right now?
 // If yes, do NOT burn a GCD on Reprise.
 // Accel hold rules (GCD-side mirror for movement rescue logic
@@ -1074,7 +1008,7 @@ bool canRescueMovementWithOgcd =
 
 
 // Define once and reuse for both Reprise + moving gate
-bool hasInstantTools = HasSwift || HasDualcast || HasAccelerate || (!IsOpen && CanGrandImpact);
+bool hasInstantTools = HasSwift || HasDualcast || HasAccelerate || (!IsOpenForGrandImpact && CanGrandImpact);
 
 // Reprise fallback (ONLY when we truly have no instant tools AND cannot rescue with oGCDs)
 if (IsMoving
@@ -1101,10 +1035,47 @@ if (IsMoving
     return false;
 }
 
+// ============================================================
+// HARD RULE: If Swift/Dualcast is up, NEVER spend it on "1" (proc) or Jolt.
+// Force a "2" (Thunder/Aero, or Impact at AoE threshold) right now.
+// ============================================================
+
+if (!IsInMeleeCombo
+    && ManaStacks != 3
+    && InCombat
+    && (HasHostilesInRange || HasHostilesInMaxRange)
+    && hasInstantBuffToSpend)
+{
+    // AoE: only use Impact when you'd actually want it
+    if (NumberOfHostilesInRangeOf(5) >= 3 && ImpactPvE.CanUse(out act))
+        return true;
+
+    // ST: choose a "2" to help balance mana
+    if (BlackMana > WhiteMana)
+{
+    // Black is leading -> add White
+    if (VeraeroIiiPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+    if (VeraeroPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+
+    // fallback
+    if (VerthunderIiiPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+    if (VerthunderPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+}
+else
+{
+    // White is leading or equal -> add Black
+    if (VerthunderIiiPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+    if (VerthunderPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+
+    // fallback
+    if (VeraeroIiiPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+    if (VeraeroPvE.CanUse(out act, skipStatusProvideCheck: true)) return true;
+}
+}
 
         // Single Target
-        if (VerstonePvE.EnoughLevel)
-        {
+       if (VerstonePvE.EnoughLevel && !hasInstantBuffToSpend)
+{
             if (CanVerBoth)
             {
                 switch (VerEndsFirst)
@@ -1144,32 +1115,33 @@ if (IsMoving
                 }
             }
         }
-        if (!VerstonePvE.EnoughLevel && VerfirePvE.CanUse(out act))
-        {
+     if (!VerstonePvE.EnoughLevel && !hasInstantBuffToSpend && VerfirePvE.CanUse(out act))
+{
             return true;
         }
 
-        if (!CanInstantCast && !CanVerEither)
+      if (!CanInstantCast && !CanVerEither)
+{
+    if (NumberOfHostilesInRangeOf(5) >= 3)
+    {
+        // AoE short-cast filler (only at 3+)
+        if (WhiteMana < BlackMana)
         {
-            if (WhiteMana < BlackMana)
-            {
-                if (VeraeroIiPvE.CanUse(out act))
-                {
-                    return true;
-                }
-            }
-            if (WhiteMana >= BlackMana)
-            {
-                if (VerthunderIiPvE.CanUse(out act))
-                {
-                    return true;
-                }
-            }
-            if (JoltPvE.CanUse(out act))
-            {
-                return true;
-            }
+            if (VeraeroIiPvE.CanUse(out act)) return true;
+            if (VerthunderIiPvE.CanUse(out act)) return true;
         }
+        else
+        {
+            if (VerthunderIiPvE.CanUse(out act)) return true;
+            if (VeraeroIiPvE.CanUse(out act)) return true;
+        }
+    }
+
+    // ST short-cast filler
+    if (!hasInstantBuffToSpend && JoltPvE.CanUse(out act))
+        return true;
+}
+
 
         if (UseVercure && !InCombat && VercurePvE.CanUse(out act))
         {
