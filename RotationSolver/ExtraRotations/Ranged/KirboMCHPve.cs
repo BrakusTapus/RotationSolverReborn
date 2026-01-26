@@ -1,5 +1,9 @@
 ﻿// TODO: refine boss logic better
 
+
+using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
+
 namespace RotationSolver.ExtraRotations.Ranged;
 
 [Rotation("Kirbo", CombatType.PvE, GameVersion = "7.4")]
@@ -8,14 +12,6 @@ namespace RotationSolver.ExtraRotations.Ranged;
 public sealed class KirboMCHPve : MachinistRotation
 {
     #region Config Options
-    //[RotationConfig(CombatType.PvE, Name = "Use Potions")]
-    //public bool UsePotions { get; set; } = true;
-
-    [RotationConfig(CombatType.PvE, Name = "Use burst medicine in countdown (requires auto burst option on)")]
-    private bool OpenerBurstMeds { get; set; } = false;
-
-    [RotationConfig(CombatType.PvE, Name = "M8S P1 2nd potion. [Test config]")]
-    private bool M8S2ndPotionTest { get; set; } = false;
 
     [RotationConfig(CombatType.PvE, Name = "Use Bioblaster while moving")]
     private bool BioMove { get; set; } = true;
@@ -25,25 +21,81 @@ public sealed class KirboMCHPve : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "Restrict mitigations to not overlap")]
     private bool MitOverlap { get; set; } = false;
+
+    #region Countdown Options    
+    [RotationConfig(CombatType.PvE, Name = "--[Countdown Options]--")]
+    public bool CountdownOptions { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "    Use burst medicine in countdown (requires auto burst option on)", Parent = "CountdownOptions", ParentValue = true)]
+    private bool OpenerBurstMeds { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "    Use AirAnchor at 1 second remaining on countdown", Parent = "CountdownOptions", ParentValue = true)]
+    private bool AirAnchorCountdown { get; set; } = false;
+    #endregion
+
+    #region M10S options    
+    [RotationConfig(CombatType.PvE, Name = "--[M10S Options]--")]
+    public bool M10SOptions { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "    Hold burst during 'Watery Grave'", Parent = "M10SOptions", ParentValue = true)]
+    private bool WateryGraveBurst { get; set; } = false;
+    #endregion
+
     #endregion
 
     #region Countdown logic
+    // remove old code block after testing new CountDownAction block
+    //protected override IAction? CountDownAction(float remainTime)
+    //{
+    //    if (remainTime < 4.75f && ReassemblePvE.CanUse(out IAction? act))
+    //    {
+    //        return act;
+    //    }
+
+    //    if (IsBurst && OpenerBurstMeds && remainTime <= 1f && UseBurstMedicine(out act))
+    //    {
+    //        return act;
+    //    }
+
+    //    //if (remainTime < 0.6f && AirAnchorPvE.CanUse(out IAction? act1) && Player.HasStatus(true, StatusID.Reassembled) && IsInHighEndDuty)
+    //    //{
+    //    //    return act1;
+    //    //}
+
+    //    return base.CountDownAction(remainTime);
+    //}
+
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (remainTime < 4.8f && ReassemblePvE.CanUse(out IAction? act))
+        if (AirAnchorCountdown && remainTime < 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))
         {
             return act;
         }
 
-        if (IsBurst && OpenerBurstMeds && remainTime <= 1f && UseBurstMedicine(out act))
+        if (!AirAnchorCountdown && remainTime < 0.1f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             return act;
         }
 
-        //if (remainTime < 0.6f && AirAnchorPvE.CanUse(out IAction? act1) && Player.HasStatus(true, StatusID.Reassembled) && IsInHighEndDuty)
-        //{
-        //    return act1;
-        //}
+        if (remainTime < 0.5f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
+        {
+            return act;
+        }
+
+        if (remainTime < 4.75f && ReassemblePvE.CanUse(out act))
+        {
+            return act;
+        }
+
+        if (AirAnchorCountdown && IsBurst && OpenerBurstMeds && remainTime <= 1.5f && UseBurstMedicine(out act))
+        {
+            return act;
+        }
+
+        if (!AirAnchorCountdown && IsBurst && OpenerBurstMeds && remainTime <= 1f && UseBurstMedicine(out act))
+        {
+            return act;
+        }
 
         return base.CountDownAction(remainTime);
     }
@@ -57,10 +109,17 @@ public sealed class KirboMCHPve : MachinistRotation
             UpdateFoundStepPair();
         }
 
-        //if (M8S2ndPotionTest && CombatTime > 368 && CombatTime <= 373 && IsInTerritory(1263))
-        //{
-
-        //}
+        if (DataCenter.IsInM10S && InCombat && WateryGraveBurst)
+        {
+            if (CombatTime > 340 && CombatTime <= 395)
+            {
+                Service.Config.AutoBurst.Value = false;
+            }
+            else
+            {
+                Service.Config.AutoBurst.Value = true;
+            }
+        }
 
         if (HyperchargePvE.EnoughLevel)
         {
@@ -477,7 +536,30 @@ public sealed class KirboMCHPve : MachinistRotation
     {
         ImGui.Text($"QueenStep: {_currentStep}");
         ImGui.Text($"Step Pair Found: {foundStepPair}");
+        //ImGui.Text($"IsInM10S value: {DataCenter.IsInM10S.ToString()}");
+        //ImGui.Text($"InCombat value: {InCombat.ToString()}");
+        //ImGui.Text($"WateryGraveBurst config value: {WateryGraveBurst.ToString()}");
+        //ImGui.Text($"Combat time: {CombatTime.ToString()}");
+        ImGui.Text($"Auto Burst config value: {Service.Config.AutoBurst.Value.ToString()}");
+        if (ImGui.Button("Burst on"))
+        {
+            Service.Config.AutoBurst.Value = true;
+        }
+        if (ImGui.Button("Burst off"))
+        {
+            Service.Config.AutoBurst.Value = false;
+        }
     }
+    #endregion
+
+    #region Updaters
+    //protected override void UpdateInfo()
+    //{
+    //    if (IsInTerritory(1323))
+    //    {
+    //        Svc.Chat.PrintChat()
+    //    }
+    //}
     #endregion
 
     // Logic for Hypercharge
@@ -509,6 +591,7 @@ public sealed class KirboMCHPve : MachinistRotation
         }
     }
 
+    #region Turret/Queen Methods    
     private readonly (byte from, byte to, int step)[] _stepPairs =
     [
         (0, 60, 0),
@@ -613,4 +696,5 @@ public sealed class KirboMCHPve : MachinistRotation
         }
         return false;
     }
+    #endregion
 }
