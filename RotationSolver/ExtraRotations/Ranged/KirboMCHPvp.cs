@@ -4,7 +4,9 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
+using ECommons.GameHelpers;
 using RotationSolver.UI;
+using System.Collections.Frozen;
 using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Ranged;
@@ -15,7 +17,7 @@ namespace RotationSolver.ExtraRotations.Ranged;
 public sealed class KirboMCHPvp : MachinistRotation
 {
     #region Properties
-    private static bool HasActiveGuard => Player.HasStatus(true, StatusID.Guard);
+    //private static bool HasActiveGuard => Player.HasStatus(true, StatusID.Guard);
 
     /// <summary>
     ///     Gets the current Heat Stacks.
@@ -40,7 +42,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static bool PvPTargetHasWildfire => CurrentTarget != null && CurrentTarget.HasStatus(true, StatusID.Wildfire_1323);
     private static float PvPTargetWildfireStatusTime => CurrentTarget!.StatusTime(true, StatusID.Wildfire_1323);
     private static float AnalysisStatusTime => Player.StatusTime(true, StatusID.Analysis);
-    private static bool PlayerHasBravery => Player.HasStatus(true, StatusID.Bravery);
+    //private static bool PlayerHasBravery => Player.HasStatus(true, StatusID.Bravery);
     private enum LBMethod
     {
         [Description("MCH LB NEW")] MCHLBNEW,
@@ -75,8 +77,8 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Auto Bishop")]
     private bool AutoBishop { get; set; } = false;
 
-    [RotationConfig(CombatType.PvP, Name = "GuardCancel")]
-    private bool GuardCancel { get; set; } = true;
+    //[RotationConfig(CombatType.PvP, Name = "GuardCancel")]
+    //private bool GuardCancel { get; set; } = true;
 
     [RotationConfig(CombatType.PvP, Name = "Emergency Healing")]
     private bool EmergencyHealing { get; set; } = false;
@@ -99,9 +101,14 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         act = null;
         // Should prevent any actions if the option 'guardCancel' is enabled and Player has the Guard buff up
-        if (GuardCancel && HasActiveGuard)
+        //if (GuardCancel && HasActiveGuard)
+        //{
+        //    return false;
+        //}
+
+        if (ShouldGuardAgainstLB(out act))
         {
-            return false;
+            return true;
         }
 
         if (DoPurify(out act))
@@ -174,21 +181,25 @@ public sealed class KirboMCHPvp : MachinistRotation
         return base.EmergencyAbility(nextGCD, out act);
     }
 
-    [RotationDesc(ActionID.GuardPvP)]
-    protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? action)
-    {
-        action = null;
-        if (GuardCancel && HasActiveGuard)
-        {
-            return false;
-        }
+    //[RotationDesc(ActionID.GuardPvP)]
+    //protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? action)
+    //{
+    //    action = null;
+    //    if (GuardCancel && HasActiveGuard)
+    //    {
+    //        return false;
+    //    }
 
-        return base.DefenseSingleAbility(nextGCD, out action);
-    }
+    //    return base.DefenseSingleAbility(nextGCD, out action);
+    //}
 
     [RotationDesc(ActionID.RecuperatePvP)]
     protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
     {
+        if (ShouldGuardAgainstLB(out act))
+        {
+            return true;
+        }
         if (EmergencyHealing && EmergencyLowHP(out act))
         {
             return true;
@@ -202,9 +213,14 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         act = null;
         // Should prevent any actions if the option 'guardCancel' is enabled and Player has the Guard buff up
-        if (GuardCancel && HasActiveGuard)
+        //if (GuardCancel && HasActiveGuard)
+        //{
+        //    return false;
+        //}
+
+        if (ShouldGuardAgainstLB(out act))
         {
-            return false;
+            return true;
         }
 
         if (EmergencyHealing && EmergencyLowHP(out act))
@@ -314,10 +330,10 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     #region Extra Methods
 
-    //protected override void UpdateInfo()
-    //{
-
-    //}
+    protected override void UpdateInfo()
+    {
+        PlayerHasHostileMCHPVPLBVfx();
+    }
 
     //private void MoveSpeedHandler()
     //{
@@ -484,23 +500,25 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         // https://na.finalfantasyxiv.com/lodestone/playguide/contentsguide/frontline/4/
         const int EstimatedLBDamage = 28000;
-        const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.5); // ~20000
-
+        const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.55); // ~19600
+        
         IBattleChara? target = CustomRotation.AllHostileTargets
         .Where(obj =>
-            obj.CurrentHp >= MinEffectiveHp &&
-            obj.CurrentHp <= 35000 &&
-            IsPlayerCharacter(obj) &&
-            !obj.IsJobCategory(JobRole.Tank) &&
-            !obj.IsJobCategory(JobRole.Melee) &&
-                (
-                 obj.IsJobCategory(JobRole.Healer) ||
-                 obj.IsJobCategory(JobRole.RangedPhysical) ||
-                 obj.IsJobCategory(JobRole.RangedMagical)
-                ) &&
-            obj.DistanceToPlayer() <= 50 &&
-            !obj.HasStatus(false, StatusID.Guard)
-            )
+                obj.DistanceToPlayer() <= 35 &&
+                (IsPlayerCharacter(obj) || obj.IsDummy()) &&
+                obj.ShieldPercentage <= 0 &&
+                !obj.HasStatus(true, StatusID.Guard) &&
+                !obj.IsJobCategory(JobRole.Tank) &&
+                !obj.IsJobCategory(JobRole.Melee) &&
+                    (
+                     obj.IsJobCategory(JobRole.Healer) ||
+                     obj.IsJobCategory(JobRole.RangedPhysical) ||
+                     obj.IsJobCategory(JobRole.RangedMagical)
+                    ) &&                
+                obj.CurrentHp >= MinEffectiveHp &&
+                obj.CurrentHp <= 32000
+                //obj.GetTTK()                
+                )
         .OrderBy(obj => obj.CurrentHp)
         .FirstOrDefault();
 
@@ -609,29 +627,55 @@ public sealed class KirboMCHPvp : MachinistRotation
     private bool ShouldGuardAgainstLB(out IAction? action)
     {
         action = null;
-
+        // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032c1c.avfx
         // Exit early if Guard is on cooldown or already active
         if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || Player.HasStatus(true, StatusID.Guard))
         {
             return false;
         }
 
-        foreach (IBattleChara enemy in CustomRotation.AllHostileTargets)
+        if (PlayerHasHostileMCHPVPLBVfx())
         {
-            uint marksmanSpite = 29415;
-            if (enemy != null &&
-                enemy.IsJobs(ECommons.ExcelServices.Job.MCH) &&
-                enemy.TargetObjectId == Player.GameObjectId &&
-                enemy.CastActionId == marksmanSpite)
+            if (GuardPvP.CanUse(out action))
             {
-                if (GuardPvP.CanUse(out action))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
         return false;
+    }
+    //vfx/common/eff/mon_eisyo03t
+    private static readonly FrozenSet<string> MCHLBPaths = FrozenSet.ToFrozenSet(
+    [
+        "vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c"
+    ], StringComparer.OrdinalIgnoreCase);
+    private static readonly StringComparison PathCmp = StringComparison.OrdinalIgnoreCase;
+    public static bool PlayerHasHostileMCHPVPLBVfx()
+    {
+        return DataCenter.IsCastingVfx(DataCenter.VfxDataQueue, s =>
+        {
+            if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(s.Path))
+            {
+                return false;
+            }
+
+            // Any path in multi-hit share list qualifies
+            foreach (var p in MCHLBPaths)
+            {
+                if (s.Path.StartsWith(p, PathCmp))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
     }
 
     // Early Analysis use
@@ -639,12 +683,12 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         action = null;
 
-        if (InCombat || NumberOfAllHostilesInMaxRange == 0 || Player.HasStatus(true, StatusID.Analysis))
+        if (InCombat || NumberOfHostilesInRangeOf(28) == 0 || Player.HasStatus(true, StatusID.Analysis) || Player.TimeAlive() <= 3f)
         {
             return false;
         }
 
-        if (Player.HasStatus(true, StatusID.DrillPrimed))
+        if (Player.HasStatus(true, StatusID.DrillPrimed) && !Player.HasStatus(true, StatusID.Analysis))
         {
             if (AnalysisPvP.CanUse(out action))
             {
@@ -697,6 +741,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                 ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
                 ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
                 ImguiTooltips.HoveredTooltip("CurrentUnits: " + CurrentCurrentUnits);
+                ImGui.Text("Hostile using MCH LB on player: " + PlayerHasHostileMCHPVPLBVfx().ToString());
                 ImGui.NewLine();
 
                 ImGui.Text("HeatStacks: " + PvP_OverheatedStacks);
