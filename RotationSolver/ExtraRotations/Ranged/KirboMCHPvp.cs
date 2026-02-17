@@ -1,9 +1,11 @@
 ﻿// TODO: add logic to prevent player speed going over 7.80, ideally dynamicly
 
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using RotationSolver.UI;
 using System.Collections.Frozen;
@@ -332,7 +334,8 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     protected override void UpdateInfo()
     {
-        PlayerHasHostileMCHPVPLBVfx();
+        //PlayerHasHostileMCHPVPLBVfx();
+        //IsCastingMCHLBVfx();
     }
 
     //private void MoveSpeedHandler()
@@ -501,7 +504,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         // https://na.finalfantasyxiv.com/lodestone/playguide/contentsguide/frontline/4/
         const int EstimatedLBDamage = 28000;
         const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.55); // ~19600
-        
+
         IBattleChara? target = CustomRotation.AllHostileTargets
         .Where(obj =>
                 obj.DistanceToPlayer() <= 35 &&
@@ -514,7 +517,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                      obj.IsJobCategory(JobRole.Healer) ||
                      obj.IsJobCategory(JobRole.RangedPhysical) ||
                      obj.IsJobCategory(JobRole.RangedMagical)
-                    ) &&                
+                    ) &&
                 obj.CurrentHp >= MinEffectiveHp &&
                 obj.CurrentHp <= 32000
                 //obj.GetTTK()                
@@ -624,17 +627,25 @@ public sealed class KirboMCHPvp : MachinistRotation
     }
 
     // Original idea was to check if an enemy is using MS on player, silly goose me didn't realize that MCH pvp LB does, in fact, not have a cast. So need to rework this idea.
-    private bool ShouldGuardAgainstLB(out IAction? action)
+    public bool ShouldGuardAgainstLB(out IAction? action)
     {
         action = null;
         // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032c1c.avfx
         // Exit early if Guard is on cooldown or already active
-        if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || Player.HasStatus(true, StatusID.Guard))
+        if (/*!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || */Player.HasStatus(true, StatusID.Guard) || Svc.Condition[ConditionFlag.Mounted])
         {
             return false;
         }
 
         if (PlayerHasHostileMCHPVPLBVfx())
+        {
+            if (GuardPvP.CanUse(out action))
+            {
+                return true;
+            }
+        }
+
+        if (IsCastingMCHLBVfx())
         {
             if (GuardPvP.CanUse(out action))
             {
@@ -652,6 +663,8 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static readonly StringComparison PathCmp = StringComparison.OrdinalIgnoreCase;
     public static bool PlayerHasHostileMCHPVPLBVfx()
     {
+        // LB animation lasts ~6 seconds; adjust if necessary
+        TimeSpan lbDuration = TimeSpan.FromSeconds( 2);
         return DataCenter.IsCastingVfx(DataCenter.VfxDataQueue, s =>
         {
             if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
@@ -664,11 +677,22 @@ public sealed class KirboMCHPvp : MachinistRotation
                 return false;
             }
 
+            // Only consider VFX still active
+            if (s.TimeDuration > lbDuration)
+                return false;
+
             // Any path in multi-hit share list qualifies
             foreach (var p in MCHLBPaths)
             {
                 if (s.Path.StartsWith(p, PathCmp))
                 {
+                    if (Service.Config.InDebug)
+                    {
+                        ECommons.Logging.PluginLog.Warning(
+    $"test MCH LB VFX test. " +
+    $"objectID={s.ObjectId}, {s.ToString()}"
+);
+                    }
                     return true;
                 }
             }
@@ -677,6 +701,63 @@ public sealed class KirboMCHPvp : MachinistRotation
         });
 
     }
+
+
+
+
+    public static bool IsCastingMCHLBVfx()
+    {
+        TimeSpan lbDuration = TimeSpan.FromSeconds( 2);
+        return DataCenter.IsCastingVfx(DataCenter.VfxDataQueue, s =>
+        {
+            // Make sure player exists
+            if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
+                return false;
+
+            if (string.IsNullOrEmpty(s.Path))
+                return false;
+
+            // Only consider VFX still active
+            if (s.TimeDuration > lbDuration)
+                return false;
+
+            var playerId = ECommons.GameHelpers.Player.Object.GameObjectId;
+
+            // Get all hostile MCH targeting the player
+            var mchTargets = DataCenter.AllHostileTargets
+            .Where(obj => obj != null && obj.IsJobs(Job.MCH) && obj.TargetObjectId == playerId)
+            .Select(obj => obj.GameObjectId)
+            .ToHashSet();
+
+            if (mchTargets.Count == 0)
+                return false;
+
+            // Check if the VFX path matches any LB paths
+            foreach (var path in MCHLBPaths)
+            {
+                if (!s.Path.StartsWith(path, PathCmp))
+                    continue;
+
+                // This is the missing piece: check if the VFX comes from a hostile MCH targeting player
+                if (mchTargets.Contains(s.ObjectId))
+                {
+                    if (Service.Config.InDebug)
+                    {
+                        var casterName = Svc.Objects.SearchById(s.ObjectId)?.Name ?? "Unknown";
+                        ECommons.Logging.PluginLog.Warning(
+                            $"Detected MCH LB VFX from hostile MCH targeting player. " +
+                            $"objectID={s.ObjectId}, Caster={casterName}, Path={s.Path}"
+                        );
+                    }
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
+
 
     // Early Analysis use
     private bool UseEarlyAnalysis(out IAction? action)
