@@ -1,12 +1,20 @@
 ﻿// TODO: add logic to prevent player speed going over 7.80, ideally dynamicly
 
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.Hooks;
+using ECommons.Hooks.ActionEffectTypes;
+using ECommons.Logging;
+using RotationSolver.Basic.Configuration;
 using RotationSolver.UI;
 using System.Collections.Frozen;
 using System.ComponentModel;
@@ -334,7 +342,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     protected override void UpdateInfo()
     {
-        //PlayerHasHostileMCHPVPLBVfx();
+        //PlayerHasMCHLBVfx();
         //IsCastingMCHLBVfx();
     }
 
@@ -626,26 +634,17 @@ public sealed class KirboMCHPvp : MachinistRotation
         return true;
     }
 
-    // Original idea was to check if an enemy is using MS on player, silly goose me didn't realize that MCH pvp LB does, in fact, not have a cast. So need to rework this idea.
+    // Should check for the Marksman's spite VFX, mainly if a hostile target uses it on the player, this method should then use guardpvp. 
     public bool ShouldGuardAgainstLB(out IAction? action)
     {
         action = null;
-        // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032c1c.avfx
-        // Exit early if Guard is on cooldown or already active
-        if (/*!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || */Player.HasStatus(true, StatusID.Guard) || Svc.Condition[ConditionFlag.Mounted])
+
+        if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || Player.HasStatus(true, StatusID.Guard) || Svc.Condition[ConditionFlag.Mounted])
         {
             return false;
         }
 
-        if (PlayerHasHostileMCHPVPLBVfx())
-        {
-            if (GuardPvP.CanUse(out action))
-            {
-                return true;
-            }
-        }
-
-        if (IsCastingMCHLBVfx())
+        if (PlayerHasMCHLBVfx() || IsCastingMCHLBVfx())
         {
             if (GuardPvP.CanUse(out action))
             {
@@ -655,17 +654,13 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         return false;
     }
-    //vfx/common/eff/mon_eisyo03t
-    private static readonly FrozenSet<string> MCHLBPaths = FrozenSet.ToFrozenSet(
-    [
-        "vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c"
-    ], StringComparer.OrdinalIgnoreCase);
+    // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c.avfx (this is the lock on vfx)
+    private static readonly FrozenSet<string> MCHLBPaths = FrozenSet.ToFrozenSet(["vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c"], StringComparer.OrdinalIgnoreCase);
     private static readonly StringComparison PathCmp = StringComparison.OrdinalIgnoreCase;
-    public static bool PlayerHasHostileMCHPVPLBVfx()
+    public static bool PlayerHasMCHLBVfx()
     {
-        // LB animation lasts ~6 seconds; adjust if necessary
         TimeSpan lbDuration = TimeSpan.FromSeconds( 2);
-        return DataCenter.IsCastingVfx(DataCenter.VfxDataQueue, s =>
+        return DataCenter.IsCastingVfx(vfxData: DataCenter.VfxDataQueue, isVfx: s =>
         {
             if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
             {
@@ -679,19 +674,17 @@ public sealed class KirboMCHPvp : MachinistRotation
 
             // Only consider VFX still active
             if (s.TimeDuration > lbDuration)
+            {
                 return false;
+            }
 
-            // Any path in multi-hit share list qualifies
             foreach (var p in MCHLBPaths)
             {
                 if (s.Path.StartsWith(p, PathCmp))
                 {
                     if (Service.Config.InDebug)
                     {
-                        ECommons.Logging.PluginLog.Warning(
-    $"test MCH LB VFX test. " +
-    $"objectID={s.ObjectId}, {s.ToString()}"
-);
+                        ECommons.Logging.PluginLog.Warning($"test MCH LB VFX test. objectID={Svc.Objects.SearchById(s.ObjectId)?.Name}-{s.ObjectId}, {s.ToString()}");
                     }
                     return true;
                 }
@@ -822,7 +815,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                 ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
                 ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
                 ImguiTooltips.HoveredTooltip("CurrentUnits: " + CurrentCurrentUnits);
-                ImGui.Text("Hostile using MCH LB on player: " + PlayerHasHostileMCHPVPLBVfx().ToString());
+                //ImGui.Text("[TEST] MCH LB vfx: " + PlayerHasMCHLBVfx().ToString());
                 ImGui.NewLine();
 
                 ImGui.Text("HeatStacks: " + PvP_OverheatedStacks);
