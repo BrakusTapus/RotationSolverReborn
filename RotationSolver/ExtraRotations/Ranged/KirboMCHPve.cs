@@ -3,10 +3,12 @@
 
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.GameHelpers;
+using RotationSolver.Basic.Configuration;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
-[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.4")]
+[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.45")]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
 [ExtraRotation]
 public sealed class KirboMCHPve : MachinistRotation
@@ -31,6 +33,9 @@ public sealed class KirboMCHPve : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "    Use AirAnchor at 1 second remaining on countdown", Parent = "CountdownOptions", ParentValue = true)]
     private bool AirAnchorCountdown { get; set; } = false;
+
+    //[RotationConfig(CombatType.PvE, Name = "    Use AirAnchor if combat start during countdown", Parent = "CountdownOptions", ParentValue = true)]
+    //private bool AirAnchorCombatStartedCountdown { get; set; } = false;
     #endregion
 
     #region M10S options    
@@ -67,12 +72,12 @@ public sealed class KirboMCHPve : MachinistRotation
 
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (AirAnchorCountdown && remainTime < 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))
+        if (AirAnchorCountdown && remainTime <= 0.9f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))
         {
             return act;
         }
 
-        if (!AirAnchorCountdown && remainTime < 0.1f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (!AirAnchorCountdown && remainTime <= Service.Config.CountDownAhead && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             return act;
         }
@@ -82,7 +87,7 @@ public sealed class KirboMCHPve : MachinistRotation
             return act;
         }
 
-        if (remainTime < 4.75f && ReassemblePvE.CanUse(out act))
+        if (remainTime <= 4.99f && ReassemblePvE.CanUse(out act))
         {
             return act;
         }
@@ -534,6 +539,8 @@ public sealed class KirboMCHPve : MachinistRotation
     #region Tracking Properties
     public override void DisplayRotationStatus()
     {
+        //ImGui.Text($"AirAnchorPvE: {AirAnchorPvE.Info.CastTime}{AnimationLock}");
+        //ImGui.Text($"ani lock: {ActionCooldownInfo}");
         ImGui.Text($"QueenStep: {_currentStep}");
         ImGui.Text($"Step Pair Found: {foundStepPair}");
         //ImGui.Text($"IsInM10S value: {DataCenter.IsInM10S.ToString()}");
