@@ -77,7 +77,7 @@ public sealed class KirboMCHPve : MachinistRotation
             return act;
         }
 
-        if (!AirAnchorCountdown && remainTime <= Service.Config.CountDownAhead && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (!AirAnchorCountdown && remainTime <= /*Service.Config.CountDownAhead*/ CountDownAhead && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             return act;
         }
@@ -97,7 +97,7 @@ public sealed class KirboMCHPve : MachinistRotation
             return act;
         }
 
-        if (!AirAnchorCountdown && IsBurst && OpenerBurstMeds && remainTime <= 1f && UseBurstMedicine(out act))
+        if (!AirAnchorCountdown && IsBurst && OpenerBurstMeds && remainTime <= 1.5f && UseBurstMedicine(out act))
         {
             return act;
         }
