@@ -388,7 +388,7 @@ public sealed class KirboMCHPve : MachinistRotation
         }
 
         // Overheated AOE
-        if (AutoCrossbowPvE.CanUse(out act))
+        if (AutoCrossbowPvE.Target.AffectedTargets.Length >= 6 && AutoCrossbowPvE.CanUse(out act))
         {
             return true;
         }
@@ -408,13 +408,21 @@ public sealed class KirboMCHPve : MachinistRotation
             return base.GeneralGCD(out act);
         }
 
-        // Drill AOE
-        if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.Target.Target.GetTTK() > 15 && BioblasterPvE.Target.Target.GetHealthRatio() > 0.5f && BioblasterPvE.Target.Target != null && BioblasterPvE.CanUse(out act, usedUp: true))
+        // OLD CODE
+        //// Bioblaster AOE
+        //if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.Target.Target.GetTTK() > 15 && BioblasterPvE.Target.Target.GetHealthRatio() > 0.5f && BioblasterPvE.Target.Target != null && BioblasterPvE.CanUse(out act, usedUp: true))
+        //{
+        //    return true;
+        //}
+
+        // Bioblaster AOE - new code
+        if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.Target.AffectedTargets.Length >= 4 && BioblasterPvE.CanUse(out act, usedUp: true, targetOverride: TargetType.HighHP))
         {
             return true;
         }
 
-        // ST Big GCDs
+        /*
+        // ST Big GCDs - OLD CODE
         if (!SpreadShotPvE.CanUse(out _))
         {
             // use AirAnchor if possible
@@ -433,6 +441,25 @@ public sealed class KirboMCHPve : MachinistRotation
             {
                 return true;
             }
+        }
+        */
+
+        // ST Big GCDs - new code (should prevent using a basic gcd in opener)
+        // use AirAnchor if possible
+        if (HotShotMasteryTrait.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        {
+            return true;
+        }
+
+        // for opener: only use the first charge of Drill after AirAnchor when there are two
+        if (DrillPvE.CanUse(out act, usedUp: false))
+        {
+            return true;
+        }
+
+        if (!HotShotMasteryTrait.EnoughLevel && HotShotPvE.CanUse(out act))
+        {
+            return true;
         }
 
         // ChainSaw is always used after Drill
@@ -461,7 +488,24 @@ public sealed class KirboMCHPve : MachinistRotation
             return true;
         }
 
-        if (Player.WillStatusEnd(3, true, StatusID.FullMetalMachinist))
+        // old code - testing new
+        //if (Player.WillStatusEnd(3, true, StatusID.FullMetalMachinist))
+        //{
+        //    if (FullMetalFieldPvE.CanUse(out act))
+        //    {
+        //        return true;
+        //    }
+        //}
+
+        //if (Player.WillStatusEnd(3, true, StatusID.ExcavatorReady))
+        //{
+        //    if (ExcavatorPvE.CanUse(out act))
+        //    {
+        //        return true;
+        //    }
+        //}
+
+        if (StatusHelper.PlayerWillStatusEnd(3, true, StatusID.FullMetalMachinist))
         {
             if (FullMetalFieldPvE.CanUse(out act))
             {
@@ -469,7 +513,7 @@ public sealed class KirboMCHPve : MachinistRotation
             }
         }
 
-        if (Player.WillStatusEnd(3, true, StatusID.ExcavatorReady))
+        if (StatusHelper.PlayerWillStatusEnd(3, true, StatusID.ExcavatorReady))
         {
             if (ExcavatorPvE.CanUse(out act))
             {
@@ -489,7 +533,11 @@ public sealed class KirboMCHPve : MachinistRotation
             }
             if (!ScattergunPvE.EnoughLevel)
             {
-                if (SpreadShotPvE.Target.AffectedTargets.Length >= 5 && SpreadShotPvE.CanUse(out act))
+                //if (SpreadShotPvE.Target.AffectedTargets.Length >= 5 && SpreadShotPvE.CanUse(out act))
+                //{
+                //    return true;
+                //}
+                if (SpreadShotPvE.CanUse(out act))
                 {
                     return true;
                 }
@@ -510,10 +558,6 @@ public sealed class KirboMCHPve : MachinistRotation
         {
             return true;
         }
-        //if (!HeatedSlugShotPvE.EnoughLevel && SlugShotPvE.CanUse(out act))
-        //{
-        //    return true;
-        //}
         if (!HeatedSlugShotPvE.Info.EnoughLevelAndQuest() && SlugShotPvE.CanUse(out act))
         {
             return true;
@@ -527,10 +571,6 @@ public sealed class KirboMCHPve : MachinistRotation
         {
             return true;
         }
-        //if (!HeatedSplitShotPvE.EnoughLevel && SplitShotPvE.CanUse(out act))
-        //{
-        //    return true;
-        //}
 
         return base.GeneralGCD(out act);
     }
@@ -562,10 +602,8 @@ public sealed class KirboMCHPve : MachinistRotation
     #region Updaters
     //protected override void UpdateInfo()
     //{
-    //    if (IsInTerritory(1323))
-    //    {
-    //        Svc.Chat.PrintChat()
-    //    }
+    //    OpenerAvailability();
+    //    RotationHelper.MainUpdater();
     //}
     #endregion
 
@@ -704,4 +742,5 @@ public sealed class KirboMCHPve : MachinistRotation
         return false;
     }
     #endregion
+
 }
