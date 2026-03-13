@@ -638,11 +638,18 @@ internal static class DataCenter
 		{
 			return true;
 		}
+
 		if (Job == Job.RDM && PlayerSyncedLevel() >= 64)
 		{
 			return true;
 		}
+
 		if (DutyRotation.ChemistLevel >= 3)
+		{
+			return true;
+		}
+
+		if (StatusHelper.PlayerHasStatus(false, StatusID.VariantRaiseSet))
 		{
 			return true;
 		}
@@ -1794,14 +1801,13 @@ internal static class DataCenter
                                 PluginLog.Debug($"Tank lock-on VFX triggered: {s.Path}, ObjectId: {s.ObjectId}");
                             }
 
-                            // Try to resolve the object id to a party/alliance member and add to the list
-                            var obj = Svc.Objects.SearchById(s.ObjectId) as IBattleChara;
-                            if (obj != null && obj.IsParty() && !obj.IsDead && !TankbusterTargets.Contains(obj))
-                            {
-                                TankbusterTargets.Add(obj);
-                            }
+							// Try to resolve the object id to a party/alliance member and add to the list
+							if (Svc.Objects.SearchById(s.ObjectId) is IBattleChara obj && obj.IsParty() && !obj.IsDead && !TankbusterTargets.Contains(obj))
+							{
+								TankbusterTargets.Add(obj);
+							}
 
-                            found = true;
+							found = true;
                         }
                     }
                 }
