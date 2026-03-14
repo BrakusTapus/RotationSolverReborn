@@ -55,7 +55,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     //private static bool PlayerHasBravery => Player.HasStatus(true, StatusID.Bravery);
     private enum LBMethod
     {
-        [Description("MCH LB NEW")] MCHLBNEW,
+        [Description("Frontline")] Frontline,
         [Description("MCH LB 4")] MCHLB4
     }
     #endregion
@@ -70,7 +70,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     */
 
     [RotationConfig(CombatType.PvP, Name = "LB method")]
-    private LBMethod LBMethodPicker { get; set; } = LBMethod.MCHLBNEW;
+    private LBMethod LBMethodPicker { get; set; } = LBMethod.Frontline;
 
     [RotationConfig(CombatType.PvP, Name = "AnalysisOnDrill")]
     private bool AnalysisOnDrill { get; set; } = true;
@@ -487,7 +487,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         switch (LBMethodPicker)
         {
-            case LBMethod.MCHLBNEW:
+            case LBMethod.Frontline:
                 return UseMCHLBNEW(out act);
 
             case LBMethod.MCHLB4:
