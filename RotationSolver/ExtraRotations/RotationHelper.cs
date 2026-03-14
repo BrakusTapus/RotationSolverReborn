@@ -136,7 +136,7 @@ public static unsafe class RotationHelper
     #endregion
 
     #region Logging
-    private const string KirboLogMessage = "[Kirbo Rotations]";
+    private const string KirboLogMessage = "[Kirbo Log]";
 
     /// <summary>
     /// Sends a debug level message to the Dalamud log console.
