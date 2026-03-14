@@ -27,7 +27,6 @@ namespace RotationSolver.ExtraRotations.Ranged;
 public sealed class KirboMCHPvp : MachinistRotation
 {
     #region Properties
-    //private static bool HasActiveGuard => Player.HasStatus(true, StatusID.Guard);
 
     /// <summary>
     ///     Gets the current Heat Stacks.
@@ -52,7 +51,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static bool PvPTargetHasWildfire => CurrentTarget != null && CurrentTarget.HasStatus(true, StatusID.Wildfire_1323);
     private static float PvPTargetWildfireStatusTime => CurrentTarget!.StatusTime(true, StatusID.Wildfire_1323);
     private static float AnalysisStatusTime => Player.StatusTime(true, StatusID.Analysis);
-    //private static bool PlayerHasBravery => Player.HasStatus(true, StatusID.Bravery);
     private enum LBMethod
     {
         [Description("Frontline")] Frontline,
@@ -87,9 +85,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Auto Bishop")]
     private bool AutoBishop { get; set; } = false;
 
-    //[RotationConfig(CombatType.PvP, Name = "GuardCancel")]
-    //private bool GuardCancel { get; set; } = true;
-
     [RotationConfig(CombatType.PvP, Name = "Emergency Healing")]
     private bool EmergencyHealing { get; set; } = false;
 
@@ -110,11 +105,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
         act = null;
-        // Should prevent any actions if the option 'guardCancel' is enabled and Player has the Guard buff up
-        //if (GuardCancel && HasActiveGuard)
-        //{
-        //    return false;
-        //}
 
         if (ShouldGuardAgainstLB(out act))
         {
@@ -190,18 +180,6 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         return base.EmergencyAbility(nextGCD, out act);
     }
-
-    //[RotationDesc(ActionID.GuardPvP)]
-    //protected override bool DefenseSingleAbility(IAction nextGCD, out IAction? action)
-    //{
-    //    action = null;
-    //    if (GuardCancel && HasActiveGuard)
-    //    {
-    //        return false;
-    //    }
-
-    //    return base.DefenseSingleAbility(nextGCD, out action);
-    //}
 
     [RotationDesc(ActionID.RecuperatePvP)]
     protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
@@ -313,11 +291,11 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        // Drill old
-        if (!IsPvPOverheated && DrillPvP.CanUse(out act, usedUp: true) && Player.HasStatus(true, StatusID.DrillPrimed))
-        {
-            return true;
-        }
+        //// Drill old
+        //if (!IsPvPOverheated && DrillPvP.CanUse(out act, usedUp: true) && Player.HasStatus(true, StatusID.DrillPrimed))
+        //{
+        //    return true;
+        //}
 
         // Blast Charge is used if available
         // Note: Stop Using Blast Charge if Player's HP is low + moving + not overheated (since our movement slows down a lot we do this to be able retreat)
@@ -801,21 +779,16 @@ public sealed class KirboMCHPvp : MachinistRotation
     public override bool ShowStatus => true;
     public override void DisplayRotationStatus()
     {
-        //Get available width in the current ImGui window
         float availableWidth = ImGui.GetContentRegionAvail().X;
         using (ImRaii.IEndObject child = ImRaii.Child("playerinfo", new Vector2((availableWidth / 2), 200), true))
         {
             if (child.Success)
             {
-                //var test = Svc.Targets.MouseOverTarget;
-                //ImGui.Text("MO name: " + test?.Name);
-                //ImGui.Text($"Target is PC: {(CurrentTarget != null && IsPlayerCharacter(CurrentTarget) ? "Yes" : "No")}");
                 ImGui.Text("Player HPP: " + Player.GetHealthRatio());
                 ImGui.Text($"speed:  {ECommons.GameHelpers.Player.Speed}");
                 ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
                 ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
                 ImguiTooltips.HoveredTooltip("CurrentUnits: " + CurrentCurrentUnits);
-                //ImGui.Text("[TEST] MCH LB vfx: " + PlayerHasMCHLBVfx().ToString());
                 ImGui.NewLine();
 
                 ImGui.Text("HeatStacks: " + PvP_OverheatedStacks);
