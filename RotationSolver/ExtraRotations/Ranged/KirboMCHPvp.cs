@@ -488,7 +488,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         switch (LBMethodPicker)
         {
             case LBMethod.Frontline:
-                return UseMCHLBNEW(out act);
+                return UseMCHLBFrontline(out act);
 
             case LBMethod.MCHLB4:
                 return UseMCHLB4(out act);
@@ -499,7 +499,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     }
 
     // TODO compare with 'UseMCHLB4' to find out which method is better
-    private bool UseMCHLBNEW(out IAction? action)
+    private bool UseMCHLBFrontline(out IAction? action)
     {
 
         action = null;
