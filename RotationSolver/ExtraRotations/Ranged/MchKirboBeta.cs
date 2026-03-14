@@ -23,7 +23,7 @@ using Lumina.Excel.Sheets;
 namespace RotationSolver.ExtraRotations.Ranged;
 
 [ExtraRotation]
-[Rotation("Kirbo - MCH [beta] [old]", CombatType.PvE, GameVersion = $"v.\notation： v...1\n\n", Description = $"Beta and experimental version of the regular MCH  Kirbo rotations")]
+[Rotation("Kirbo - MCH [beta] [old]", CombatType.PvE, GameVersion = $"v.\notation： v...1\n\n", Description = $"Beta and experimental version of the regular MCH  Kirbo rotations", Disabled = true)]
 //[LinkDescription("https://i.imgur.com/LVREqZX.png", "Default opener")]
 //[LinkDescription("https://i.imgur.com/giPCx6k.png", "Alternative opener")]
 //[LinkDescription("https://i.imgur.com/969qbTh.png", "Beta opener")]

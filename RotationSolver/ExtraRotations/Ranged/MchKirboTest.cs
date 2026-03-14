@@ -1,9 +1,10 @@
 using System.ComponentModel;
+using RotationSolver.Updaters;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
 [ExtraRotation]
-[Rotation("Kirbo - Test", CombatType.PvE, GameVersion = "9.99", Description = "Simple dummy rotation for testing the opener helper.")]
+[Rotation("Kirbo - Test", CombatType.PvE, GameVersion = "9.99", Description = "Simple dummy rotation for testing the opener helper.", Disabled = true)]
 public sealed class MchKirboTest : MachinistRotation
 {
     protected override IAction? CountDownAction(float remainTime)
@@ -16,24 +17,46 @@ public sealed class MchKirboTest : MachinistRotation
         return base.EmergencyAbility(nextGCD, out act);
     }
 
+    /// <summary>
+    /// Routes oGCD slots during the opener; falls back to base behaviour once the opener is done or unavailable.
+    /// </summary>
     protected override bool AttackAbility(IAction nextGCD, out IAction? act)
     {
+        if (OpenerInProgress && Opener(out act))
+            return true;
+
         return base.AttackAbility(nextGCD, out act);
     }
 
+    /// <summary>
+    /// Routes GCD slots during the opener; falls back to base behaviour once the opener is done or unavailable.
+    /// </summary>
     protected override bool GeneralGCD(out IAction? act)
     {
+        if (OpenerInProgress && Opener(out act))
+            return true;
+
         return base.GeneralGCD(out act);
     }
 
-    protected override void UpdateInfo() // Updates the custom fields.
+    /// <summary>
+    /// Called every frame. Refreshes OpenerAvailable and starts the opener when conditions are met.
+    /// </summary>
+    protected override void UpdateInfo()
     {
+        OpenerAvailability();
 
+        // Begin the opener automatically the moment we enter combat and everything is ready.
+        if (OpenerAvailable && InCombat && !OpenerInProgress && !OpenerHasFinished && !OpenerHasFailed)
+            BeginOpener();
     }
 
-    public override void OnTerritoryChanged() // Handles actions when the territory changes.
+    /// <summary>
+    /// Hard-reset all opener state whenever the player changes zone.
+    /// </summary>
+    public override void OnTerritoryChanged()
     {
-
+        ResetOpener();
     }
 
     #region Opener related
@@ -63,80 +86,53 @@ public sealed class MchKirboTest : MachinistRotation
 
 
 
-    internal static void ResetOpenerProperties() // i dont remember if i should this or ResetOpenerFlags
+    /// <summary>
+    /// Full reset – wipes all opener state back to defaults.
+    /// Call this on zone change or whenever you need a clean slate.
+    /// </summary>
+    private void ResetOpener()
     {
-        OpenerHasFailed = false;
-        OpenerHasFinished = false;
         OpenerStep = 0;
         OpenerInProgress = false;
-        RotationHelper.Debug("Opener values have been reset.");
+        OpenerHasFinished = false;
+        OpenerHasFailed = false;
+        RotationHelper.Debug("Opener state fully reset.");
     }
 
-    internal static void ResetOpenerFlags() // i dont remember if i should this or ResetOpenerProperties
+    /// <summary>
+    /// Transitions the opener into the "in progress" state.
+    /// Only acts when <see cref="OpenerAvailable"/> is true and no opener is currently running.
+    /// </summary>
+    private void BeginOpener()
     {
-        if (OpenerHasFinished)
-        {
-            OpenerHasFinished = false;
-        }
-        else if (OpenerHasFailed)
-        {
-            OpenerHasFailed = false;
-        }
+        if (!OpenerAvailable || OpenerInProgress || OpenerStep != 0)
+            return;
+
+        OpenerInProgress = true;
+        RotationHelper.Debug("Opener started.");
+        // NOTE: OpenerStep stays at 0 so that case 0 in Opener() is the first action executed.
     }
 
-    internal static void BeginOpener() // my idea was to use this update opener state that opener needs to begin and also for logging 
+    /// <summary>
+    /// Marks the opener as failed and logs the step it failed on.
+    /// </summary>
+    private void OpenerFailed()
     {
-        if (OpenerAvailable && !OpenerInProgress && OpenerStep == 0)
-        {
-            OpenerInProgress = true;
-            OpenerStep++;
-            RotationHelper.Debug("Starting Opener...");
-        }
-    }
-
-    internal static void OpenerFailed() // my idea was to use this for logging 
-    {
-        RotationHelper.Debug("Opener failed, on step: " + OpenerStep);
+        RotationHelper.Debug($"Opener failed on step {OpenerStep}.");
         OpenerHasFailed = true;
+        OpenerInProgress = false;
     }
 
-    internal static void StateOfOpener() // My idea is to use a method that controls opener states
+    /// <summary>
+    /// Marks the opener as successfully completed.
+    /// </summary>
+    private void OpenerFinished()
     {
-        if (OpenerAvailable && CustomRotation.IsLastAction(ActionID.AirAnchorPvE)) // instead of using islastaction we should used a combination of openerstep and or openercontroller's value being trure
-        {
-            OpenerInProgress = true;
-        }
-
-        else if (OpenerHasFinished && OpenerInProgress)
-        {
-            OpenerInProgress = false;
-            RotationHelper.Debug("Opener completed successfully!");
-        }
-
-        else if (OpenerHasFailed && OpenerInProgress)
-        {
-            OpenerInProgress = false;
-            RotationHelper.Debug("Opener Failed during step: " + OpenerStep);
-        }
-
-        else if (!OpenerInProgress && OpenerStep > 0)
-        {
-            OpenerStep = 0;
-            RotationHelper.Debug("Resetting OpenerStep...");
-        }
-
-        else if (!OpenerInProgress && OpenerHasFinished && OpenerStep == 0)
-        {
-            OpenerHasFinished = false;
-            RotationHelper.Debug("Resetting OpenerHasFinished...!");
-        }
-
-        else if (!OpenerInProgress && OpenerHasFailed && OpenerStep == 0)
-        {
-            OpenerHasFailed = false;
-            RotationHelper.Debug("Resetting OpenerHasFailed...!");
-        }
+        RotationHelper.Debug("Opener completed successfully!");
+        OpenerHasFinished = true;
+        OpenerInProgress = false;
     }
+
 
     /// <summary>
     /// <br>Method that allows using actions in a specific order.</br>
@@ -151,37 +147,54 @@ public sealed class MchKirboTest : MachinistRotation
         if (lastAction)
         {
             OpenerStep++;
-            RotationHelper.Debug($"Last action matched! Proceeding to step: {OpenerStep}");
+            RotationHelper.Debug($"Last action matched: {DataCenter.LastAction.ToString()} | Proceeding to step: {OpenerStep} | {ActionUpdater.NextAction?.Name ?? "null"}");
             return false;
         }
         return nextAction;
     }
 
 
+    public override void DisplayRotationStatus()
+    {
+        ImGui.Text("null");
+        //ImGui.Text($"Last action matched: {DataCenter.LastAction.ToString()} | Proceeding to step: {OpenerStep} | {ActionUpdater.NextAction?.Name ?? "null"}");
+        //if (ImGui.Button("label"))
+        //{
+        //    RotationHelper.Debug($"Last action matched: {DataCenter.LastAction.ToString()} | Proceeding to step: {OpenerStep} | {ActionUpdater.NextAction?.Name ?? "null"}");
+        //}
+    }
+
     /// <summary>
-    /// Method that checks the opener requirements.
+    /// Evaluates whether all resources required for a full opener are available and sets
+    /// <see cref="OpenerAvailable"/> accordingly. Called every frame from <see cref="UpdateInfo"/>.
     /// </summary>
-    /// <returns></returns>
     private void OpenerAvailability()
     {
-        bool HasChainSaw = !ChainSawPvE.Cooldown.IsCoolingDown;
-        bool HasAirAnchor = !AirAnchorPvE.Cooldown.IsCoolingDown;
-        bool HasBarrelStabilizer = !BarrelStabilizerPvE.Cooldown.IsCoolingDown;
-        bool HasWildfire = !WildfirePvE.Cooldown.IsCoolingDown;
+        bool hasChainSaw         = !ChainSawPvE.Cooldown.IsCoolingDown;
+        bool hasAirAnchor        = !AirAnchorPvE.Cooldown.IsCoolingDown;
+        bool hasBarrelStabilizer = !BarrelStabilizerPvE.Cooldown.IsCoolingDown;
+        bool hasWildfire         = !WildfirePvE.Cooldown.IsCoolingDown;
 
-        ushort DrillCharges = DrillPvE.Cooldown.CurrentCharges;
-        ushort DCcharges = DoubleCheckPvE.Cooldown.CurrentCharges;
-        ushort CMcharges = CheckmatePvE.Cooldown.CurrentCharges;
-        ushort ReassembleCharges = ReassemblePvE.Cooldown.CurrentCharges;
-
-        bool NoHeat = Heat == 0;
-        bool NoBattery = Battery == 0;
-        int OpenerStep = MchKirboTest.OpenerStep;
+        ushort drillCharges      = DrillPvE.Cooldown.CurrentCharges;
+        ushort dcCharges         = DoubleCheckPvE.Cooldown.CurrentCharges;
+        ushort cmCharges         = CheckmatePvE.Cooldown.CurrentCharges;
+        ushort reassembleCharges = ReassemblePvE.Cooldown.CurrentCharges;
 
         OpenerAvailable =
-            ReassembleCharges >= 1 && HasChainSaw && HasAirAnchor && DrillCharges == 2 &&
-            HasBarrelStabilizer && DCcharges == 3 && HasWildfire && CMcharges == 3 &&
-            ECommons.GameHelpers.Player.Level >= 100 && NoBattery && NoHeat && OpenerStep == 0;
+            OpenerStep == 0 &&
+            !OpenerHasFinished &&
+            !OpenerHasFailed &&
+            ECommons.GameHelpers.Player.Level >= 100 &&
+            //Heat == 0 &&
+            Battery < 50 &&
+            reassembleCharges >= 1 &&
+            drillCharges == 2 &&
+            dcCharges == 3 &&
+            cmCharges == 3 &&
+            hasChainSaw &&
+            //hasAirAnchor &&
+            hasBarrelStabilizer &&
+            hasWildfire;
     }
 
     /// <summary>
@@ -342,7 +355,7 @@ public sealed class MchKirboTest : MachinistRotation
 
                     case 8:
                         return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-                        
+
 
                     case 9:
                         return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
@@ -359,6 +372,8 @@ public sealed class MchKirboTest : MachinistRotation
         act = null;
         return false;
     }
+
+
 
     #endregion
 
