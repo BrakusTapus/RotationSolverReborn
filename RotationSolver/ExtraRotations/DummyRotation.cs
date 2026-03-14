@@ -1,10 +1,10 @@
 using RotationSolver.ExtraRotations;
 
-namespace RotationSolver.ExtraRotations.Ranged;
+namespace RotationSolver.ExtraRotations;
 
 [ExtraRotation]
-[Rotation("Kirbo - Test", CombatType.PvE, GameVersion = "9.99", Description = "Simple dummy rotation for testing the opener helper.")]
-public sealed class MchKirboTest : MachinistRotation
+[Rotation("Kirbo - dummy", CombatType.PvE, GameVersion = "7.x", Description = "Simple dummy rotation meant to easily copy when making new rotations from scratch.", Disabled = true)]
+public sealed class KirboDummy : MachinistRotation
 {
     protected override IAction? CountDownAction(float remainTime)
     {
@@ -35,4 +35,5 @@ public sealed class MchKirboTest : MachinistRotation
     {
 
     }
+
 }
