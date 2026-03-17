@@ -474,6 +474,11 @@ public sealed class KirboMCHPve : MachinistRotation
             return true;
         }
 
+        if (DrillPvE.CanUse(out act, usedUp: true))
+        {
+            return true;
+        }
+
         if (!AirAnchorPvE.CanUse(out _) && !ChainSawPvE.CanUse(out _) && !ExcavatorPvE.CanUse(out _) && !HasExcavatorReady
             && !IsLastGCD(false, ChainSawPvE) && DrillPvE.Cooldown.CurrentCharges < 2 && (!WildfirePvE.Cooldown.IsCoolingDown || IsLastAction(false, WildfirePvE)))
         {
@@ -483,10 +488,10 @@ public sealed class KirboMCHPve : MachinistRotation
             }
         }
 
-        if (DrillPvE.CanUse(out act, usedUp: true))
-        {
-            return true;
-        }
+        //if (DrillPvE.CanUse(out act, usedUp: true))
+        //{
+        //    return true;
+        //}
 
         // old code - testing new
         //if (Player.WillStatusEnd(3, true, StatusID.FullMetalMachinist))
