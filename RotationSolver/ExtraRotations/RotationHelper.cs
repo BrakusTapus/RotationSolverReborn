@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ECommons.DalamudServices;
+﻿using ECommons.DalamudServices;
 
 namespace RotationSolver.ExtraRotations;
 
@@ -34,9 +31,6 @@ public static unsafe class RotationHelper
 
     internal static void ResetOpenerProperties()
     {
-        //OpenerAvailable = false;
-        //OpenerInProgressNoCountdown = false;
-
         OpenerHasFailed = false;
         OpenerHasFinished = false;
         OpenerStep = 0;
