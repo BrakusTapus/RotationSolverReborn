@@ -613,7 +613,7 @@ public sealed class KirboMCHPvp : MachinistRotation
             return false;
         }
 
-        if (PlayerHasMCHLBVfx() || IsCastingMCHLBVfx())
+        if (PlayerHasMCHLBVfx() || IsCastingMCHLBVfx() || HasIncomingMarksmanSpiteEffect())
         {
             if (GuardPvP.CanUse(out action))
             {
@@ -719,6 +719,50 @@ public sealed class KirboMCHPvp : MachinistRotation
         });
     }
 
+
+
+
+    private const StringComparison Lower = StringComparison.OrdinalIgnoreCase;
+
+    private static readonly StringComparer Lowerer =
+        StringComparer.FromComparison(Lower);
+    private static bool CheckPath(
+        FrozenDictionary<string, uint[]> paths, string vfxPath)
+    {
+        foreach (var entry in paths)
+        {
+            if (!vfxPath.StartsWith(entry.Key, Lower))
+                continue;
+
+            if (entry.Value.Length == 0)
+                return true;
+
+        }
+
+        return false;
+    }
+    public static bool IsMarksmanSpiteEffectPath(VfxInfo vfx) =>
+        CheckPath(MarksmanSpitePaths, vfx.Path);
+    private static readonly FrozenDictionary<string, uint[]> MarksmanSpitePaths =
+        new Dictionary<string, uint[]>
+        {
+            { "vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c", []}
+        }.ToFrozenDictionary(Lowerer);
+    public static bool HasIncomingMarksmanSpiteEffect(
+        IGameObject? targetObject = null)
+    {
+        // Default to local player if none provided
+        targetObject ??= Player;
+
+        if (targetObject == null)
+            return false;
+
+        ulong targetId = targetObject.GameObjectId;
+
+        return VfxManager.TrackedEffects
+            .FilterToTarget(targetId)
+            .Any(IsMarksmanSpiteEffectPath);
+    }
 
 
     // Early Analysis use
