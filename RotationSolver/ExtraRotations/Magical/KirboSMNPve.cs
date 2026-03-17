@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Magical;
 
-[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.35", Disabled = true)]
+[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.35", Disabled = false)]
 [SourceCode(Path = "main/ExtraRotations/Magical/KirboSMNPve.cs")]
 
 public sealed class KirboSMNPve : SummonerRotation

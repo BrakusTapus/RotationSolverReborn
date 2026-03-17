@@ -53,7 +53,7 @@ public sealed class KirboMchPve : MachinistRotation
             return act;
         }
 
-        if (!AirAnchorCountdown && remainTime <= /*Service.Config.CountDownAhead*/ CountDownAhead && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (!AirAnchorCountdown && remainTime <= 0.6f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             return act;
         }
@@ -131,6 +131,8 @@ public sealed class KirboMchPve : MachinistRotation
     }
 
     #region oGCD Logic
+
+    #region Mits
     [RotationDesc(ActionID.TacticianPvE, ActionID.DismantlePvE)]
     protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {
@@ -172,6 +174,7 @@ public sealed class KirboMchPve : MachinistRotation
 
         return base.DefenseSingleAbility(nextGCD, out act);
     }
+    #endregion
 
     // Logic for using attack abilities outside of GCD, focusing on burst windows and cooldown management.
     protected override bool AttackAbility(IAction nextGCD, out IAction? act)
@@ -357,10 +360,6 @@ public sealed class KirboMchPve : MachinistRotation
             {
                 return true;
             }
-            //if (!HeatedSlugShotPvE.EnoughLevel && SlugShotPvE.CanUse(out act))
-            //{
-            //    return true;
-            //}
         }
 
         // Overheated AOE
@@ -384,41 +383,11 @@ public sealed class KirboMchPve : MachinistRotation
             return base.GeneralGCD(out act);
         }
 
-        // OLD CODE
-        //// Bioblaster AOE
-        //if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.Target.Target.GetTTK() > 15 && BioblasterPvE.Target.Target.GetHealthRatio() > 0.5f && BioblasterPvE.Target.Target != null && BioblasterPvE.CanUse(out act, usedUp: true))
-        //{
-        //    return true;
-        //}
-
         // Bioblaster AOE - new code
         if ((BioMove || (!IsMoving && !BioMove)) && BioblasterPvE.Target.AffectedTargets.Length >= 4 && BioblasterPvE.CanUse(out act, usedUp: true, targetOverride: TargetType.HighHP))
         {
             return true;
         }
-
-        /*
-        // ST Big GCDs - OLD CODE
-        if (!SpreadShotPvE.CanUse(out _))
-        {
-            // use AirAnchor if possible
-            if (HotShotMasteryTrait.EnoughLevel && AirAnchorPvE.CanUse(out act))
-            {
-                return true;
-            }
-
-            // for opener: only use the first charge of Drill after AirAnchor when there are two
-            if (DrillPvE.CanUse(out act, usedUp: false))
-            {
-                return true;
-            }
-
-            if (!HotShotMasteryTrait.EnoughLevel && HotShotPvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
-        */
 
         // ST Big GCDs - new code (should prevent using a basic gcd in opener)
         // use AirAnchor if possible
@@ -464,28 +433,6 @@ public sealed class KirboMchPve : MachinistRotation
             }
         }
 
-        //if (DrillPvE.CanUse(out act, usedUp: true))
-        //{
-        //    return true;
-        //}
-
-        // old code - testing new
-        //if (Player.WillStatusEnd(3, true, StatusID.FullMetalMachinist))
-        //{
-        //    if (FullMetalFieldPvE.CanUse(out act))
-        //    {
-        //        return true;
-        //    }
-        //}
-
-        //if (Player.WillStatusEnd(3, true, StatusID.ExcavatorReady))
-        //{
-        //    if (ExcavatorPvE.CanUse(out act))
-        //    {
-        //        return true;
-        //    }
-        //}
-
         if (StatusHelper.PlayerWillStatusEnd(3, true, StatusID.FullMetalMachinist))
         {
             if (FullMetalFieldPvE.CanUse(out act))
@@ -525,6 +472,7 @@ public sealed class KirboMchPve : MachinistRotation
             }
         }
 
+
         // 3 ST
         if (HeatedCleanShotPvE.EnoughLevel && HeatedCleanShotPvE.CanUse(out act))
         {
@@ -553,6 +501,7 @@ public sealed class KirboMchPve : MachinistRotation
             return true;
         }
 
+
         return base.GeneralGCD(out act);
     }
     #endregion
@@ -562,6 +511,7 @@ public sealed class KirboMchPve : MachinistRotation
     {
         //ImGui.Text($"AirAnchorPvE: {AirAnchorPvE.Info.CastTime}{AnimationLock}");
         //ImGui.Text($"ani lock: {ActionCooldownInfo}");
+        //ImGui.Text($"CountDownAhead:  {CountDownAhead}");
         ImGui.Text($"QueenStep: {_currentStep}");
         ImGui.Text($"Step Pair Found: {foundStepPair}");
         //ImGui.Text($"IsInM10S value: {DataCenter.IsInM10S.ToString()}");
