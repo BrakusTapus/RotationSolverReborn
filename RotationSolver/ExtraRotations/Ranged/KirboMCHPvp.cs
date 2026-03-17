@@ -11,6 +11,7 @@ using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
@@ -35,22 +36,25 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         get
         {
-            byte pvP_OverheatedStacks = CustomRotation.Player.StatusStack(true, StatusID.Heat);
-            if (pvP_OverheatedStacks != byte.MaxValue)
+            if (Player != null)
             {
-                return pvP_OverheatedStacks;
+                byte pvP_OverheatedStacks = StatusHelper.PlayerStatusStack(true, StatusID.Heat);
+                if (pvP_OverheatedStacks != byte.MaxValue)
+                {
+                    return pvP_OverheatedStacks;
+                }
             }
-
             return 3;
         }
     }
-    private static bool IsPvPOverheated => Player.HasStatus(true, StatusID.Overheated_3149);
-    private static float OverheatedStatusTime => Player.StatusTime(true, StatusID.Overheated_3149);
-    private static bool PlayerHasWildfire => Player.HasStatus(true, StatusID.Wildfire_2018);
-    private static float PlayerWildfireStatusTime => Player.StatusTime(true, StatusID.Wildfire_2018);
+
+    private static bool IsPvPOverheated => Player != null && Player.HasStatus(true, StatusID.Overheated_3149);
+    private static float OverheatedStatusTime => Player?.StatusTime(true, StatusID.Overheated_3149) ?? 0f;
+    private static bool PlayerHasWildfire => Player != null && Player.HasStatus(true, StatusID.Wildfire_2018);
+    private static float PlayerWildfireStatusTime => Player?.StatusTime(true, StatusID.Wildfire_2018) ?? 0f;
     private static bool PvPTargetHasWildfire => CurrentTarget != null && CurrentTarget.HasStatus(true, StatusID.Wildfire_1323);
-    private static float PvPTargetWildfireStatusTime => CurrentTarget!.StatusTime(true, StatusID.Wildfire_1323);
-    private static float AnalysisStatusTime => Player.StatusTime(true, StatusID.Analysis);
+    private static float PvPTargetWildfireStatusTime => CurrentTarget?.StatusTime(true, StatusID.Wildfire_1323) ?? 0f;
+    private static float AnalysisStatusTime => Player?.StatusTime(true, StatusID.Analysis) ?? 0f;
     private enum LBMethod
     {
         [Description("Frontline")] Frontline,
@@ -59,13 +63,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion
 
     #region Config Options
-    /* TODO should consider removing this
-    //[RotationConfig(CombatType.PvP, Name = "LowHPNoBlastCharge")]
-    //public bool LowHPNoBlastCharge { get; set; } = true;
-
-    //[RotationConfig(CombatType.PvP, Name = "LowHPNoBlastChargeThreshold")]
-    //public int LowHPNoBlastChargeThreshold { get; set; } = 15000;
-    */
+    // TODO Maybe make a config that prevents casting blast charge when trying to run away.
 
     [RotationConfig(CombatType.PvP, Name = "LB method")]
     private LBMethod LBMethodPicker { get; set; } = LBMethod.Frontline;
@@ -90,13 +88,6 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     [RotationConfig(CombatType.PvP, Name = "Use Purify")]
     public bool UsePurifyPvP { get; set; } = false;
-
-    //[RotationConfig(CombatType.PvP, Name = "Player movement speed")]
-    //private bool MoveSpeed { get; set; } = false;
-
-    //[Range(1, 1.3f, ConfigUnitType.Seconds)]
-    //[RotationConfig(CombatType.PvP, Name = "Value", Parent = nameof(MoveSpeed), ParentValue = "Player movement speed")]
-    //private float MoveSpeedMultiplier { get; set; } = 1f;
     #endregion Rotation Config
 
     #region oGCD Logic
@@ -135,27 +126,27 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // Bravery
-        if (BraveryPvP.CanUse(out act) && NumberOfAllHostilesInRange > 0 && nextGCD.IsTheSameTo(false, ActionID.FullMetalFieldPvP, ActionID.DrillPvP, (ActionID)29415, ActionID.ChainSawPvP))
+        if (BraveryPvP.CanUse(out act) && BraveryPvP.Info.IsOnSlot && NumberOfAllHostilesInRange > 0 && nextGCD.IsTheSameTo(false, ActionID.FullMetalFieldPvP, ActionID.DrillPvP, (ActionID)29415, ActionID.ChainSawPvP))
         {
             return true;
         }
 
         // Analysis should be used on any of the tools depending on which options are enabled
-        if (AnalysisPvP.CanUse(out act, usedUp: true) && NumberOfAllHostilesInRange > 0 && !Player.HasStatus(true, StatusID.Analysis) && !IsLastAction(ActionID.AnalysisPvP))
+        if (AnalysisPvP.CanUse(out act, usedUp: true) && NumberOfAllHostilesInRange > 0 && Player != null && !Player.HasStatus(isFromSelf: true, StatusID.Analysis) && !IsLastAbility(ActionID.AnalysisPvP))
         {
-            if (AnalysisOnDrill && nextGCD.IsTheSameTo(false, ActionID.DrillPvP) && Player.HasStatus(true, StatusID.DrillPrimed))
+            if (AnalysisOnChainsaw && nextGCD.IsTheSameTo(isAdjust: false, ActionID.ChainSawPvP) && Player.HasStatus(isFromSelf: true, StatusID.ChainSawPrimed))
             {
                 return true;
             }
-            if (AnalysisOnChainsaw && nextGCD.IsTheSameTo(false, ActionID.ChainSawPvP) && Player.HasStatus(true, StatusID.ChainSawPrimed))
+            if (AnalysisOnDrill && nextGCD.IsTheSameTo(isAdjust: false, ActionID.DrillPvP) && Player.HasStatus(isFromSelf: true, StatusID.DrillPrimed))
             {
                 return true;
             }
-            if (AnalysisOnBioBlaster && nextGCD.IsTheSameTo(false, ActionID.BioblasterPvP) && Player.HasStatus(true, StatusID.BioblasterPrimed))
+            if (AnalysisOnBioBlaster && nextGCD.IsTheSameTo(isAdjust: false, ActionID.BioblasterPvP) && Player.HasStatus(isFromSelf: true, StatusID.BioblasterPrimed))
             {
                 return true;
             }
-            if (AnalysisOnAirAnchor && nextGCD.IsTheSameTo(false, ActionID.AirAnchorPvP) && Player.HasStatus(true, StatusID.AirAnchorPrimed))
+            if (AnalysisOnAirAnchor && nextGCD.IsTheSameTo(isAdjust: false, ActionID.AirAnchorPvP) && Player.HasStatus(isFromSelf: true, StatusID.AirAnchorPrimed))
             {
                 return true;
             }
