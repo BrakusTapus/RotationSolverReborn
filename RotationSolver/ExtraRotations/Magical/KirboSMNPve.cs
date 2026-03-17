@@ -74,10 +74,10 @@ public sealed class KirboSMNPve : SummonerRotation
     public override void DisplayRotationStatus()
     {
         ImGui.Text($"EnergyDrainPvE: Is Cooling Down: {EnergyDrainPvE.Cooldown.IsCoolingDown}");
-        ImGui.Text($"effective hpP: {Player.GetEffectiveHpPercent()}");
-        ImGui.Text($"effective hp: {Player.GetEffectiveHp()}");
-        ImGui.Text($"Current Hp: {Player.CurrentHp}");
-        ImGui.Text($"Hp ratio: {Player.GetHealthRatio()}");
+        ImGui.Text($"effective hpP: {Player?.GetEffectiveHpPercent()}");
+        ImGui.Text($"effective hp: {Player?.GetEffectiveHp()}");
+        ImGui.Text($"Current Hp: {Player?.CurrentHp}");
+        ImGui.Text($"Hp ratio: {Player?.GetHealthRatio()}");
         ImGui.Text($"AnimationLock: {AnimationLock}s");
 
         base.DisplayBaseStatus();
@@ -110,7 +110,7 @@ public sealed class KirboSMNPve : SummonerRotation
         //    return true;
         //}
 
-        if (Player.HasStatus(true, StatusID.RefulgentLux) && CanWeave)
+        if (Player != null && Player.HasStatus(true, StatusID.RefulgentLux) && CanWeave)
         {
             if (Player.WillStatusEndGCD(3, 0, true, StatusID.RefulgentLux) || Player.CurrentHp <= Player.MaxHp * 0.85f)
             {
@@ -220,7 +220,7 @@ public sealed class KirboSMNPve : SummonerRotation
     protected override bool AttackAbility(IAction nextGCD, out IAction? act)
     {
         bool inBigInvocation = !SummonBahamutPvE.EnoughLevel || InBahamut || InPhoenix || InSolarBahamut;
-        bool inSolarUnique = Player.Level == 100 ? !InBahamut && !InPhoenix && InSolarBahamut : InBahamut && !InPhoenix;
+        bool inSolarUnique = Player != null && Player.Level == 100 ? !InBahamut && !InPhoenix && InSolarBahamut : InBahamut && !InPhoenix;
         bool burstInSolar = (SummonSolarBahamutPvE.EnoughLevel && InSolarBahamut) || (!SummonSolarBahamutPvE.EnoughLevel && InBahamut) || !SummonBahamutPvE.EnoughLevel;
 
         if (burstInSolar)
@@ -436,7 +436,7 @@ public sealed class KirboSMNPve : SummonerRotation
     [RotationDesc(ActionID.PhysickPvE)]
     protected override bool HealSingleGCD(out IAction? act)
     {
-        if ((Healbot || Player.Level <= 30) && PhysickPvE.CanUse(out act))
+        if (Player != null && (Healbot || Player.Level <= 30) && PhysickPvE.CanUse(out act))
         {
             return true;
         }
@@ -584,7 +584,7 @@ public sealed class KirboSMNPve : SummonerRotation
         }
 
         if (SummonTimeEndAfterGCD() && AttunmentTimeEndAfterGCD() && !InBahamut && !InPhoenix && !InSolarBahamut &&
-            RuinIvPvE.CanUse(out act, skipAoeCheck: true)) // TODO - make sure ruin 4 is not wasted if Further Ruin is about too fall off
+            RuinIvPvE.CanUse(out act, skipAoeCheck: true)) // NOTE - make sure ruin 4 is not wasted if Further Ruin is about too fall off
         {
             return true;
         }
@@ -794,7 +794,9 @@ public sealed class KirboSMNPve : SummonerRotation
             foreach (IBattleChara h in healers)
             {
                 if (!h.IsDead)
+                {
                     aliveHealerCount++;
+                }
             }
 
             return base.CanHealSingleSpell && (GCDHeal || aliveHealerCount == 0);

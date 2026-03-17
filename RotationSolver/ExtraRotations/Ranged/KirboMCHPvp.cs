@@ -252,7 +252,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         // BlazingShot
         if (BlazingShotPvP.CanUse(out act))
         {
-            if (Player.HasStatus(true, StatusID.Overheated_3149))
+            if (Player != null && Player.HasStatus(true, StatusID.Overheated_3149))
             {
                 return true;
             }
@@ -336,7 +336,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     // TODO can prolly be removed
     private bool EmergencyLowHP(out IAction? act)
     {
-        if (Player.HasStatus(true, StatusID.Guard))
+        if (Player != null && Player.HasStatus(true, StatusID.Guard))
         {
             act = null;
             return false;
@@ -347,22 +347,22 @@ public sealed class KirboMCHPvp : MachinistRotation
         //    return GuardPvP.CanUse(out act);
         //}
 
-        if (Player.CurrentMp == Player.MaxMp && Player.CurrentHp <= 37500 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
+        if (Player != null && Player.CurrentMp == Player.MaxMp && Player.CurrentHp <= 37500 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
 
-        if (Player.CurrentMp >= 7500 && Player.CurrentHp <= 37500 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
+        if (Player != null && Player.CurrentMp >= 7500 && Player.CurrentHp <= 37500 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
 
-        if (Player.CurrentMp >= 5000 && Player.CurrentHp <= 32000 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
+        if (Player != null && Player.CurrentMp >= 5000 && Player.CurrentHp <= 32000 /*&& !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
 
-        if (Player.CurrentMp >= 2500 && Player.CurrentHp <= 25000 /*&& GuardPvP.Cooldown.IsCoolingDown && !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
+        if (Player != null && Player.CurrentMp >= 2500 && Player.CurrentHp <= 25000 /*&& GuardPvP.Cooldown.IsCoolingDown && !Player.HasStatus(true, StatusID.Guard)*/ && RecuperatePvP.CanUse(out _))
         {
             return RecuperatePvP.CanUse(out act);
         }
@@ -391,16 +391,16 @@ public sealed class KirboMCHPvp : MachinistRotation
         };
 
         // Bail early if no purifiable status is present
-        if (!purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
+        if (Player != null && !purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
         {
             return false;
         }
 
         // Basic resource info
-        uint currentHP = Player.CurrentHp;
-        uint maxHP = Player.MaxHp;
-        uint currentMP = Player.CurrentMp;
-        uint maxMP = Player.MaxMp;
+        uint currentHP = Player?.CurrentHp ?? 0;
+        uint maxHP = Player?.MaxHp ?? 0;
+        uint currentMP = Player?.CurrentMp ?? 0;
+        uint maxMP = Player?.MaxMp ?? 0;
 
         const int purifyCost = 2500;
         const int recuperateCost = 2500;
@@ -432,7 +432,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     }
 
     // Checks if player has Guard
-    private static bool IsGuarded() => Player.HasStatus(true, StatusID.Guard);
+    private static bool IsGuarded() => Player != null && Player.HasStatus(true, StatusID.Guard);
 
     // Checks if target has Guard
     private static bool TargetHasGuard(IBattleChara target) => target.HasStatus(false, StatusID.Guard);
@@ -530,26 +530,32 @@ public sealed class KirboMCHPvp : MachinistRotation
         action = null;
 
         if (CurrentLimitBreakLevel == 0)
+        {
             return false;
+        }
 
         if (IsGuarded())
+        {
             return false;
+        }
 
         if (!MarksmansSpitePvP.CanUse(out action))
+        {
             return false;
+        }
 
         // Filter only allowed job roles (Healer / RangedMagical / RangedPhysical) via threshold map
-        var candidates = CustomRotation.AllHostileTargets
+        List<IBattleChara> candidates = CustomRotation.AllHostileTargets
         .Where(obj => obj.IsTargetable)
         .Where(obj => obj.DistanceToPlayer() <= 50)
         .Where(obj => !TargetHasGuard(obj))
         .Where(obj =>
         {
-            foreach (var kv in LbTargetThresholds)
+            foreach (KeyValuePair<JobRole, (int minHp, int maxHp)> kv in LbTargetThresholds)
             {
                 if (obj.IsJobCategory(kv.Key))
                 {
-                    var (minHp, maxHp) = kv.Value;
+                    (int minHp, int maxHp) = kv.Value;
                     return obj.CurrentHp >= minHp && obj.CurrentHp <= maxHp;
                 }
             }
@@ -559,7 +565,9 @@ public sealed class KirboMCHPvp : MachinistRotation
         .ToList();
 
         if (candidates.Count == 0)
+        {
             return false;
+        }
 
         IBattleChara best = candidates.First();
         MarksmansSpitePvP.Target = new TargetResult(best, new[] { best }, best.Position);
@@ -608,7 +616,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         action = null;
 
-        if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || Player.HasStatus(true, StatusID.Guard) || Svc.Condition[ConditionFlag.Mounted])
+        if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || (Player != null && Player.HasStatus(true, StatusID.Guard)) || Svc.Condition[ConditionFlag.Mounted])
         {
             return false;
         }
@@ -647,7 +655,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                 return false;
             }
 
-            foreach (var p in MCHLBPaths)
+            foreach (string p in MCHLBPaths)
             {
                 if (s.Path.StartsWith(p, PathCmp))
                 {
@@ -674,38 +682,48 @@ public sealed class KirboMCHPvp : MachinistRotation
         {
             // Make sure player exists
             if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
+            {
                 return false;
+            }
 
             if (string.IsNullOrEmpty(s.Path))
+            {
                 return false;
+            }
 
             // Only consider VFX still active
             if (s.TimeDuration > lbDuration)
+            {
                 return false;
+            }
 
-            var playerId = ECommons.GameHelpers.Player.Object.GameObjectId;
+            ulong playerId = ECommons.GameHelpers.Player.Object.GameObjectId;
 
             // Get all hostile MCH targeting the player
-            var mchTargets = DataCenter.AllHostileTargets
+            HashSet<ulong> mchTargets = DataCenter.AllHostileTargets
             .Where(obj => obj != null && obj.IsJobs(Job.MCH) && obj.TargetObjectId == playerId)
             .Select(obj => obj.GameObjectId)
             .ToHashSet();
 
             if (mchTargets.Count == 0)
+            {
                 return false;
+            }
 
             // Check if the VFX path matches any LB paths
-            foreach (var path in MCHLBPaths)
+            foreach (string path in MCHLBPaths)
             {
                 if (!s.Path.StartsWith(path, PathCmp))
+                {
                     continue;
+                }
 
                 // This is the missing piece: check if the VFX comes from a hostile MCH targeting player
                 if (mchTargets.Contains(s.ObjectId))
                 {
                     if (Service.Config.InDebug)
                     {
-                        var casterName = Svc.Objects.SearchById(s.ObjectId)?.Name ?? "Unknown";
+                        SeString casterName = Svc.Objects.SearchById(s.ObjectId)?.Name ?? "Unknown";
                         ECommons.Logging.PluginLog.Warning(
                             $"Detected MCH LB VFX from hostile MCH targeting player. " +
                             $"objectID={s.ObjectId}, Caster={casterName}, Path={s.Path}"
@@ -729,14 +747,17 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static bool CheckPath(
         FrozenDictionary<string, uint[]> paths, string vfxPath)
     {
-        foreach (var entry in paths)
+        foreach (KeyValuePair<string, uint[]> entry in paths)
         {
             if (!vfxPath.StartsWith(entry.Key, Lower))
+            {
                 continue;
+            }
 
             if (entry.Value.Length == 0)
+            {
                 return true;
-
+            }
         }
 
         return false;
@@ -755,7 +776,9 @@ public sealed class KirboMCHPvp : MachinistRotation
         targetObject ??= Player;
 
         if (targetObject == null)
+        {
             return false;
+        }
 
         ulong targetId = targetObject.GameObjectId;
 
@@ -769,6 +792,10 @@ public sealed class KirboMCHPvp : MachinistRotation
     private bool UseEarlyAnalysis(out IAction? action)
     {
         action = null;
+        if (Player == null)
+        {
+            return false;
+        }
 
         if (InCombat || NumberOfHostilesInRangeOf(28) == 0 || Player.HasStatus(true, StatusID.Analysis) || Player.TimeAlive() <= 3f)
         {
@@ -791,23 +818,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     #region MCH LB
     // Animation lock time for Marksman's Spite is ~1.60s (1600ms)
     private static IBaseAction MarksmansSpitePvP { get; } = new BaseAction((ActionID)29415);
-    //private IBaseAction MarksmansSpitePvP2 => _MarksmansSpitePvPCreator.Value;
-    //private readonly Lazy<IBaseAction> _MarksmansSpitePvPCreator = new Lazy<IBaseAction>(delegate
-    //{
-    //    IBaseAction action40 = new BaseAction((ActionID)29415);
-    //    ActionSetting setting40 = action40.Setting;
-    //    setting40.RotationCheck = () =>
-    //    CurrentLimitBreakLevel == 1 &&
-    //    action40.Target.Target.CurrentHp <= 30000 &&
-    //        (
-    //            action40.Target.Target.IsJobCategory(JobRole.RangedMagical) ||
-    //            action40.Target.Target.IsJobCategory(JobRole.RangedPhysical) ||
-    //            action40.Target.Target.IsJobCategory(JobRole.Healer)
-    //        );
-    //    setting40.TargetType = TargetType.LowHP;
-    //    action40.Setting = setting40;
-    //    return action40;
-    //});
     #endregion
 
     #region Status Display
@@ -819,7 +829,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         {
             if (child.Success)
             {
-                ImGui.Text("Player HPP: " + Player.GetHealthRatio());
+                ImGui.Text("Player HPP: " + Player?.GetHealthRatio());
                 ImGui.Text($"speed:  {ECommons.GameHelpers.Player.Speed}");
                 ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");
                 ImGui.Text("LimitBreakLevel: " + CurrentLimitBreakLevel);
@@ -847,14 +857,15 @@ public sealed class KirboMCHPvp : MachinistRotation
                 ImGui.Text("BioblasterPvP Target: " + BioblasterPvP.Target.Target?.ToString());
                 ImGui.NewLine();
 
-                ImGui.TextColored(ImGuiColors.DalamudViolet, $"Player Is Casting: {Player.IsCasting}");
-
-                ImGui.Text($"Player Cast Action ID: {(Player.IsCasting ? Player.CastActionId.ToString() : "N/A")}");
-                ImGui.Text($"Player Cast Action ID: " + Player.CastActionId.ToString());
-
-                ImGui.Text($"Player Targeting Player: {Player.TargetObject?.GameObjectId == Player.GameObjectId}");
-                ImGui.Text($"TargetObject GameObjectId: {Player.TargetObject?.GameObjectId.ToString()}");
-                ImGui.Text($"Player GameObjectId: {Player.GameObjectId.ToString()}");
+                ImGui.TextColored(ImGuiColors.DalamudViolet, $"Player Is Casting: {Player?.IsCasting}");
+                if (Player != null)
+                {
+                    ImGui.Text($"Player Cast Action ID: {(Player.IsCasting ? Player.CastActionId.ToString() : "N/A")}");
+                    ImGui.Text($"Player Cast Action ID: " + Player.CastActionId.ToString());
+                    ImGui.Text($"Player Targeting Player: {Player.TargetObject?.GameObjectId == Player.GameObjectId}");
+                    ImGui.Text($"TargetObject GameObjectId: {Player.TargetObject?.GameObjectId.ToString()}");
+                    ImGui.Text($"Player GameObjectId: {Player.GameObjectId.ToString()}");
+                }
                 ImGui.NewLine();
             }
         }
@@ -874,7 +885,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
                     ImGui.Text($"Current Target Cast Action ID: {(CurrentTarget.IsCasting ? CurrentTarget.CastActionId.ToString() : "N/A")}");
 
-                    ImGui.Text($"Current Target Targeting Player: {CurrentTarget.TargetObject?.GameObjectId == Player.GameObjectId}");
+                    ImGui.Text($"Current Target Targeting Player: {CurrentTarget.TargetObject?.GameObjectId == Player?.GameObjectId}");
                     ImGui.Text($"Current Target GameObjectId: {CurrentTarget.GameObjectId.ToString()}");
                     ImGui.Text($"TargetObject's GameObjectId: {CurrentTarget.TargetObject?.GameObjectId.ToString()}");
                 }
@@ -887,14 +898,17 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
         foreach (IBattleChara enemy in CustomRotation.AllHostileTargets)
         {
-            if (enemy == null) continue;
+            if (enemy == null)
+            {
+                continue;
+            }
 
             string header = $"Name: {enemy.Name}, GameObjectId: {enemy.GameObjectId}";
             if (ImGui.CollapsingHeader(header))
             {
                 ImGui.Text($"- Is Casting: {(enemy.IsCasting ? "Yes" : "No")}");
                 ImGui.Text($"- Cast Action ID: {(enemy.IsCasting ? enemy.CastActionId.ToString() : "N/A")}");
-                ImGui.Text($"- Targeting Player: {(enemy.CastTargetObjectId == Player.GameObjectId ? "Yes" : "No")}");
+                ImGui.Text($"- Targeting Player: {(enemy.CastTargetObjectId == Player?.GameObjectId ? "Yes" : "No")}");
             }
         }
     }
