@@ -11,7 +11,7 @@ namespace RotationSolver.ExtraRotations.Ranged;
 [Rotation("Kirbo", CombatType.PvE, GameVersion = "7.45")]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
 [ExtraRotation]
-public sealed class KirboMCHPve : MachinistRotation
+public sealed class KirboMchPve : MachinistRotation
 {
     #region Config Options
 
@@ -33,9 +33,6 @@ public sealed class KirboMCHPve : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "    Use AirAnchor at 1 second remaining on countdown", Parent = "CountdownOptions", ParentValue = true)]
     private bool AirAnchorCountdown { get; set; } = false;
-
-    //[RotationConfig(CombatType.PvE, Name = "    Use AirAnchor if combat start during countdown", Parent = "CountdownOptions", ParentValue = true)]
-    //private bool AirAnchorCombatStartedCountdown { get; set; } = false;
     #endregion
 
     #region M10S options    
@@ -49,27 +46,6 @@ public sealed class KirboMCHPve : MachinistRotation
     #endregion
 
     #region Countdown logic
-    // remove old code block after testing new CountDownAction block
-    //protected override IAction? CountDownAction(float remainTime)
-    //{
-    //    if (remainTime < 4.75f && ReassemblePvE.CanUse(out IAction? act))
-    //    {
-    //        return act;
-    //    }
-
-    //    if (IsBurst && OpenerBurstMeds && remainTime <= 1f && UseBurstMedicine(out act))
-    //    {
-    //        return act;
-    //    }
-
-    //    //if (remainTime < 0.6f && AirAnchorPvE.CanUse(out IAction? act1) && Player.HasStatus(true, StatusID.Reassembled) && IsInHighEndDuty)
-    //    //{
-    //    //    return act1;
-    //    //}
-
-    //    return base.CountDownAction(remainTime);
-    //}
-
     protected override IAction? CountDownAction(float remainTime)
     {
         if (AirAnchorCountdown && remainTime <= 0.9f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))

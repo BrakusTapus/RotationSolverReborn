@@ -62,6 +62,14 @@ public sealed class KirboSMNPve : SummonerRotation
     [RotationConfig(CombatType.PvE, Name = "Use Physick above level 30")]
     public bool Healbot { get; set; } = false;
 
+    #region M10S options    
+    [RotationConfig(CombatType.PvE, Name = "--[M10S Options]--")]
+    public bool M10SOptions { get; set; } = false;
+
+    [RotationConfig(CombatType.PvE, Name = "    Hold burst during 'Watery Grave'", Parent = "M10SOptions", ParentValue = true)]
+    private bool WateryGraveBurst { get; set; } = false;
+    #endregion
+
     #endregion
 
     #region
@@ -800,6 +808,21 @@ public sealed class KirboSMNPve : SummonerRotation
             }
 
             return base.CanHealSingleSpell && (GCDHeal || aliveHealerCount == 0);
+        }
+    }
+
+    protected override void UpdateInfo()
+    {
+        if (DataCenter.IsInM10S && InCombat && WateryGraveBurst)
+        {
+            if (CombatTime > 340 && CombatTime <= 395)
+            {
+                Service.Config.AutoBurst.Value = false;
+            }
+            else
+            {
+                Service.Config.AutoBurst.Value = true;
+            }
         }
     }
     #endregion
