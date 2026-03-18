@@ -30,9 +30,6 @@ public sealed class KirboMchPve : MachinistRotation
 
     [RotationConfig(CombatType.PvE, Name = "    Use burst medicine in countdown (requires auto burst option on)", Parent = "CountdownOptions", ParentValue = true)]
     private bool OpenerBurstMeds { get; set; } = false;
-
-    [RotationConfig(CombatType.PvE, Name = "    Use AirAnchor at 1 second remaining on countdown", Parent = "CountdownOptions", ParentValue = true)]
-    private bool AirAnchorCountdown { get; set; } = false;
     #endregion
 
     #region M10S options    
@@ -48,32 +45,22 @@ public sealed class KirboMchPve : MachinistRotation
     #region Countdown logic
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (AirAnchorCountdown && remainTime <= 0.9f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))
+        if (remainTime <= 0.2f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))
         {
             return act;
         }
 
-        if (!AirAnchorCountdown && remainTime <= 0.6f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (remainTime < 0.2f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
         {
             return act;
         }
 
-        if (remainTime < 0.5f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
+        if (remainTime <= 4.99f && ReassemblePvE.CanUse(out act, usedUp: false))
         {
             return act;
         }
 
-        if (remainTime <= 4.99f && ReassemblePvE.CanUse(out act))
-        {
-            return act;
-        }
-
-        if (AirAnchorCountdown && IsBurst && OpenerBurstMeds && remainTime <= 1.5f && UseBurstMedicine(out act))
-        {
-            return act;
-        }
-
-        if (!AirAnchorCountdown && IsBurst && OpenerBurstMeds && remainTime <= 1.5f && UseBurstMedicine(out act))
+        if (IsBurst && OpenerBurstMeds && remainTime <= 1.5f && UseBurstMedicine(out act))
         {
             return act;
         }
