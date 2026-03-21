@@ -14,6 +14,48 @@ public static unsafe class RotationHelper
         //PauseRotation();
     }
 
+    #region Extra Methods
+    private static IEnumerable<IBattleChara> AllHostileTargets => DataCenter.AllHostileTargets;
+    public static int GetAoeCount(IBaseAction action)
+    {
+        int maxAoeCount = 0;
+        
+        if (!CustomRotation.IsManual)
+        {
+            if (AllHostileTargets != null)
+            {
+                foreach (IBattleChara? centerTarget in AllHostileTargets.Where(t => t.DistanceToPlayer() < action.Info.Range && t.CanSee()))
+                {
+                    int currentAoeCount = 0;
+                    foreach (IBattleChara otherTarget in AllHostileTargets)
+                    {
+                        if (Vector3.Distance(centerTarget.Position, otherTarget.Position) < (action.Info.EffectRange + centerTarget.HitboxRadius))
+                        {
+                            currentAoeCount++;
+                        }
+                    }
+
+                    maxAoeCount = Math.Max(maxAoeCount, currentAoeCount);
+                }
+            }
+        }
+        else if (AllHostileTargets != null && action.Target.Target != null)
+        {
+            int count = 0;
+            foreach (IBattleChara otherTarget in AllHostileTargets)
+            {
+                if (Vector3.Distance(action.Target.Target.Position, otherTarget.Position) < (action.Info.EffectRange + otherTarget.HitboxRadius))
+                {
+                    count++;
+                }
+            }
+            maxAoeCount = count;
+        }
+
+        return maxAoeCount;
+    }
+    #endregion
+
     #region Openers
     internal static bool IsInHighEndContent => CustomRotation.IsInHighEndDuty;
     internal const float universalFailsafeThreshold = 5.0f;
