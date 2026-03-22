@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
@@ -822,6 +823,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     #region Status Display
     public override bool ShowStatus => true;
+    private int _debugActionId = 7411;
     public override void DisplayRotationStatus()
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
@@ -829,6 +831,38 @@ public sealed class KirboMCHPvp : MachinistRotation
         {
             if (child.Success)
             {
+                var actionSheet = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+                ImGui.InputInt("Action ID", ref _debugActionId);
+                if (_debugActionId < 0) _debugActionId = 0;
+
+                if (actionSheet != null)
+                {
+                    var action = actionSheet.GetRow((uint)_debugActionId);
+                    if (IconSet.GetTexture(action.Icon, out Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? image) && image?.Handle != null)
+                    {
+                        ImGui.Image(image.Handle, Vector2.One * 24 * ImGuiHelpers.GlobalScale);
+                    }
+                    ImGui.Text($"Action ID: {_debugActionId}");
+                    ImGui.Text($"Name: {action.Name}");
+                    ImGui.Text($"Cast Time: {action.Cast100ms * 0.1f}s");
+                    ImGui.Text($"Recast Time: {action.Recast100ms * 0.1f}s");
+                    ImGui.Text($"Range: {action.Range}");
+                    ImGui.Text($"Radius: {action.EffectRange}");
+                    ImGui.Text($"Max Charges: {action.MaxCharges}");
+                    ImGui.Text($"Class Job Category: {action.ClassJobCategory.Value.Name}");
+                    ImGui.Text($"Action Category: {action.ActionCategory.Value.Name}");
+                    ImGui.Text($"Is Player Action: {action.IsPlayerAction}");
+                    //ImGui.Text($"");
+                    //ImGui.Text($"");
+                    //ImGui.Text($"");
+                    //ImGui.Text($"");
+                    //ImGui.Text($"");
+                }
+                else
+                {
+                    ImGui.Text($"actionsheet is null!");
+                }
+                ImGui.Separator();
                 ImGui.Text("Player HPP: " + Player?.GetHealthRatio());
                 ImGui.Text($"speed:  {ECommons.GameHelpers.Player.Speed}");
                 ImGui.Text($"Current LB Method: {typeof(LBMethod).GetMember(LBMethodPicker.ToString())[0].GetCustomAttribute<DescriptionAttribute>()?.Description ?? LBMethodPicker.ToString()}");

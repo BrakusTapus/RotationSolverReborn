@@ -7,6 +7,23 @@ namespace RotationSolver.ExtraRotations.Ranged;
 [Rotation("Kirbo - Test", CombatType.PvE, GameVersion = "9.99", Description = "Simple dummy rotation for testing the opener helper.", Disabled = true)]
 public sealed class MchKirboTest : MachinistRotation
 {
+    /*
+    public IBaseAction AltFlareOpenerPvE => _AltFlareOpenerPvE.Value;
+
+    private static void ModifyAltFlareOpenerPvE(ref Basic.Actions.ActionSetting setting)
+    {
+        setting.RotationCheck = () => InAstralFire;
+        setting.UnlockedByQuestID = 66614u;
+    }
+
+    private readonly Lazy<IBaseAction> _AltFlareOpenerPvE = new(static delegate
+    {
+        Basic.Actions.ActionSetting setting460 = new BaseAction(ActionID.FlarePvE).Setting;
+        ModifyAltFlareOpenerPvE(ref setting460);
+        new BaseAction(ActionID.FlarePvE).Setting = setting460;
+        return new BaseAction(ActionID.FlarePvE);
+    });
+    */
     protected override IAction? CountDownAction(float remainTime)
     {
         return base.CountDownAction(remainTime);
