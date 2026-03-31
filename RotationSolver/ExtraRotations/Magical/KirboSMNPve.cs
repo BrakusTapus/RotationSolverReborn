@@ -1,16 +1,17 @@
-﻿// TODO - demi summon losses 6th gcd because of summon/attunment timer
+﻿// Issue: demi summon losses 6th gcd because of summon/attunment timer| Fixed: Demi loses occured because of casting speed from 2.48 or lower there were no issues
 
 using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Magical;
 
-[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.35", Disabled = false)]
+[ExtraRotation]
+[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.45", Disabled = false)]
 [SourceCode(Path = "main/ExtraRotations/Magical/KirboSMNPve.cs")]
-
 public sealed class KirboSMNPve : SummonerRotation
 {
     #region Config Options
 
+    #region Summon order
     public enum SummonOrderType : byte
     {
         [Description("Topaz-Emerald-Ruby")] TopazEmeraldRuby,
@@ -22,9 +23,19 @@ public sealed class KirboSMNPve : SummonerRotation
         [Description("Ruby-Emerald-Topaz")] RubyEmeraldTopaz,
     }
 
+    [RotationConfig(CombatType.PvE, Name = "Summon Order")]
+    public SummonOrderType SummonOrder { get; set; } = SummonOrderType.TopazEmeraldRuby;
+    #endregion
+
+    #region Heal
     [RotationConfig(CombatType.PvE, Name = "Use GCDs to heal. (Ignored if there are no healers alive in party)")]
     public bool GCDHeal { get; set; } = false;
 
+    [RotationConfig(CombatType.PvE, Name = "Use Physick above level 30")]
+    public bool Healbot { get; set; } = false;
+    #endregion
+
+    #region Crimson Cyclone
     //[RotationConfig(CombatType.PvE, Name = "Use Crimson Cyclone at any range, regardless of saftey use with caution (Enabling this ignores the below distance setting).")]
     //public bool AddCrimsonCyclone { get; set; } = true;
 
@@ -34,7 +45,9 @@ public sealed class KirboSMNPve : SummonerRotation
 
     [RotationConfig(CombatType.PvE, Name = "Use Crimson Cyclone when moving")]
     public bool AddCrimsonCycloneMoving { get; set; } = false;
+    #endregion
 
+    #region Swiftcast related
     [RotationConfig(CombatType.PvE, Name = "Use Swiftcast on ressurection")]
     public bool AddSwiftcastOnRaise { get; set; } = true;
 
@@ -49,18 +62,12 @@ public sealed class KirboSMNPve : SummonerRotation
 
     [RotationConfig(CombatType.PvE, Name = "Use Swiftcast on Ruby Rite if you are not high enough level for Garuda")]
     public bool AddSwiftcastOnRuby { get; set; } = false;
-
-    [RotationConfig(CombatType.PvE, Name = "Order")]
-    public SummonOrderType SummonOrder { get; set; } = SummonOrderType.TopazEmeraldRuby;
-
+    #endregion
     //[RotationConfig(CombatType.PvE, Name = "Use radiant on cooldown. But still keeping one charge")]
     //public bool RadiantOnCooldown { get; set; } = true;
 
     //[RotationConfig(CombatType.PvE, Name = "Use this if there's no other raid buff in your party")]
     //public bool SecondTypeOpenerLogic { get; set; } = false;
-
-    [RotationConfig(CombatType.PvE, Name = "Use Physick above level 30")]
-    public bool Healbot { get; set; } = false;
 
     #region M10S options    
     [RotationConfig(CombatType.PvE, Name = "--[M10S Options]--")]
@@ -72,7 +79,7 @@ public sealed class KirboSMNPve : SummonerRotation
 
     #endregion
 
-    #region
+    #region Properties
     private double LateWeaveWindow => (float)(RuinPvE.Cooldown.RecastTime * 0.50);
     private static bool CanWeave => WeaponRemain > AnimationLock;
     private bool CanLateWeave => WeaponRemain < LateWeaveWindow && CanWeave;
@@ -481,12 +488,13 @@ public sealed class KirboSMNPve : SummonerRotation
         {
             return true;
         }
-
+        var distanceToTarget = CrimsonCyclonePvE.Target.Target.DistanceToPlayer();
         if (
-            (!IsMoving || AddCrimsonCycloneMoving) &&
-            CrimsonCyclonePvE.CanUse(out act) &&
-            CrimsonCyclonePvE.Target.Target.DistanceToPlayer() > -5.0f &&
-            (CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= 0.55f || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance)
+            (!IsMoving || (AddCrimsonCycloneMoving && MovingTime < 1.5f)) &&
+            distanceToTarget > -0.5f &&
+            distanceToTarget <= CrimsonCycloneDistance &&
+            CrimsonCyclonePvE.CanUse(out act)
+            //(CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= 0.05f || CrimsonCyclonePvE.Target.Target.DistanceToPlayer() <= CrimsonCycloneDistance)
         )
         {
             return true;

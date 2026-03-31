@@ -56,18 +56,18 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #region Countdown logic
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (remainTime <= 0.6f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out IAction? act))
+        if (!HasReassembled && remainTime <= 4.99f && ReassemblePvE.CanUse(out IAction? act, usedUp: false))
+        {
+            return act;
+        }
+
+        if (remainTime <= 0.6f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             BeginOpener();
             return act;
         }
 
         if (remainTime < 0.2f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
-        {
-            return act;
-        }
-
-        if (remainTime <= 4.99f && ReassemblePvE.CanUse(out act, usedUp: false))
         {
             return act;
         }
@@ -760,16 +760,16 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         bool NoBattery = Battery == 0;
 
         OpenerAvailable =
-            ReassembleCharges >= 1 && HasChainSaw && HasAirAnchor && DrillCharges == 2 &&
+            ReassembleCharges >= 1 && HasChainSaw /*&& HasAirAnchor*/ && DrillCharges == 2 &&
             HasBarrelStabilizer && DCcharges == 3 && HasWildfire && CMcharges == 3 &&
-            Player.Level >= 100 && NoBattery && NoHeat && OpenerStep == 0;
+            Player.Level >= 100 && NoBattery && NoHeat && OpenerStep == 0 && !OpenerInProgress;
     }
     internal static void BeginOpener()
     {
         if (OpenerAvailable && !OpenerInProgress && OpenerStep == 0)
         {
             OpenerInProgress = true;
-            OpenerStep++;
+            //OpenerStep++;
             Svc.Log.Debug("Starting Opener...");
         }
     }
