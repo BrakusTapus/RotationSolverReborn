@@ -80,7 +80,9 @@ public sealed class KirboSMNPve : SummonerRotation
     #endregion
 
     #region Properties
-    private double LateWeaveWindow => (float)(RuinPvE.Cooldown.RecastTime * 0.50);
+    // The property is typed as double, but you're explicitly casting to float which just truncates precision, then it immediately widens back to double. The (float) cast is doing nothing useful and adds noise. Should either be:
+    //private double LateWeaveWindow => (float)(RuinPvE.Cooldown.RecastTime * 0.50);
+    private float LateWeaveWindow => RuinPvE.Cooldown.RecastTime * 0.5f;
     private static bool CanWeave => WeaponRemain > AnimationLock;
     private bool CanLateWeave => WeaponRemain < LateWeaveWindow && CanWeave;
     #endregion
@@ -473,11 +475,11 @@ public sealed class KirboSMNPve : SummonerRotation
         {
             return true;
         }
-
-        if ((HasSearingLight || SearingLightPvE.Cooldown.IsCoolingDown) && SummonBahamutPvE.CanUse(out act))
-        {
-            return true;
-        }
+        // If SummonBahamutPvE.CanUse returns true on check 1 it already returned. If it returned false on check 1, the extra conditions on check 2 can't make CanUse suddenly return true. Check 2 is dead code.
+        //if ((HasSearingLight || SearingLightPvE.Cooldown.IsCoolingDown) && SummonBahamutPvE.CanUse(out act))
+        //{
+        //    return true;
+        //}
 
         if (IsBurst && !SearingLightPvE.Cooldown.IsCoolingDown && SummonSolarBahamutPvE.CanUse(out act))
         {
