@@ -53,29 +53,34 @@ public sealed class KirboMchPve_Copy : MachinistRotation
 
     #endregion
 
+    #region Properties
+    private static bool IsMedicated => StatusHelper.PlayerHasStatus(isFromSelf: true, StatusID.Medicated);
+    #endregion
+
     #region Countdown logic
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (!HasReassembled && remainTime <= 4.99f && ReassemblePvE.CanUse(out IAction? act, usedUp: false))
+        if (!HasReassembled && remainTime > 1.5f && remainTime < 5f && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
         {
             return act;
         }
 
-        if (remainTime <= 0.6f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (!IsMedicated && IsBurst && OpenerBurstMeds && remainTime > 0.8f && remainTime <= 1.5f && UseBurstMedicine(out act))
+        {
+            return act;
+        }
+
+        if (remainTime > 0.1f && remainTime < 0.4f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             BeginOpener();
             return act;
         }
 
-        if (remainTime < 0.2f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
+        if (remainTime < 0.4f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
         {
             return act;
         }
 
-        if (IsBurst && OpenerBurstMeds && remainTime <= 1.5f && UseBurstMedicine(out act))
-        {
-            return act;
-        }
 
         return base.CountDownAction(remainTime);
     }
@@ -519,7 +524,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     }
     #endregion
 
-    #region Tracking Properties
+    #region UI
     public override void DisplayRotationStatus()
     {
         //ImGui.Text($"AirAnchorPvE: {AirAnchorPvE.Info.CastTime}{AnimationLock}");
@@ -540,6 +545,22 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         {
             Service.Config.AutoBurst.Value = false;
         }
+        ImGui.Text("SelectedOpener: " + SelectedOpener.ToString());
+        ImGui.Text("OpenerStep: " + OpenerStep.ToString());
+        ImGui.Text("OpenerHasFinished: " + OpenerHasFinished.ToString());
+        ImGui.Text("OpenerHasFailed: " + OpenerHasFailed.ToString());
+        SeparatorWithSpacing();
+        ImGui.Text("OpenerAvailable: " + OpenerAvailable.ToString());
+        ImGui.Text("StartOpener: " + StartOpener.ToString());
+        ImGui.Text("OpenerInProgress: " + OpenerInProgress.ToString());
+        //ImGui.Text($"last action: " + DataCenter.LastAction.GetActionFromID(true));
+    }
+
+    internal static void SeparatorWithSpacing()
+    {
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
     }
     #endregion
 
@@ -769,7 +790,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         if (OpenerAvailable && !OpenerInProgress && OpenerStep == 0)
         {
             OpenerInProgress = true;
-            //OpenerStep++;
+            OpenerStep++;
             Svc.Log.Debug("Starting Opener...");
         }
     }
@@ -789,7 +810,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         if (lastAction)
         {
             OpenerStep++;
-            Svc.Log.Debug($"Last action matched! Proceeding to step: {OpenerStep}");
+            Svc.Log.Debug($"Last action matched! {DataCenter.LastAction.ToString()} Proceeding to step: {OpenerStep}");
             return false;
         }
         return nextAction;
@@ -814,10 +835,10 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         return OpenerController(IsLastGCD(true, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
 
                     case 1:
-                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+                        return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
 
                     case 2:
-                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+                        return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
 
                     case 3:
                         return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
@@ -841,7 +862,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
                     case 10:
-                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                        return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
                     case 11:
                         // Only proceed if WeaponRemain is between 0.6s and 0.8s
@@ -866,7 +887,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
 
                     case 13:
-                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                        return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
                     case 14:
                         return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
