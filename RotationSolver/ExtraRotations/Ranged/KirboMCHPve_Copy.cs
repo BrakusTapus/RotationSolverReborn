@@ -51,6 +51,11 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     private bool WateryGraveBurst { get; set; } = false;
     #endregion
 
+    #region Beta options
+    [RotationConfig(CombatType.PvE, Name = "Alternative Combo action logic")]
+    private bool AltComboLogic { get; set; } = false;
+    #endregion
+
     #endregion
 
     #region Properties
@@ -490,35 +495,52 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             }
         }
 
-
-        // 3 ST
-        if (HeatedCleanShotPvE.EnoughLevel && HeatedCleanShotPvE.CanUse(out act))
+        if (AltComboLogic)
         {
-            return true;
-        }
-        if (!HeatedCleanShotPvE.EnoughLevel && CleanShotPvE.CanUse(out act))
-        {
-            return true;
-        }
-        // 2 ST
-        if (HeatedSlugShotPvE.EnoughLevel && HeatedSlugShotPvE.CanUse(out act))
-        {
-            return true;
-        }
-        if (!HeatedSlugShotPvE.Info.EnoughLevelAndQuest() && SlugShotPvE.CanUse(out act))
-        {
-            return true;
-        }
-        // 1 ST
-        if (HeatedSplitShotPvE.EnoughLevel && HeatedSplitShotPvE.CanUse(out act))
-        {
-            return true;
-        }
-        if (!HeatedSplitShotPvE.Info.EnoughLevelAndQuest() && SplitShotPvE.CanUse(out act))
-        {
-            return true;
+            if (CleanShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (SlugShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (SplitShotPvE.CanUse(out act))
+            {
+                return true;
+            }
         }
 
+        if (!AltComboLogic)
+        {
+            // 3 ST
+            if (HeatedCleanShotPvE.EnoughLevel && HeatedCleanShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (!HeatedCleanShotPvE.EnoughLevel && CleanShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            // 2 ST
+            if (HeatedSlugShotPvE.EnoughLevel && HeatedSlugShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (!HeatedSlugShotPvE.Info.EnoughLevelAndQuest() && SlugShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            // 1 ST
+            if (HeatedSplitShotPvE.EnoughLevel && HeatedSplitShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+            if (!HeatedSplitShotPvE.Info.EnoughLevelAndQuest() && SplitShotPvE.CanUse(out act))
+            {
+                return true;
+            }
+        }
 
         return base.GeneralGCD(out act);
     }
