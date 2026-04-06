@@ -66,6 +66,16 @@ public sealed class KirboMCHPvp : MachinistRotation
     #region Config Options
     // TODO Maybe make a config that prevents casting blast charge when trying to run away.
 
+    [RotationConfig(CombatType.PvP, Name =
+    "• Has 2 logic options how to use Marksman's Spite (Frontline/Crystaline Conflict).\n" +
+    "• \n" +
+    "• Known issues:\n" +
+    "• Marksman's Spite: Crystaline conflict needs rename and CC specific logic.\n" +
+    "• Marksman's Spite: Frontline prevent using on targets that are about to die.\n" +
+    "• Burst: I feel as if the burst logic can be better.\n" +
+    "• Pew Pew!\n\n")]
+    public bool RotationNotes { get; set; } = true;
+
     [RotationConfig(CombatType.PvP, Name = "LB method")]
     private LBMethod LBMethodPicker { get; set; } = LBMethod.Frontline;
 
@@ -471,9 +481,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     // TODO compare with 'UseMCHLB4' to find out which method is better
     private bool UseMCHLBFrontline(out IAction? action)
     {
-
         action = null;
-
         if (CurrentLimitBreakLevel == 0)
         {
             return false;
@@ -481,11 +489,11 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         // https://na.finalfantasyxiv.com/lodestone/playguide/contentsguide/frontline/4/
         const int EstimatedLBDamage = 28000;
-        const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.55); // ~19600
+        const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.55);
 
         IBattleChara? target = CustomRotation.AllHostileTargets
         .Where(obj =>
-                obj.DistanceToPlayer() <= 35 &&
+                obj.DistanceToPlayer() <= 50 &&
                 (IsPlayerCharacter(obj) || obj.IsDummy()) &&
                 obj.ShieldPercentage <= 0 &&
                 !obj.HasStatus(true, StatusID.Guard) &&
@@ -525,7 +533,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         { JobRole.RangedPhysical, (17000, 30000) },
     };
 
-    // TODO compare with 'UseMCHLBNEW' to find out which method is better
+    // TODO Rename to "UseMCHLBCrystalineConflict" and refactor logic to match using Marksman's Spite in CC
     private bool UseMCHLB4(out IAction? action)
     {
         action = null;
@@ -823,7 +831,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     #region Status Display
     public override bool ShowStatus => true;
-    private int _debugActionId = 7411;
+    private int _debugActionId = 29415;
     public override void DisplayRotationStatus()
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
@@ -987,6 +995,16 @@ public sealed class KirboMCHPvp : MachinistRotation
             return currentUnits;
         }
     }
+    #endregion
+
+    #region Notes
+    /*
+        Battle High I:      Damage dealt and healing potency increased by 10%.
+        Battle High II:     Damage dealt and healing potency increased by 20%.
+        Battle High III:    Damage dealt and healing potency increased by 30%.
+        Battle High IV:     Damage dealt and healing potency increased by 40%.
+        Battle High V:      Damage dealt and healing potency increased by 50%.
+    */
     #endregion
 
 }
