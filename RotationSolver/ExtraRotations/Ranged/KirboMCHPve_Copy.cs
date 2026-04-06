@@ -541,7 +541,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                 return true;
             }
         }
-
+        
         return base.GeneralGCD(out act);
     }
     #endregion

@@ -468,17 +468,16 @@ public sealed class KirboMCHPvp : MachinistRotation
         switch (LBMethodPicker)
         {
             case LBMethod.Frontline:
-                return UseMCHLBFrontline(out act);
+                return UseMCHLBFrontline(action: out act);
 
             case LBMethod.MCHLB4:
-                return UseMCHLB4(out act);
+                return UseMCHLB4(action: out act);
 
             default:
                 return false;
         }
     }
 
-    // TODO compare with 'UseMCHLB4' to find out which method is better
     private bool UseMCHLBFrontline(out IAction? action)
     {
         action = null;
@@ -488,24 +487,50 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // https://na.finalfantasyxiv.com/lodestone/playguide/contentsguide/frontline/4/
-        const int EstimatedLBDamage = 28000;
-        const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.55);
+        //const int EstimatedLBDamage = 28000;
+        //const int MinEffectiveHp = (int)(EstimatedLBDamage * 0.55);
+
+        float battleHighMultiplier = 1.0f;
+
+        if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighV))
+        {
+            battleHighMultiplier = 1.50f;
+        }
+        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIv))
+        {
+            battleHighMultiplier = 1.40f;
+        }
+        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIii))
+        {
+            battleHighMultiplier = 1.30f;
+        }
+        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIi))
+        {
+            battleHighMultiplier = 1.20f;
+        }
+        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighI))
+        {
+            battleHighMultiplier = 1.10f;
+        }
+
+        uint EstimatedLBDamage = (uint)(28000 * battleHighMultiplier);
+        uint MinEffectiveHp = (uint)(EstimatedLBDamage * 0.55);
 
         IBattleChara? target = CustomRotation.AllHostileTargets
-        .Where(obj =>
+        .Where(predicate: obj =>
                 obj.DistanceToPlayer() <= 50 &&
-                (IsPlayerCharacter(obj) || obj.IsDummy()) &&
+                (IsPlayerCharacter(battleChara: obj) || obj.IsDummy()) &&
                 obj.ShieldPercentage <= 0 &&
-                !obj.HasStatus(true, StatusID.Guard) &&
-                !obj.IsJobCategory(JobRole.Tank) &&
-                !obj.IsJobCategory(JobRole.Melee) &&
+                !obj.HasStatus(isFromSelf: true, StatusID.Guard) &&
+                !obj.IsJobCategory(role: JobRole.Tank) &&
+                !obj.IsJobCategory(role: JobRole.Melee) &&
                     (
-                     obj.IsJobCategory(JobRole.Healer) ||
-                     obj.IsJobCategory(JobRole.RangedPhysical) ||
-                     obj.IsJobCategory(JobRole.RangedMagical)
+                     obj.IsJobCategory(role: JobRole.Healer) ||
+                     obj.IsJobCategory(role: JobRole.RangedPhysical) ||
+                     obj.IsJobCategory(role: JobRole.RangedMagical)
                     ) &&
                 obj.CurrentHp >= MinEffectiveHp &&
-                obj.CurrentHp <= 32000
+                obj.CurrentHp <= EstimatedLBDamage
                 //obj.GetTTK()                
                 )
         .OrderBy(obj => obj.CurrentHp)
@@ -521,11 +546,11 @@ public sealed class KirboMCHPvp : MachinistRotation
             return false;
         }
 
-        MarksmansSpitePvP.Target = new TargetResult(target, [target], target.Position);
+        MarksmansSpitePvP.Target = new TargetResult(Target: target, [target], Position: target.Position);
         return true;
     }
 
-    // class-level: only include roles you actually want to consider for LB
+    //Target:  class-level: only include roles you actually want to consider for LB
     private static readonly Dictionary<JobRole, (int minHp, int maxHp)> LbTargetThresholds = new()
     {
         { JobRole.Healer, (17000, 28000) },
@@ -625,10 +650,10 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         action = null;
 
-        if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || (Player != null && Player.HasStatus(true, StatusID.Guard)) || Svc.Condition[ConditionFlag.Mounted])
-        {
-            return false;
-        }
+        //if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || (Player != null && Player.HasStatus(true, StatusID.Guard)) || Svc.Condition[ConditionFlag.Mounted])
+        //{
+        //    return false;
+        //}
 
         if (PlayerHasMCHLBVfx() || IsCastingMCHLBVfx() || HasIncomingMarksmanSpiteEffect())
         {
@@ -776,7 +801,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static readonly FrozenDictionary<string, uint[]> MarksmanSpitePaths =
         new Dictionary<string, uint[]>
         {
-            { "vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c", []}
+            { "vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c", []} // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c.avfx
         }.ToFrozenDictionary(Lowerer);
     public static bool HasIncomingMarksmanSpiteEffect(
         IGameObject? targetObject = null)
@@ -832,6 +857,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     #region Status Display
     public override bool ShowStatus => true;
     private int _debugActionId = 29415;
+    // ECommons.Automation.Chat.SendMessage("/lockon on"); test if this method can be used to send chat commands
     public override void DisplayRotationStatus()
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
