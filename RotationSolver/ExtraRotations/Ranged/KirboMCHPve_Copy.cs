@@ -1,7 +1,7 @@
-﻿// TODO: refine boss logic better
-
+﻿// refine boss logic better
 
 using System.ComponentModel;
+using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.GameHelpers;
@@ -549,6 +549,9 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #region UI
     public override void DisplayRotationStatus()
     {
+        float availableWidth = ImGui.GetContentRegionAvail().X;
+
+
         //ImGui.Text($"AirAnchorPvE: {AirAnchorPvE.Info.CastTime}{AnimationLock}");
         //ImGui.Text($"ani lock: {ActionCooldownInfo}");
         //ImGui.Text($"CountDownAhead:  {CountDownAhead}");

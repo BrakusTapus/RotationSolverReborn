@@ -7,6 +7,8 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.Automation;
+using ECommons.ChatMethods;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
@@ -64,7 +66,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     #endregion
 
     #region Config Options
-    // TODO Maybe make a config that prevents casting blast charge when trying to run away.
+    // Maybe make a config that prevents casting blast charge when trying to run away.
 
     [RotationConfig(CombatType.PvP, Name =
     "• Has 2 logic options how to use Marksman's Spite (Frontline/Crystaline Conflict).\n" +
@@ -966,7 +968,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
         foreach (IBattleChara enemy in CustomRotation.AllHostileTargets)
         {
-            if (enemy == null)
+            if (enemy == null || enemy.Name.ToString() == string.Empty)
             {
                 continue;
             }
