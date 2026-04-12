@@ -9,6 +9,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using RotationSolver.Basic.Configuration;
 using ECommons.ChatMethods;
+using RotationSolver.Updaters;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
@@ -24,6 +25,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     "• Added 3 openers to pick.\n" +
     "• Known issues:\n" +
     "• Countdown: Refuses to use air anchor to start combat until timer ran out\n" +
+    "• RSR: MajorUpdater doesn't update InCombat on time\n" +
     "• Opener: after countdown always uses 1 or 2 basic combo GCD's even during opener\n" +
     "• Clipping: If an oGCD almost comes off cooldown it'll Sometimes clip GCD\n" +
     "• Pew Pew!\n\n")]
@@ -68,7 +70,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #region Countdown logic
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (!HasReassembled && remainTime > 1.5f && remainTime < 5f && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
+        if (!HasReassembled && remainTime > 1.5f && remainTime < 4.5f && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
         {
             return act;
         }
@@ -78,7 +80,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             return act;
         }
 
-        if (remainTime > 0.1f && remainTime <= 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (/*remainTime > 0.1f && */remainTime < 0.1f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             BeginOpener();
             return AirAnchorPvE;
@@ -587,6 +589,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                 if (ImGui.CollapsingHeader(header))
                 {
                     //ImGui.Text("SelectedOpener: " + SelectedOpener.ToString());
+                    ImGui.Text("incombat: " + DataCenter.InCombat.ToString());
+                    ImGui.Text("obj incombat: " + Player?.InCombat());
                     ImGui.Text("OpenerAvailable: " + OpenerAvailable.ToString());
                     ImGui.Text("StartOpener: " + StartOpener.ToString());
                     ImGui.Text("OpenerInProgress: " + OpenerInProgress.ToString());
@@ -594,15 +598,21 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     ImGui.Text("OpenerHasFinished: " + OpenerHasFinished.ToString());
                     ImGui.Text("OpenerHasFailed: " + OpenerHasFailed.ToString());
                     //ImGui.Text($"last action: " + DataCenter.LastAction.GetActionFromID(true));
+                    if (ImGui.Button("Reset Opener value's"))
+                    {
+                        StartOpener = false;
+                        OpenerInProgress = false;
+                        OpenerStep = 0;
+                    }
                 }
                 string openertest = "[Placeholder]";
                 if (ImGui.CollapsingHeader(openertest))
                 {
                     if (ImGui.Button("Execute #1"))
                     {
-                        Chat.ExecuteCommand("/action peloton");
+                        Chat.ExecuteCommand("/action reassemble");
                         Chat.ExecuteCommand("/wait 4.5");
-                        Chat.ExecuteCommand("/action peloton");
+                        Chat.ExecuteCommand("/action airanchor");
                     }
                     if (ImGui.Button("countdown"))
                     {
@@ -792,10 +802,12 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     }
     internal static void StateOfOpener()
     {
-        if (OpenerInProgress && TimeSinceLastAction.TotalSeconds >= 5 && InCombat)
+        if (OpenerInProgress && TimeSinceLastAction.TotalSeconds >= 10 && InCombat)
         {
             OpenerHasFailed = true;
+            Svc.Log.Debug("StateOfOpener #1 was called");
         }
+
         if (OpenerHasFinished && OpenerInProgress)
         {
             OpenerInProgress = false;
