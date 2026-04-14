@@ -98,7 +98,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             return act;
         }
 
-        if (/*remainTime > 0.1f && */remainTime < 0.1f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (/*remainTime > 0.1f && */remainTime < 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             BeginOpener();
             return AirAnchorPvE;
