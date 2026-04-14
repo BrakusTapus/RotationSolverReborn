@@ -40,6 +40,11 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     [RotationConfig(CombatType.PvE, Name = "Restrict mitigations to not overlap")]
     private bool MitOverlap { get; set; } = false;
 
+    #region Burst Options
+	[RotationConfig(CombatType.PvE, Name = "BMR: Dump Heat before downtime (Experimental)")]
+	private bool BmrDumpBeforeDowntime { get; set; } = true;
+    #endregion
+
     #region Countdown Options    
     [RotationConfig(CombatType.PvE, Name = "--[Countdown Options]--")]
     public bool CountdownOptions { get; set; } = false;
@@ -65,6 +70,19 @@ public sealed class KirboMchPve_Copy : MachinistRotation
 
     #region Properties
     private static bool IsMedicated => StatusHelper.PlayerHasStatus(isFromSelf: true, StatusID.Medicated);
+
+	/// <summary>
+	/// True when Wildfire is coming soon (within 15s) and we should save Heat.
+	/// </summary>
+	private bool IsPreBurst => WildfirePvE.EnoughLevel
+		&& WildfirePvE.Cooldown.IsCoolingDown
+		&& !WildfirePvE.Cooldown.HasOneCharge
+		&& WildfirePvE.Cooldown.RecastTimeRemain <= 15;
+
+    private static bool IsPartyMedicated =>
+    PartyMembers?.Any(member =>
+        member?.StatusList?.Any(status => status.StatusId == (uint)StatusID.Medicated) == true
+    ) == true;
     #endregion
 
     #region Countdown logic
@@ -91,10 +109,11 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             return act;
         }
 
-
         return base.CountDownAction(remainTime);
     }
     #endregion
+
+    #region oGCD Logic
 
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
@@ -130,6 +149,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     return true;
                 }
             }
+
             if (!FullMetalFieldPvE.EnoughLevel && (HasWildfire || (WildfirePvE.Cooldown.IsCoolingDown && Battery == 100)))
             {
                 if (HyperchargePvE.CanUse(out act, skipTTKCheck: true))
@@ -137,6 +157,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     return true;
                 }
             }
+
             if (HasWildfire && IsLastAction(false, FullMetalFieldPvE))
             {
                 if (HyperchargePvE.CanUse(out act, skipTTKCheck: true))
@@ -144,12 +165,21 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     return true;
                 }
             }
+			// === BMR: Dump Heat before downtime ===
+			// If downtime is imminent (<=15s) and we're not in Wildfire, spend Heat aggressively
+			// to avoid losing gauge value during the untargetable phase.
+			// Skip if we're already in pre-burst window (Wildfire coming soon and downtime is far).
+			if (BmrDumpBeforeDowntime && BMRDowntimeWithin(15f)
+				&& !HasWildfire && !IsOverheated && (Heat >= 50 || HasHypercharged)
+				&& !IsPreBurst)
+			{
+				if (HyperchargePvE.CanUse(out act, skipTTKCheck: true))
+					return true;
+			}
         }
 
         return base.EmergencyAbility(nextGCD, out act);
     }
-
-    #region oGCD Logic
 
     #region Mits
     [RotationDesc(ActionID.TacticianPvE, ActionID.DismantlePvE)]
@@ -252,17 +282,18 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             }
         }
 
-        if (IsBurst)
-        {
-            if (BarrelStabilizerPvE.CanUse(out act))
+		if (IsBurst)
+		{
+			bool bmrBlockBarrel = BMRDowntimeWithin(GCDTime(2));
+			if (!bmrBlockBarrel && BarrelStabilizerPvE.CanUse(out act))
             {
                 return true;
             }
         }
 
         bool LowLevelHyperCheck = !AutoCrossbowPvE.EnoughLevel && SpreadShotPvE.CanUse(out _);
-
-        if (IsBurst)
+		bool bmrBlockWildfire = BMRDowntimeWithin(10f);
+		if (IsBurst && !bmrBlockWildfire)
         {
             if (FullMetalFieldPvE.EnoughLevel)
             {
@@ -909,20 +940,29 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         case 0:
                             return OpenerController(IsLastGCD(false, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
 
+                        //case 1:
+                        //    return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+
+                        //case 2:
+                        //    return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+
+                        //case 3:
+                        //    return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+
                         case 1:
-                            return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
-
-                        case 2:
-                            return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
-
-                        case 3:
                             return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 4:
+                        case 2:
+                            return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+
+                        case 3:
                             return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
 
-                        case 5:
+                        case 4:
                             return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                        case 5:
+                            return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
 
                         case 6:
                             return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
