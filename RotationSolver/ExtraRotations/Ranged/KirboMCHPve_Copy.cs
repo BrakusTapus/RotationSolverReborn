@@ -10,6 +10,8 @@ using Dalamud.Interface.Utility.Raii;
 using RotationSolver.Basic.Configuration;
 using ECommons.ChatMethods;
 using RotationSolver.Updaters;
+using RotationSolver.Commands;
+using ECommons.Logging;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
@@ -41,8 +43,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     private bool MitOverlap { get; set; } = false;
 
     #region Burst Options
-	[RotationConfig(CombatType.PvE, Name = "BMR: Dump Heat before downtime (Experimental)")]
-	private bool BmrDumpBeforeDowntime { get; set; } = true;
+    [RotationConfig(CombatType.PvE, Name = "BMR: Dump Heat before downtime (Experimental)")]
+    private bool BmrDumpBeforeDowntime { get; set; } = true;
     #endregion
 
     #region Countdown Options    
@@ -71,13 +73,13 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #region Properties
     private static bool IsMedicated => StatusHelper.PlayerHasStatus(isFromSelf: true, StatusID.Medicated);
 
-	/// <summary>
-	/// True when Wildfire is coming soon (within 15s) and we should save Heat.
-	/// </summary>
-	private bool IsPreBurst => WildfirePvE.EnoughLevel
-		&& WildfirePvE.Cooldown.IsCoolingDown
-		&& !WildfirePvE.Cooldown.HasOneCharge
-		&& WildfirePvE.Cooldown.RecastTimeRemain <= 15;
+    /// <summary>
+    /// True when Wildfire is coming soon (within 15s) and we should save Heat.
+    /// </summary>
+    private bool IsPreBurst => WildfirePvE.EnoughLevel
+        && WildfirePvE.Cooldown.IsCoolingDown
+        && !WildfirePvE.Cooldown.HasOneCharge
+        && WildfirePvE.Cooldown.RecastTimeRemain <= 15;
 
     private static bool IsPartyMedicated =>
     PartyMembers?.Any(member =>
@@ -165,17 +167,17 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     return true;
                 }
             }
-			// === BMR: Dump Heat before downtime ===
-			// If downtime is imminent (<=15s) and we're not in Wildfire, spend Heat aggressively
-			// to avoid losing gauge value during the untargetable phase.
-			// Skip if we're already in pre-burst window (Wildfire coming soon and downtime is far).
-			if (BmrDumpBeforeDowntime && BMRDowntimeWithin(15f)
-				&& !HasWildfire && !IsOverheated && (Heat >= 50 || HasHypercharged)
-				&& !IsPreBurst)
-			{
-				if (HyperchargePvE.CanUse(out act, skipTTKCheck: true))
-					return true;
-			}
+            // === BMR: Dump Heat before downtime ===
+            // If downtime is imminent (<=15s) and we're not in Wildfire, spend Heat aggressively
+            // to avoid losing gauge value during the untargetable phase.
+            // Skip if we're already in pre-burst window (Wildfire coming soon and downtime is far).
+            if (BmrDumpBeforeDowntime && BMRDowntimeWithin(15f)
+                && !HasWildfire && !IsOverheated && (Heat >= 50 || HasHypercharged)
+                && !IsPreBurst)
+            {
+                if (HyperchargePvE.CanUse(out act, skipTTKCheck: true))
+                    return true;
+            }
         }
 
         return base.EmergencyAbility(nextGCD, out act);
@@ -282,18 +284,18 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             }
         }
 
-		if (IsBurst)
-		{
-			bool bmrBlockBarrel = BMRDowntimeWithin(GCDTime(2));
-			if (!bmrBlockBarrel && BarrelStabilizerPvE.CanUse(out act))
+        if (IsBurst)
+        {
+            bool bmrBlockBarrel = BMRDowntimeWithin(GCDTime(2));
+            if (!bmrBlockBarrel && BarrelStabilizerPvE.CanUse(out act))
             {
                 return true;
             }
         }
 
         bool LowLevelHyperCheck = !AutoCrossbowPvE.EnoughLevel && SpreadShotPvE.CanUse(out _);
-		bool bmrBlockWildfire = BMRDowntimeWithin(10f);
-		if (IsBurst && !bmrBlockWildfire)
+        bool bmrBlockWildfire = BMRDowntimeWithin(10f);
+        if (IsBurst && !bmrBlockWildfire)
         {
             if (FullMetalFieldPvE.EnoughLevel)
             {
@@ -587,7 +589,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
         ImGui.Text($"width: {availableWidth}");
-        using (ImRaii.IEndObject child1 = ImRaii.Child("rotationinfo", new Vector2(((availableWidth / 2)), 400), true, ImGuiWindowFlags.NoScrollbar))
+        using (ImRaii.IEndObject child1 = ImRaii.Child("rotationinfo", new Vector2(((availableWidth / 2)), 500), true, ImGuiWindowFlags.NoScrollbar))
         {
             if (child1.Success)
             {
@@ -649,6 +651,72 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     {
                         Chat.ExecuteCommand("/countdown 6");
                     }
+                    if (ImGui.Button("Clear intercepted action"))
+                    {
+                        if (DataCenter.CurrentInterceptedAction == null)
+                        {
+                            ChatPrinter.PrintColored(UIColor.LightYellow, "Current intercepted action is NULL!");
+                        }
+                        else if (DataCenter.CurrentInterceptedAction != null)
+                        {
+                            DataCenter.CurrentInterceptedAction = null;
+                            ChatPrinter.PrintColored(UIColor.LightGreen, "Cleared current intercepter action!!");
+                        }
+                    }
+                }
+            }
+        }
+        ImGui.SameLine();
+        using (ImRaii.IEndObject child2 = ImRaii.Child("actioninfo", new Vector2(((availableWidth / 2) - 20), 500), true, ImGuiWindowFlags.NoScrollbar))
+        {
+            if (child2.Success)
+            {
+                if (DataCenter.CurrentRotation != null)
+                {
+                    try
+                    {
+                        // Begin the tab bar - give it a unique ID
+                        if (ImGui.BeginTabBar("ActionInfoTabs"))
+                        {
+                            // --- Tab 1 ---
+                            if (ImGui.BeginTabItem("Overview"))
+                            {
+                                ImGui.Text("This is the Overview tab.");
+                                ImGui.Text($"Rotation: {DataCenter.CurrentRotation.Name}");
+
+                                ImGui.EndTabItem();
+                            }
+
+                            // --- Tab 2 ---
+                            if (ImGui.BeginTabItem("Actions"))
+                            {
+                                ImGui.Text("This is the Actions tab.");
+                                // List actions, buttons, etc.
+
+                                ImGui.EndTabItem();
+                            }
+
+                            // --- Tab 3 ---
+                            if (ImGui.BeginTabItem("Settings"))
+                            {
+                                ImGui.Text("This is the Settings tab.");
+                                // Draw settings widgets here
+
+                                ImGui.EndTabItem();
+                            }
+
+                            ImGui.EndTabBar();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
+                        PluginLog.Error($"error tab {ex.Message}");
+                    }
+                }
+                else
+                {
+                    ImGui.TextColored(ImGuiColors.DalamudRed, "Current rotation is NULL!");
                 }
             }
         }
