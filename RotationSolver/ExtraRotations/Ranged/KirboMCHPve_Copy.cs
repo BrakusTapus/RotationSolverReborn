@@ -1,23 +1,21 @@
-﻿// refine boss logic better
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
 using ECommons.Automation;
+using ECommons.ChatMethods;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.GameHelpers;
-using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility.Raii;
-using RotationSolver.Basic.Configuration;
-using ECommons.ChatMethods;
-using RotationSolver.Updaters;
-using RotationSolver.Commands;
 using ECommons.Logging;
+using RotationSolver.Basic.Configuration;
+using RotationSolver.Commands;
+using RotationSolver.Updaters;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
-[Rotation("Kirbo_Copy", CombatType.PvE, GameVersion = "7.45")]
-[SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
 [ExtraRotation]
+[SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
+[Rotation("Kirbo_Copy", CombatType.PvE, GameVersion = "7.45")]
 public sealed class KirboMchPve_Copy : MachinistRotation
 {
     #region Config Options
@@ -30,8 +28,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     "• RSR: MajorUpdater doesn't update InCombat on time\n" +
     "• Opener: after countdown always uses 1 or 2 basic combo GCD's even during opener\n" +
     "• Clipping: If an oGCD almost comes off cooldown it'll Sometimes clip GCD\n" +
-    "• Pew Pew!\n\n")]
-    public bool RotationNotes { get; set; } = true;
+    "• Pew Pew!\n\n", Tooltip = "Notes and known issues.")]
+    private bool RotationNotes { get; set; } = true;
 
     [RotationConfig(CombatType.PvE, Name = "Use Bioblaster while moving")]
     private bool BioMove { get; set; } = true;
@@ -49,10 +47,11 @@ public sealed class KirboMchPve_Copy : MachinistRotation
 
     #region Countdown Options    
     [RotationConfig(CombatType.PvE, Name = "--[Countdown Options]--")]
-    public bool CountdownOptions { get; set; } = false;
+    private bool CountdownOptions { get; set; } = false;
 
-    [RotationConfig(CombatType.PvE, Name = "    Use burst medicine in countdown (requires auto burst option on)", Parent = "CountdownOptions", ParentValue = true)]
+    [RotationConfig(CombatType.PvE, Name = "    Use burst medicine in countdown.", Parent = "CountdownOptions", ParentValue = true, Tooltip = "(requires auto burst option on)")]
     private bool OpenerBurstMeds { get; set; } = false;
+
     #endregion
 
     #region M10S options    
@@ -64,8 +63,6 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #endregion
 
     #region Beta options
-    [RotationConfig(CombatType.PvE, Name = "Alternative Combo action logic")]
-    private bool AltComboLogic { get; set; } = false;
     #endregion
 
     #endregion
@@ -88,19 +85,25 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #endregion
 
     #region Countdown logic
+    /// <summary>
+    /// <br>Called by the Invoke method while InCombat is false and remainTime is > 0.</br>
+    /// <br>This method is skipped if InCombat is true and remainTime is > 0, then Invoke calls the GCD method.</br>
+    /// </summary>
+    /// <param name="remainTime"></param>
+    /// <returns></returns>
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (!HasReassembled && remainTime > 1.5f && remainTime < 4.5f && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
+        if (!HasReassembled && remainTime > 3.5f && remainTime < 4.5f && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
         {
             return act;
         }
 
-        if (!IsMedicated && IsBurst && OpenerBurstMeds && remainTime > 0.8f && remainTime <= 1.5f && UseBurstMedicine(out act))
+        if (!IsMedicated && IsBurst && OpenerBurstMeds && remainTime > 1.0f && remainTime <= 1.5f && UseBurstMedicine(out act))
         {
             return act;
         }
 
-        if (/*remainTime > 0.1f && */remainTime < 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (remainTime > 0.1f && remainTime < 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
         {
             BeginOpener();
             return AirAnchorPvE;
@@ -533,23 +536,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             }
         }
 
-        if (AltComboLogic)
-        {
-            if (CleanShotPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (SlugShotPvE.CanUse(out act))
-            {
-                return true;
-            }
-            if (SplitShotPvE.CanUse(out act))
-            {
-                return true;
-            }
-        }
-
-        if (!AltComboLogic)
+        if (!OpenerInProgress)
         {
             // 3 ST
             if (HeatedCleanShotPvE.EnoughLevel && HeatedCleanShotPvE.CanUse(out act))
@@ -981,8 +968,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     {
         if (lastAction)
         {
-            OpenerStep++;
             Svc.Log.Debug($"Last action matched! {DataCenter.LastAction.ToString()} Proceeding to step: {OpenerStep}");
+            OpenerStep++;
             return false;
         }
         return nextAction;
@@ -1008,29 +995,20 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         case 0:
                             return OpenerController(IsLastGCD(false, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
 
-                        //case 1:
-                        //    return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
-
-                        //case 2:
-                        //    return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
-
-                        //case 3:
-                        //    return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
-
                         case 1:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                            return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
                         case 2:
-                            return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+                            return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
                         case 3:
-                            return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
+                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
                         case 4:
-                            return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                            return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
 
                         case 5:
-                            return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: false, skipAoeCheck: true));
+                            return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
                         case 6:
                             return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
