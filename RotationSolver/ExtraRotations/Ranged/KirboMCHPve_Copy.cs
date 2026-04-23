@@ -93,25 +93,40 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     /// <returns></returns>
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (!HasReassembled && remainTime > 3.5f && remainTime < 4.5f && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
+        if (remainTime > 3.5f && remainTime < 5f)
         {
-            return act;
+            if (!HasReassembled && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
+            {
+                return act;
+            }
         }
 
-        if (!IsMedicated && IsBurst && OpenerBurstMeds && remainTime > 1.0f && remainTime <= 1.5f && UseBurstMedicine(out act))
+        if (remainTime > 1.0f && remainTime <= 1.5f)
         {
-            return act;
+            if (!IsMedicated && IsBurst && OpenerBurstMeds && UseBurstMedicine(out IAction? act))
+            {
+                return act;
+            }
         }
 
-        if (remainTime > 0.1f && remainTime < 0.5f && AirAnchorPvE.EnoughLevel && AirAnchorPvE.CanUse(out act))
+        if (remainTime > 0.1f && remainTime < 0.5f)
         {
-            BeginOpener();
-            return AirAnchorPvE;
-        }
-
-        if (remainTime < 0.4f && !AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel && DrillPvE.CanUse(out act))
-        {
-            return act;
+            if (AirAnchorPvE.EnoughLevel)
+            {
+                if (AirAnchorPvE.CanUse(out IAction? act))
+                {
+                    BeginOpener();
+                    //Chat.ExecuteCommand("/action airanchor");
+                    return act;
+                }
+            }
+            //if (!AirAnchorPvE.EnoughLevel && DrillPvE.EnoughLevel)
+            //{
+            //    if (DrillPvE.CanUse(out IAction? act))
+            //    {
+            //        return act;
+            //    }
+            //}
         }
 
         return base.CountDownAction(remainTime);
@@ -968,8 +983,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     {
         if (lastAction)
         {
-            Svc.Log.Debug($"Last action matched! {DataCenter.LastAction.ToString()} Proceeding to step: {OpenerStep}");
             OpenerStep++;
+            Svc.Log.Debug($"Last action matched! {DataCenter.LastAction.ToString()} Proceeding to step: {OpenerStep}");
             return false;
         }
         return nextAction;
