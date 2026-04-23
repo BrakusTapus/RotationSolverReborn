@@ -635,9 +635,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                     //ImGui.Text($"last action: " + DataCenter.LastAction.GetActionFromID(true));
                     if (ImGui.Button("Reset Opener value's"))
                     {
-                        StartOpener = false;
-                        OpenerInProgress = false;
-                        OpenerStep = 0;
+                        ResetOpenerProperties();
                     }
                 }
                 string openertest = "[Placeholder]";
@@ -737,6 +735,11 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     {
         OpenerAvailability();
         StateOfOpener();
+    }
+
+    public override void OnTerritoryChanged()
+    {
+        ResetOpenerProperties();
     }
     #endregion
 
@@ -896,12 +899,12 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     private static bool OpenerAvailable { get; set; } = false;
     private static bool StartOpener { get; set; } = false;
 
-    internal static void OpenerFailed()
+    private static void OpenerFailed()
     {
         Svc.Log.Debug("Opener failed, on step: " + OpenerStep);
         OpenerHasFailed = true;
     }
-    internal static void StateOfOpener()
+    private static void StateOfOpener()
     {
         if (OpenerInProgress && TimeSinceLastAction.TotalSeconds >= 10 && InCombat)
         {
@@ -959,7 +962,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             HasBarrelStabilizer && DCcharges == 3 && HasWildfire && CMcharges == 3 &&
             Player.Level >= 100 && NoBattery && NoHeat && OpenerStep == 0;
     }
-    internal static void BeginOpener()
+    private static void BeginOpener()
     {
         if (OpenerAvailable && !OpenerInProgress && OpenerStep == 0)
         {
@@ -968,15 +971,30 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             Svc.Log.Debug("Starting Opener...");
         }
     }
-    internal static void ResetOpenerFlags()
+    private static void ResetOpenerProperties()
     {
+        if (OpenerHasFailed)
+        {
+            OpenerHasFailed = false;
+            Svc.Log.Debug("OpenerHasFailed reset to false.");
+        }
+
         if (OpenerHasFinished)
         {
             OpenerHasFinished = false;
+            Svc.Log.Debug("OpenerHasFinished reset to false.");
         }
-        else if (OpenerHasFailed)
+
+        if (OpenerStep != 0)
         {
-            OpenerHasFailed = false;
+            Svc.Log.Debug($"OpenerStep reset from {OpenerStep} to 0.");
+            OpenerStep = 0;
+        }
+
+        if (OpenerInProgress)
+        {
+            OpenerInProgress = false;
+            Svc.Log.Debug("OpenerInProgress reset to false.");
         }
     }
     private static bool OpenerController(bool lastAction, bool nextAction)
