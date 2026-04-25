@@ -52,6 +52,9 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     [RotationConfig(CombatType.PvE, Name = "    Use burst medicine in countdown.", Parent = "CountdownOptions", ParentValue = true, Tooltip = "(requires auto burst option on)")]
     private bool OpenerBurstMeds { get; set; } = false;
 
+    [Range(0.01f, 1f, ConfigUnitType.Seconds, 0.05f)]
+    [RotationConfig(CombatType.PvE, Name = "Countdown start timer.", Parent = "CountdownOptions", ParentValue = true, Tooltip = "Begins combat when CD timer is less then value")]
+    private float CountdownPullTime { get; set; } = 0.5f;
     #endregion
 
     #region M10S options    
@@ -109,13 +112,17 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             }
         }
 
-        if (remainTime > 0.1f && remainTime < 0.5f)
+        if (remainTime > 0.1f && remainTime < CountdownPullTime/*0.62f*/)
         {
-            if (AirAnchorPvE.EnoughLevel)
+            if (AirAnchorPvE.EnoughLevel && AirAnchorPvE.Cooldown.CurrentCharges > 0)
             {
                 if (AirAnchorPvE.CanUse(out IAction? act))
                 {
-                    BeginOpener();
+                    if (!OpenerInProgress)
+                    {
+                        BeginOpener();
+                        return act;
+                    }
                     //Chat.ExecuteCommand("/action airanchor");
                     return act;
                 }
@@ -142,7 +149,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             return Opener(out act);
         }
 
-        if (InCombat)
+        if (InCombat || (Player != null && Player.InCombat()))
         {
             UpdateQueenStep();
             UpdateFoundStepPair();
@@ -407,6 +414,16 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #endregion
 
     #region GCD Logic
+    protected override bool EmergencyGCD(out IAction? act)
+    {
+        if (OpenerInProgress)
+        {
+            return Opener(out act);
+        }
+
+        return base.EmergencyGCD(out act);
+    }
+
     protected override bool GeneralGCD(out IAction? act)
     {
         if (OpenerInProgress)
@@ -662,6 +679,10 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                             DataCenter.CurrentInterceptedAction = null;
                             ChatPrinter.PrintColored(UIColor.LightGreen, "Cleared current intercepter action!!");
                         }
+                    }
+                    if (ImGui.Button("UpdateQueenStep()", default))
+                    {
+                        _currentStep = 0;
                     }
                 }
             }
@@ -1002,7 +1023,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         if (lastAction)
         {
             OpenerStep++;
-            Svc.Log.Debug($"Last action matched! {DataCenter.LastAction.ToString()} Proceeding to step: {OpenerStep}");
+            Svc.Log.Warning($"Last action matched! {DataCenter.LastAction.ToString()} Proceeding to step: {OpenerStep}");
             return false;
         }
         return nextAction;
