@@ -71,7 +71,7 @@ public partial class CustomRotation
 				return act;
 			}
 
-			if (DataCenter.CommandStatus.HasFlag(AutoStatus.Interrupt))
+			if (DataCenter.MergedStatus.HasFlag(AutoStatus.Interrupt))
 			{
 				if (DataCenter.CurrentDutyRotation?.MyInterruptGCD(out act) == true)
 				{
@@ -91,6 +91,19 @@ public partial class CustomRotation
 					return act;
 				}
 				if (DispelGCD(out IAction? action))
+				{
+					return action;
+				}
+			}
+
+			IBaseAction.TargetOverride = TargetType.Provoke;
+			if (DataCenter.MergedStatus.HasFlag(AutoStatus.Provoke))
+			{
+				if (DataCenter.CurrentDutyRotation?.ProvokeGCD(out act) == true)
+				{
+					return act;
+				}
+				if (ProvokeGCD(out IAction? action))
 				{
 					return action;
 				}
@@ -602,6 +615,20 @@ public partial class CustomRotation
 
 		IBaseAction.ShouldEndSpecial = false;
 		return false;
+	}
+
+	/// <summary>
+	///
+	/// </summary>
+	protected virtual bool ProvokeGCD(out IAction? act)
+	{
+		if (DataCenter.CommandStatus.HasFlag(AutoStatus.Provoke))
+		{
+			IBaseAction.ShouldEndSpecial = true;
+		}
+
+		IBaseAction.ShouldEndSpecial = false;
+		act = null; return false;
 	}
 
 	/// <summary>
