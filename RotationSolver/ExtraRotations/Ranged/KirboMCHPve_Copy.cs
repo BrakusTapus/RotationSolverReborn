@@ -927,11 +927,6 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     }
     private static void StateOfOpener()
     {
-        if (OpenerInProgress && TimeSinceLastAction.TotalSeconds >= 10 && InCombat)
-        {
-            OpenerHasFailed = true;
-            Svc.Log.Debug("StateOfOpener #1 was called");
-        }
 
         if (OpenerHasFinished && OpenerInProgress)
         {
@@ -1031,333 +1026,330 @@ public sealed class KirboMchPve_Copy : MachinistRotation
 
     private bool Opener(out IAction? act)
     {
-        // Universal failsafe for opener inactivity
-        //if (TimeSinceLastAction.TotalSeconds > UniversalFailsafeThreshold && OpenerStep > 0)
-        //{
-        //    act = null;
-        //    OpenerFailed();
-        //    return false;  // Stop further action
-        //}
-
-        if (OpenerInProgress)
+        if (TimeSinceLastAction.TotalSeconds >= 10 && InCombat)
         {
-            switch (SelectedOpener)
-            {
-                case Openers.Default:
-                    switch (OpenerStep)
-                    {
-                        case 0:
-                            return OpenerController(IsLastGCD(false, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
-
-                        case 1:
-                            return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 2:
-                            return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 3:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
-
-                        case 4:
-                            return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
-
-                        case 5:
-                            return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 6:
-                            return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 7:
-                            return OpenerController(IsLastAbility(true, RookAutoturretPvE), RookAutoturretPvE.CanUse(out act, usedUp: true));
-
-                        case 8:
-                            return OpenerController(IsLastAbility(false, ReassemblePvE), ReassemblePvE.CanUse(out act, usedUp: true));
-
-                        case 9:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
-
-                        case 10:
-                            return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 11:
-                            // Only proceed if WeaponRemain is between 0.6s and 0.8s
-                            if (WeaponRemain >= 0.59f && WeaponRemain <= 0.80f)
-                            {
-                                return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
-                            }
-                            else if (WeaponRemain > 0.80f)
-                            {
-                                // Hold this step until WeaponRemain is within the desired range
-                                act = null; // No action is performed, but the step is not advanced
-                                return true; // Keep checking the condition on subsequent calls
-                            }
-                            else
-                            {
-                                act = null;
-                                OpenerHasFailed = true;
-                                return false;
-                            }
-
-                        case 12:
-                            return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
-
-                        case 13:
-                            return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 14:
-                            return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
-
-                        case 15:
-                            OpenerHasFinished = true;
-                            break;
-                    }
-                    break;
-
-                case Openers.Alternative:
-                    switch (OpenerStep)
-                    {
-                        case 0:
-                            return OpenerController(IsLastGCD(true, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
-
-                        case 1:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+            act = null;
+            OpenerHasFailed = true;
+            Svc.Log.Debug("10 seconds passed since last action was used");
+            return false;
+        }
+
+        switch (SelectedOpener)
+        {
+            case Openers.Default:
+                switch (OpenerStep)
+                {
+                    case 0:
+                        return OpenerController(IsLastGCD(false, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
+
+                    case 1:
+                        return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 2:
+                        return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 3:
+                        return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+
+                    case 4:
+                        return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
+
+                    case 5:
+                        return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 6:
+                        return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 7:
+                        return OpenerController(IsLastAbility(true, RookAutoturretPvE), RookAutoturretPvE.CanUse(out act, usedUp: true));
+
+                    case 8:
+                        return OpenerController(IsLastAbility(false, ReassemblePvE), ReassemblePvE.CanUse(out act, usedUp: true));
+
+                    case 9:
+                        return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+
+                    case 10:
+                        return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 11:
+                        // Only proceed if WeaponRemain is between 0.6s and 0.8s
+                        if (WeaponRemain >= 0.59f && WeaponRemain <= 0.80f)
+                        {
+                            return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
+                        }
+                        else if (WeaponRemain > 0.80f)
+                        {
+                            // Hold this step until WeaponRemain is within the desired range
+                            act = null; // No action is performed, but the step is not advanced
+                            return true; // Keep checking the condition on subsequent calls
+                        }
+                        else
+                        {
+                            act = null;
+                            OpenerHasFailed = true;
+                            return false;
+                        }
+
+                    case 12:
+                        return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
+
+                    case 13:
+                        return OpenerController(IsLastAbility(false, DoubleCheckPvE), DoubleCheckPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 14:
+                        return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
+
+                    case 15:
+                        OpenerHasFinished = true;
+                        break;
+                }
+                break;
+
+            case Openers.Alternative:
+                switch (OpenerStep)
+                {
+                    case 0:
+                        return OpenerController(IsLastGCD(true, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
+
+                    case 1:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 2:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+
+                    case 3:
+                        return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 2:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 4:
+                        return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
 
-                        case 3:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                    case 5:
+                        return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 4:
-                            return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
+                    case 6:
+                        return OpenerController(IsLastAbility(false, ReassemblePvE), ReassemblePvE.CanUse(out act, usedUp: true));
 
-                        case 5:
-                            return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 7:
+                        return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 6:
-                            return OpenerController(IsLastAbility(false, ReassemblePvE), ReassemblePvE.CanUse(out act, usedUp: true));
+                    case 8:
+                        return OpenerController(IsLastAbility(true, RookAutoturretPvE), RookAutoturretPvE.CanUse(out act, usedUp: true));
 
-                        case 7:
-                            return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 9:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 8:
-                            return OpenerController(IsLastAbility(true, RookAutoturretPvE), RookAutoturretPvE.CanUse(out act, usedUp: true));
+                    case 10:
+                        return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
 
-                        case 9:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 11:
+                        return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
 
-                        case 10:
-                            return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
+                    case 12:
+                        // Only proceed if WeaponRemain is between 0.6s and 0.8s
+                        if (WeaponRemain >= 0.59f && WeaponRemain <= 0.80f)
+                        {
+                            return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
+                        }
+                        else if (WeaponRemain > 0.80f)
+                        {
+                            // Hold this step until WeaponRemain is within the desired range
+                            act = null; // No action is performed, but the step is not advanced
+                            return true; // Keep checking the condition on subsequent calls
+                        }
+                        else
+                        {
+                            act = null;
+                            OpenerHasFailed = true;
+                            return false;
+                        }
 
-                        case 11:
-                            return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
+                    //case 12:
+                    //    return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act/*, isLastAbility: true*/) && WeaponRemain >= 0.6 && WeaponRemain <= 1);
 
-                        case 12:
-                            // Only proceed if WeaponRemain is between 0.6s and 0.8s
-                            if (WeaponRemain >= 0.59f && WeaponRemain <= 0.80f)
-                            {
-                                return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
-                            }
-                            else if (WeaponRemain > 0.80f)
-                            {
-                                // Hold this step until WeaponRemain is within the desired range
-                                act = null; // No action is performed, but the step is not advanced
-                                return true; // Keep checking the condition on subsequent calls
-                            }
-                            else
-                            {
-                                act = null;
-                                OpenerHasFailed = true;
-                                return false;
-                            }
+                    case 13:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 4, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        //case 12:
-                        //    return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act/*, isLastAbility: true*/) && WeaponRemain >= 0.6 && WeaponRemain <= 1);
+                    case 14:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 13:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 4, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 15:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 3, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 14:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 16:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 15:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 3, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 17:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 2, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 16:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 18:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 17:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 2, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 19:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 1, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 18:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
-
-                        case 19:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 1, HeatBlastPvE.CanUse(out act, usedUp: true));
-
-                        case 20:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 20:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 21:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 0, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 21:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 0, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 22:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 22:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 23:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                    case 23:
+                        return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 24:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 24:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 25:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 25:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 26:
-                            return OpenerController(IsLastAction(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                    case 26:
+                        return OpenerController(IsLastAction(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 27:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 27:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 28:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 28:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 29:
-                            return OpenerController(IsLastGCD(true, SplitShotPvE), SplitShotPvE.CanUse(out act));
+                    case 29:
+                        return OpenerController(IsLastGCD(true, SplitShotPvE), SplitShotPvE.CanUse(out act));
 
-                        case 30:
-                            return OpenerController(IsLastGCD(true, SlugShotPvE), SlugShotPvE.CanUse(out act));
+                    case 30:
+                        return OpenerController(IsLastGCD(true, SlugShotPvE), SlugShotPvE.CanUse(out act));
 
-                        case 31:
-                            return OpenerController(IsLastGCD(true, CleanShotPvE), CleanShotPvE.CanUse(out act));
+                    case 31:
+                        return OpenerController(IsLastGCD(true, CleanShotPvE), CleanShotPvE.CanUse(out act));
 
-                        case 32:
-                            OpenerHasFinished = true;
-                            break;
-                    }
-                    break;
+                    case 32:
+                        OpenerHasFinished = true;
+                        break;
+                }
+                break;
 
-                case Openers.Beta:
-                    switch (OpenerStep)
-                    {
-                        case 0:
-                            return OpenerController(IsLastGCD(true, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
+            case Openers.Beta:
+                switch (OpenerStep)
+                {
+                    case 0:
+                        return OpenerController(IsLastGCD(true, AirAnchorPvE), AirAnchorPvE.CanUse(out act));
 
-                        case 1:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 1:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 2:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 2:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 3:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                    case 3:
+                        return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 4:
-                            return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
+                    case 4:
+                        return OpenerController(IsLastAbility(false, BarrelStabilizerPvE), BarrelStabilizerPvE.CanUse(out act, usedUp: true));
 
-                        case 5:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 5:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 6:
-                            return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 6:
+                        return OpenerController(IsLastGCD(false, ChainSawPvE), ChainSawPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 7:
-                            return OpenerController(IsLastAbility(false, ReassemblePvE), ReassemblePvE.CanUse(out act, usedUp: true));
+                    case 7:
+                        return OpenerController(IsLastAbility(false, ReassemblePvE), ReassemblePvE.CanUse(out act, usedUp: true));
 
-                        case 8:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 8:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 9:
-                            return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 9:
+                        return OpenerController(IsLastGCD(true, ExcavatorPvE), ExcavatorPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 10:
-                            return OpenerController(IsLastAbility(true, RookAutoturretPvE), RookAutoturretPvE.CanUse(out act, usedUp: true));
+                    case 10:
+                        return OpenerController(IsLastAbility(true, RookAutoturretPvE), RookAutoturretPvE.CanUse(out act, usedUp: true));
 
-                        case 11:
-                            // Only proceed if WeaponRemain is between 0.6s and 1s
-                            if (WeaponRemain >= 0.59f && WeaponRemain <= 1f)
-                            {
-                                return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
-                            }
-                            else if (WeaponRemain > 0.80f)
-                            {
-                                // Hold this step until WeaponRemain is within the desired range
-                                act = null; // No action is performed, but the step is not advanced
-                                return true; // Keep checking the condition on subsequent calls
-                            }
-                            else
-                            {
-                                act = null;
-                                OpenerHasFailed = true;
-                                return false;
-                            }
+                    case 11:
+                        // Only proceed if WeaponRemain is between 0.6s and 1s
+                        if (WeaponRemain >= 0.59f && WeaponRemain <= 1f)
+                        {
+                            return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
+                        }
+                        else if (WeaponRemain > 0.80f)
+                        {
+                            // Hold this step until WeaponRemain is within the desired range
+                            act = null; // No action is performed, but the step is not advanced
+                            return true; // Keep checking the condition on subsequent calls
+                        }
+                        else
+                        {
+                            act = null;
+                            OpenerHasFailed = true;
+                            return false;
+                        }
 
-                        case 12:
-                            return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
+                    case 12:
+                        return OpenerController(IsLastGCD(true, FullMetalFieldPvE), FullMetalFieldPvE.CanUse(out act, skipAoeCheck: true));
 
-                        case 13:
-                            return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
+                    case 13:
+                        return OpenerController(IsLastAbility(false, HyperchargePvE), HyperchargePvE.CanUse(out act, usedUp: true));
 
-                        case 14:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 14:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 15:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 4, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 15:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 4, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 16:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 16:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 17:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 3, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 17:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 3, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 18:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 18:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 19:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 2, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 19:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 2, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 20:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 20:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 21:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 1, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 21:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 1, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 22:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 22:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 23:
-                            return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 0, HeatBlastPvE.CanUse(out act, usedUp: true));
+                    case 23:
+                        return OpenerController(IsLastGCD(true, HeatBlastPvE) && OverheatedStacks == 0, HeatBlastPvE.CanUse(out act, usedUp: true));
 
-                        case 24:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 24:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 25:
-                            return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                    case 25:
+                        return OpenerController(IsLastGCD(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 26:
-                            return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 26:
+                        return OpenerController(IsLastAbility(true, GaussRoundPvE), GaussRoundPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 27:
-                            return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
+                    case 27:
+                        return OpenerController(IsLastAbility(true, RicochetPvE), RicochetPvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
-                        case 28:
-                            return OpenerController(IsLastAction(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
+                    case 28:
+                        return OpenerController(IsLastAction(false, DrillPvE), DrillPvE.CanUse(out act, usedUp: true));
 
-                        case 29:
-                            return OpenerController(IsLastGCD(true, SplitShotPvE), SplitShotPvE.CanUse(out act));
+                    case 29:
+                        return OpenerController(IsLastGCD(true, SplitShotPvE), SplitShotPvE.CanUse(out act));
 
-                        case 30:
-                            return OpenerController(IsLastGCD(true, SlugShotPvE), SlugShotPvE.CanUse(out act));
+                    case 30:
+                        return OpenerController(IsLastGCD(true, SlugShotPvE), SlugShotPvE.CanUse(out act));
 
-                        case 31:
-                            return OpenerController(IsLastGCD(true, CleanShotPvE), CleanShotPvE.CanUse(out act));
+                    case 31:
+                        return OpenerController(IsLastGCD(true, CleanShotPvE), CleanShotPvE.CanUse(out act));
 
-                        case 32:
-                            OpenerHasFinished = true;
-                            break;
-                    }
-                    break;
-            }
+                    case 32:
+                        OpenerHasFinished = true;
+                        break;
+                }
+                break;
         }
         act = null;
         return false;
