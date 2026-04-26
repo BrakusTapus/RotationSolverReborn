@@ -920,11 +920,6 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     private static bool OpenerAvailable { get; set; } = false;
     private static bool StartOpener { get; set; } = false;
 
-    private static void OpenerFailed()
-    {
-        Svc.Log.Debug("Opener failed, on step: " + OpenerStep);
-        OpenerHasFailed = true;
-    }
     private static void StateOfOpener()
     {
 
@@ -958,26 +953,6 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             Svc.Log.Debug("Resetting OpenerHasFailed...!");
         }
     }
-    private void OpenerAvailability()
-    {
-        bool HasChainSaw = !ChainSawPvE.Cooldown.IsCoolingDown;
-        bool HasAirAnchor = !AirAnchorPvE.Cooldown.IsCoolingDown;
-        bool HasBarrelStabilizer = !BarrelStabilizerPvE.Cooldown.IsCoolingDown;
-        bool HasWildfire = !WildfirePvE.Cooldown.IsCoolingDown;
-
-        ushort DrillCharges = DrillPvE.Cooldown.CurrentCharges;
-        ushort DCcharges = DoubleCheckPvE.Cooldown.CurrentCharges;
-        ushort CMcharges = CheckmatePvE.Cooldown.CurrentCharges;
-        ushort ReassembleCharges = ReassemblePvE.Cooldown.CurrentCharges;
-
-        bool NoHeat = Heat == 0;
-        bool NoBattery = Battery == 0;
-
-        OpenerAvailable =
-            ReassembleCharges >= 1 && HasChainSaw /*&& HasAirAnchor*/ && DrillCharges == 2 &&
-            HasBarrelStabilizer && DCcharges == 3 && HasWildfire && CMcharges == 3 &&
-            Player.Level >= 100 && NoBattery && NoHeat && OpenerStep == 0;
-    }
     private static void BeginOpener()
     {
         if (OpenerAvailable && !OpenerInProgress && OpenerStep == 0)
@@ -986,6 +961,48 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             OpenerStep++;
             Svc.Log.Debug("Starting Opener...");
         }
+    }
+    // New state of opener needs to be tested (if it works it makes reading the logic easier)
+    //private static void StateOfOpener()
+    //{
+    //    if (OpenerInProgress && TimeSinceLastAction.TotalSeconds >= 10 && InCombat)
+    //        OpenerHasFailed = true;
+
+    //    if (OpenerInProgress && OpenerHasFinished)
+    //        CompleteOpener();
+
+    //    else if (OpenerInProgress && OpenerHasFailed)
+    //        FailOpener();
+
+    //    else if (!OpenerInProgress && OpenerStep > 0)
+    //        OpenerStep = 0;
+
+    //    else if (!OpenerInProgress && OpenerStep == 0 && (OpenerHasFinished || OpenerHasFailed))
+    //        ResetOpener();
+    //}
+    //private static void CompleteOpener()
+    //{
+    //    OpenerInProgress = false;
+    //    Svc.Log.Debug("Opener completed successfully!");
+    //}
+
+    //private static void FailOpener()
+    //{
+    //    OpenerInProgress = false;
+    //    Svc.Log.Debug("Opener failed at step: " + OpenerStep);
+    //}
+
+    //private static void ResetOpener()
+    //{
+    //    OpenerStep = 0;
+    //    OpenerHasFinished = false;
+    //    OpenerHasFailed = false;
+    //    Svc.Log.Debug("Opener reset.");
+    //}
+    private static void OpenerFailed()
+    {
+        Svc.Log.Debug("Opener failed, on step: " + OpenerStep);
+        OpenerHasFailed = true;
     }
     private static void ResetOpenerProperties()
     {
@@ -1013,6 +1030,26 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             Svc.Log.Debug("OpenerInProgress reset to false.");
         }
     }
+    private void OpenerAvailability()
+    {
+        bool HasChainSaw = !ChainSawPvE.Cooldown.IsCoolingDown;
+        bool HasAirAnchor = !AirAnchorPvE.Cooldown.IsCoolingDown;
+        bool HasBarrelStabilizer = !BarrelStabilizerPvE.Cooldown.IsCoolingDown;
+        bool HasWildfire = !WildfirePvE.Cooldown.IsCoolingDown;
+
+        ushort DrillCharges = DrillPvE.Cooldown.CurrentCharges;
+        ushort DCcharges = DoubleCheckPvE.Cooldown.CurrentCharges;
+        ushort CMcharges = CheckmatePvE.Cooldown.CurrentCharges;
+        ushort ReassembleCharges = ReassemblePvE.Cooldown.CurrentCharges;
+
+        bool NoHeat = Heat == 0;
+        bool NoBattery = Battery == 0;
+
+        OpenerAvailable =
+            ReassembleCharges >= 1 && HasChainSaw /*&& HasAirAnchor*/ && DrillCharges == 2 &&
+            HasBarrelStabilizer && DCcharges == 3 && HasWildfire && CMcharges == 3 &&
+            Player.Level >= 100 && NoBattery && NoHeat && OpenerStep == 0;
+    }
     private static bool OpenerController(bool lastAction, bool nextAction)
     {
         if (lastAction)
@@ -1023,7 +1060,6 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         }
         return nextAction;
     }
-
     private bool Opener(out IAction? act)
     {
         if (TimeSinceLastAction.TotalSeconds >= 10 && InCombat)
