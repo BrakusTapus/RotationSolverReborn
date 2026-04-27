@@ -1032,6 +1032,15 @@ public sealed class KirboMCHPvp : MachinistRotation
         Battle High III:    Damage dealt and healing potency increased by 30%.
         Battle High IV:     Damage dealt and healing potency increased by 40%.
         Battle High V:      Damage dealt and healing potency increased by 50%.
+
+        Burst order:
+        requirements: wildfire + fmf off cooldown | analysis + drill atleast 1 charge | drill primed status | target within atleast 17 yalms and enough HP (full burst has 61.000 potency)
+        1. Check if player has wildfire buf if true proceed
+        2. next gcd should be full metal field (hits twice) on wildfire target 
+        3. apply analysis next gcd should be drill
+        4. use drill on wildfire target
+        5. use blazing shot on wildfire target this should trigger wildfire to detonate for massive damage
+
     */
     #endregion
 
