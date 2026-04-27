@@ -1115,7 +1115,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         {
                             return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
                         }
-                        else if (WeaponRemain > 0.80f)
+                        else if (WeaponRemain > 0.90f)
                         {
                             // Hold this step until WeaponRemain is within the desired range
                             act = null; // No action is performed, but the step is not advanced
