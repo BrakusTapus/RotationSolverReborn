@@ -54,6 +54,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static bool IsPvPOverheated => Player != null && Player.HasStatus(true, StatusID.Overheated_3149);
     private static float OverheatedStatusTime => Player?.StatusTime(true, StatusID.Overheated_3149) ?? 0f;
     private static bool PlayerHasWildfire => Player != null && Player.HasStatus(true, StatusID.Wildfire_2018);
+    private static bool PlayerHasBuffWildfire => StatusHelper.PlayerHasStatus(true, StatusID.Wildfire_2018);
     private static float PlayerWildfireStatusTime => Player?.StatusTime(true, StatusID.Wildfire_2018) ?? 0f;
     private static bool PvPTargetHasWildfire => CurrentTarget != null && CurrentTarget.HasStatus(true, StatusID.Wildfire_1323);
     private static float PvPTargetWildfireStatusTime => CurrentTarget?.StatusTime(true, StatusID.Wildfire_1323) ?? 0f;
@@ -99,8 +100,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationConfig(CombatType.PvP, Name = "Emergency Healing")]
     private bool EmergencyHealing { get; set; } = false;
 
-    [RotationConfig(CombatType.PvP, Name = "Use Purify")]
-    public bool UsePurifyPvP { get; set; } = false;
     #endregion Rotation Config
 
     #region oGCD Logic
@@ -132,14 +131,14 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        // Eagle Eye Shot
-        if (UseEagleEyeShot(out act))
+        // Bravery
+        if (BraveryPvP.CanUse(out act) && BraveryPvP.Info.IsOnSlot && NumberOfAllHostilesInRange > 0 && nextGCD.IsTheSameTo(false, ActionID.FullMetalFieldPvP, ActionID.DrillPvP, (ActionID)29415, ActionID.ChainSawPvP))
         {
             return true;
         }
 
-        // Bravery
-        if (BraveryPvP.CanUse(out act) && BraveryPvP.Info.IsOnSlot && NumberOfAllHostilesInRange > 0 && nextGCD.IsTheSameTo(false, ActionID.FullMetalFieldPvP, ActionID.DrillPvP, (ActionID)29415, ActionID.ChainSawPvP))
+        // wildfire
+        if (nextGCD.IsTheSameTo(false, FullMetalFieldPvP) && WildfirePvP.CanUse(out act))
         {
             return true;
         }
@@ -165,8 +164,8 @@ public sealed class KirboMCHPvp : MachinistRotation
             }
         }
 
-        // wildfire
-        if (nextGCD.IsTheSameTo(false, FullMetalFieldPvP) && WildfirePvP.CanUse(out act))
+        // Eagle Eye Shot
+        if (UseEagleEyeShot(out act))
         {
             return true;
         }
@@ -226,10 +225,10 @@ public sealed class KirboMCHPvp : MachinistRotation
         //}
 
         // Eagle Eye Shot
-        if (UseEagleEyeShot(out act))
-        {
-            return true;
-        }
+        //if (UseEagleEyeShot(out act))
+        //{
+        //    return true;
+        //}
 
         // early analysis
         if (UseEarlyAnalysis(out act))
@@ -243,6 +242,11 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
+        // FullMetalField
+        if (!IsPvPOverheated && FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
+        {
+            return true;
+        }
 
         // Drill
         if (!IsPvPOverheated && DrillPvP.CanUse(out act, usedUp: true) && Player.HasStatus(true, StatusID.DrillPrimed))
@@ -269,12 +273,6 @@ public sealed class KirboMCHPvp : MachinistRotation
             {
                 return true;
             }
-        }
-
-        // FullMetalField
-        if (!IsPvPOverheated && FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
-        {
-            return true;
         }
 
         // Scattergun is used if Player is not overheated and available
@@ -381,67 +379,6 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
         act = null;
         return false;
-    }
-
-    // Purify logic
-    private bool DoPurify(out IAction? action)
-    {
-        action = null;
-
-        if (!UsePurifyPvP)
-        {
-            return false;
-        }
-
-        List<int> purifiableStatusesIDs = new()
-        {
-          //1343, // Stun (Gets cleansed right before debuff falls off. When Purify is used manually it can be used immediately after player gets stunned)
-            1344, // Heavy
-            1345, // Bind
-            1347, // Silence
-            3219, // Deep Freeze
-            3085  // Miracle of Nature
-        };
-
-        // Bail early if no purifiable status is present
-        if (Player != null && !purifiableStatusesIDs.Any(id => Player.HasStatus(false, (StatusID)id)))
-        {
-            return false;
-        }
-
-        // Basic resource info
-        uint currentHP = Player?.CurrentHp ?? 0;
-        uint maxHP = Player?.MaxHp ?? 0;
-        uint currentMP = Player?.CurrentMp ?? 0;
-        uint maxMP = Player?.MaxMp ?? 0;
-
-        const int purifyCost = 2500;
-        const int recuperateCost = 2500;
-
-        // HP % thresholds
-        double hpPercent = (double)currentHP / maxHP;
-
-        // Decision logic:
-        // 1. If HP < 40% and you don’t have enough MP for BOTH Purify + Recuperate → skip Purify, keep MP to heal
-        if (hpPercent < 0.40 && currentMP < recuperateCost * 2)
-        {
-            return false;
-        }
-
-        // 2. If HP is very low (<25%), always prioritize saving for Recuperate
-        if (hpPercent < 0.25 && currentMP < recuperateCost + purifyCost)
-        {
-            return false;
-        }
-
-        // 3. Only use Purify if MP >= Purify cost
-        if (currentMP < purifyCost)
-        {
-            return false;
-        }
-
-        // 4. If all checks pass, we can use Purify
-        return PurifyPvP.CanUse(out action);
     }
 
     // Checks if player has Guard
