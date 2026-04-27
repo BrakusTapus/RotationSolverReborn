@@ -115,10 +115,10 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        if (DoPurify(out act))
-        {
-            return true;
-        }
+        //if (DoPurify(out act))
+        //{
+        //    return true;
+        //}
 
         if (EmergencyHealing && EmergencyLowHP(out act))
         {
@@ -220,10 +220,10 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        if (DoPurify(out act))
-        {
-            return true;
-        }
+        //if (DoPurify(out act))
+        //{
+        //    return true;
+        //}
 
         // Eagle Eye Shot
         if (UseEagleEyeShot(out act))
