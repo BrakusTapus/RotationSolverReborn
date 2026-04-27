@@ -1959,8 +1959,14 @@ public partial class RotationConfigWindow : Window
 		];
 
 		// Check if "Boss Mod" and "BossMod Reborn" are enabled
-		bool isBossModEnabled = pluginsToCheck.Any(plugin => plugin.Name == "Boss Mod" && plugin.IsEnabled);
-		bool isBossModRebornEnabled = pluginsToCheck.Any(plugin => plugin.Name == "BossModReborn" && plugin.IsEnabled);
+		bool isBossModEnabled = false;
+		bool isBossModRebornEnabled = false;
+		foreach (var plugin in pluginsToCheck)
+		{
+			if (plugin.Name == "Boss Mod" && plugin.IsEnabled) isBossModEnabled = true;
+			if (plugin.Name == "BossModReborn" && plugin.IsEnabled) isBossModRebornEnabled = true;
+			if (isBossModEnabled && isBossModRebornEnabled) break;
+		}
 
 		// Iterate through the list and check if each plugin is installed and enabled
 		foreach (AutoDutyPlugin plugin in pluginsToCheck)
@@ -2954,6 +2960,7 @@ public partial class RotationConfigWindow : Window
 					ImGui.Text("Can Use: " + action.CanUse(out _));
 					ImGui.Spacing();
 					ImGui.Text("ID: " + action.Info.ID);
+					ImGui.Text("Cast Type: " + action.Info.CastType);
 					ImGui.Text("GCDSingleHeal: " + action.Config.GCDSingleHeal);
 					ImGui.Text("MinHPPercent: " + action.MinHPPercent);
 					ImGui.Text("AdjustedID: " + Service.GetAdjustedActionId(action.Info.ID));
@@ -2968,7 +2975,6 @@ public partial class RotationConfigWindow : Window
 					ImGui.Text("StatusFromSelf: " + action.Setting.StatusFromSelf);
 					ImGui.Text("Is Real GCD: " + action.Info.IsRealGCD);
 					ImGui.Text("Is PvP Action: " + action.Info.IsPvP);
-					ImGui.Text("Cast Type: " + action.Info.CastType);
 
 					// Ensure ActionManager.Instance() is not null and action.AdjustedID is valid
 					if (ActionManager.Instance() != null && action.AdjustedID != 0)
@@ -2992,7 +2998,9 @@ public partial class RotationConfigWindow : Window
 					ImGui.Text($"Charges: {action.Cooldown.CurrentCharges} / {action.Cooldown.MaxCharges}");
 
 					ImGui.Text("IgnoreCastCheck:" + action.CanUse(out _, skipCastingCheck: true));
-					ImGui.Text("Target Name: " + action.Target.Target?.Name ?? string.Empty);
+						action.CanUse(out _, skipCastingCheck: true, skipStatusProvideCheck: true, skipTargetStatusNeedCheck: true, skipAoeCheck: true);
+						ImGui.Text("Target Name: " + action.Target.Target?.Name ?? string.Empty);
+						ImGui.Text("AffectedTarget Count: " + (action.Target.AffectedTargets?.Length ?? 0));
 				}
 				catch (Exception ex)
 				{

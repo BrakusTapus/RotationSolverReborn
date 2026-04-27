@@ -919,6 +919,7 @@ public partial class BlueMageRotation
 		setting.AttackTypeOverride = AttackType.Magic;
 		setting.AspectOverride = Aspect.Ice;
 		setting.StatusNeed = [StatusID.TouchOfFrost];
+		setting.RequiredBluSlotActionId = 23267; // ColdFogPvE
 		setting.TargetStatusProvide = [StatusID.DeepFreeze_1731];
 	}
 
@@ -988,7 +989,8 @@ public partial class BlueMageRotation
 	{
 		setting.AttackTypeOverride = AttackType.Magic;
 		setting.AspectOverride = Aspect.Water;
-		setting.StatusProvide = [StatusID.AuspiciousTrance];
+		setting.StatusNeed = [StatusID.AuspiciousTrance];
+		setting.RequiredBluSlotActionId = 23273; // ChelonianGatePvE
 		setting.IsFriendly = false;
 		setting.CreateConfig = () => new ActionConfig()
 		{
@@ -1133,6 +1135,19 @@ public partial class BlueMageRotation
 		setting.IsFriendly = false;
 		setting.ActionCheck = () => !IsMoving;
 		setting.StatusProvide = [StatusID.PhantomFlurry];
+		setting.CreateConfig = () => new ActionConfig()
+		{
+			AoeCount = 1,
+		};
+	}
+
+	static partial void ModifyPhantomFlurryPvE_23289(ref ActionSetting setting)
+	{
+		setting.AttackTypeOverride = AttackType.Physical;
+		setting.AspectOverride = Aspect.Blunt;
+		setting.IsFriendly = false;
+		setting.ActionCheck = () => !IsMoving;
+		setting.StatusNeed = [StatusID.PhantomFlurry];
 		setting.CreateConfig = () => new ActionConfig()
 		{
 			AoeCount = 1,

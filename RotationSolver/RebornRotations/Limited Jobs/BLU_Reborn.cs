@@ -11,6 +11,9 @@ public sealed class BLU_Reborn : BlueMageRotation
 	[RotationConfig(CombatType.PvE, Name = "Use Mighty Guard")]
 	public bool UseMightyGuard { get; set; } = true;
 
+	[RotationConfig(CombatType.PvE, Name = "Spam Gobskin, keeping its status active")]
+	public bool GobskinSpam { get; set; } = true;
+
 	[RotationConfig(CombatType.PvE, Name = "Use Transfusion to heal")]
 	public bool UseTransfusion { get; set; } = false;
 
@@ -112,6 +115,21 @@ public sealed class BLU_Reborn : BlueMageRotation
 			{
 				return true;
 			}
+		}
+
+		if (SeaShantyPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (PhantomFlurryPvE_23289.CanUse(out act) && StatusHelper.PlayerWillStatusEnd(1, true, StatusID.PhantomFlurry))
+		{
+			return true;
+		}
+
+		if (PhantomFlurryPvE.CanUse(out act))
+		{
+			return true;
 		}
 
 		if (FeatherRainPvE.CanUse(out act))
@@ -297,6 +315,11 @@ public sealed class BLU_Reborn : BlueMageRotation
 	protected override bool GeneralGCD(out IAction? act)
 	{
 		if (IsTank && DivineCataractPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (GobskinSpam && GobskinPvE.CanUse(out act))
 		{
 			return true;
 		}
@@ -661,7 +684,7 @@ public sealed class BLU_Reborn : BlueMageRotation
 			}
 		}
 
-		if (TheDragonsVoicePvE.CanUse(out act, skipAoeCheck: TheRamsVoicePvE.Info.IsOnSlot, skipStatusNeed: !TheRamsVoicePvE.Info.IsOnSlot))
+		if (TheDragonsVoicePvE.CanUse(out act, skipTargetStatusNeedCheck: !TheRamsVoicePvE.Info.IsOnSlot))
 		{
 			return true;
 		}
@@ -677,6 +700,11 @@ public sealed class BLU_Reborn : BlueMageRotation
 		}
 
 		if (ChocoMeteorPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (MaledictionOfWaterPvE.CanUse(out act))
 		{
 			return true;
 		}
