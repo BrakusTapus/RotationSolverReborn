@@ -1110,8 +1110,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                         return OpenerController(IsLastAbility(false, CheckmatePvE), CheckmatePvE.CanUse(out act, usedUp: true, skipAoeCheck: true));
 
                     case 11:
-                        // Only proceed if WeaponRemain is between 0.6s and 0.8s
-                        if (WeaponRemain >= 0.59f && WeaponRemain <= 0.80f)
+                        // Only proceed if WeaponRemain is between 0.6s and 0.9s
+                        if (WeaponRemain >= 0.59f && WeaponRemain <= 0.90f)
                         {
                             return OpenerController(IsLastAbility(false, WildfirePvE), WildfirePvE.CanUse(out act));
                         }
