@@ -326,7 +326,8 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             {
                 if (Heat >= 50 || HasHypercharged)
                 {
-                    if (WeaponRemain < (GCDTime(1) / 2)) //TODO maybe change weaponremain to check against wildfire's animation lock
+                    //if (WeaponRemain < (GCDTime(1) / 2)) //TODO maybe change weaponremain to check against wildfire's animation lock
+                    if (CanWeave && WeaponRemain <= 0.9f && WeaponRemain >= 0.65f)
                     {
                         if (nextGCD.IsTheSameTo(false, FullMetalFieldPvE) || IsLastGCD(false, FullMetalFieldPvE)) // NOTE: added islastGCD check
                         {
