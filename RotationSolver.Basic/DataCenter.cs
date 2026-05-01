@@ -419,9 +419,16 @@ internal static class DataCenter
 	#region Territory Info Tracking
 
 	public static Data.TerritoryInfo? Territory { get; set; }
-	public static ushort TerritoryID => Svc.ClientState.TerritoryType;
+	public static uint TerritoryID => (ushort)Svc.ClientState.TerritoryType;
 
 	public static bool IsPvP => Territory?.IsPvP ?? false;
+
+	/// <summary>
+	/// When set to <c>true</c> by an external plugin via IPC, the TargetFreely behaviour is
+	/// activated for the current session without modifying the user's <c>TargetFreely</c>
+	/// config value.  Reset to <c>false</c> by calling the corresponding IPC method.
+	/// </summary>
+	public static bool TargetFreelyOverride { get; set; }
 
 	public static bool IsInMaskedCarnivale => Territory?.ContentType == TerritoryContentType.TheMaskedCarnivale;
 
@@ -433,7 +440,7 @@ internal static class DataCenter
 		{
 			ushort[] allianceTerritoryIds =
 			[
-				151, 174, 372, 508, 556, 627, 734, 776, 826, 882, 917, 966, 1054, 1118, 1178, 1248, 1241
+				151, 174, 372, 508, 556, 627, 734, 776, 826, 882, 917, 966, 1054, 1118, 1178, 1248, 1304, 1368
 			];
 
 			for (int i = 0; i < allianceTerritoryIds.Length; i++)
@@ -446,6 +453,14 @@ internal static class DataCenter
 		}
 	}
 
+	public static bool IsInTerritory(ushort territoryId)
+	{
+		return TerritoryID == territoryId;
+	}
+
+	#endregion
+
+	#region Ultimate
 	public static bool IsInUCoB => TerritoryID == 733;
 	public static bool IsInUwU => TerritoryID == 777;
 	public static bool IsInTEA => TerritoryID == 887;
@@ -453,18 +468,17 @@ internal static class DataCenter
 	public static bool IsInTOP => TerritoryID == 1122;
 	public static bool IsInFRU => TerritoryID == 1238;
 	public static bool IsInCOD => TerritoryID == 1241;
+	#endregion
 
+	#region Savage
 	public static bool IsInM9S => TerritoryID == 1321;
 	public static bool IsInM10S => TerritoryID == 1323;
 	public static bool IsInM11S => TerritoryID == 1327;
 	public static bool IsInM12S => TerritoryID == 1325;
+	#endregion
 
-
-	public static bool IsInTerritory(ushort territoryId)
-	{
-		return TerritoryID == territoryId;
-	}
-
+	#region Alliance Raid
+	public static bool IsInWindurst => TerritoryID == 1368;
 	#endregion
 
 	#region FATE
@@ -579,6 +593,47 @@ internal static class DataCenter
 	#endregion
 
 	#region Misc Duty Info
+
+	/// <summary>
+	///
+	/// </summary>
+	public static bool IsInEurekaFieldOp => Territory?.ContentType == TerritoryContentType.Eureka;
+
+	/// <summary>
+	///
+	/// </summary>
+	public static bool IsInDeepDungeons => Territory?.ContentType == TerritoryContentType.DeepDungeons;
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsInPilgrimsTraverse => IsInTerritory(1281) 
+	|| IsInTerritory(1282) || IsInTerritory(1283) 
+	|| IsInTerritory(1284) || IsInTerritory(1285) 
+	|| IsInTerritory(1286) || IsInTerritory(1287) 
+	|| IsInTerritory(1288) || IsInTerritory(1289) 
+	|| IsInTerritory(1290);
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsInPalaceOfTheDead => IsInTerritory(561)
+	|| IsInTerritory(562) || IsInTerritory(563)
+	|| IsInTerritory(564) || IsInTerritory(565)
+	|| IsInTerritory(593) || IsInTerritory(594)
+	|| IsInTerritory(595) || IsInTerritory(596)
+	|| IsInTerritory(597) || IsInTerritory(598)
+	|| IsInTerritory(599) || IsInTerritory(600)
+	|| IsInTerritory(601) || IsInTerritory(602)
+	|| IsInTerritory(603) || IsInTerritory(604)
+	|| IsInTerritory(605) || IsInTerritory(606)
+	|| IsInTerritory(607);
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsInTheFinalVerse => IsInTerritory(1311) || IsInTerritory(1333);
+
 	/// <summary>
 	/// Determines if the current content is a Monster Hunter duty
 	/// </summary>
@@ -662,6 +717,11 @@ internal static class DataCenter
 	{
 		get
 		{
+			if (CurrentRotation is BlueMageRotation)
+			{
+				return BlueMageRotation.Role;
+			}
+
 			ClassJob classJob = Service.GetSheet<ClassJob>().GetRow((uint)Job);
 			return classJob.RowId != 0 ? classJob.GetJobRole() : JobRole.None;
 		}

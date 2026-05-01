@@ -205,6 +205,11 @@ internal partial class Configs : IPluginConfiguration
 	Filter = DutySpecifcAlliance)]
 	private static readonly bool _jeunoBossImmune = true;
 
+	[ConditionBool, UI("Windurst: The Third Walk - Alexander Resurrected logic.",
+	Description = "Treat Alexander and/or Gordius Systems as immune if they have Perfect Defense.",
+	Filter = DutySpecifcAlliance)]
+	private static readonly bool _alexanderImmune = true;
+
 	[ConditionBool, UI("Cloud of Darkness - Ads phase logic.",
 	Description = "Treat Cloud of Darkness/Stygian as immune if you don't have corresponding buff.",
 	Filter = DutySpecifcChaoticAlliance)]
@@ -1103,7 +1108,7 @@ internal partial class Configs : IPluginConfiguration
 		Filter = TargetConfig, Section = 3)]
 	private static readonly bool _switchTargetFriendly2 = false;
 
-	[ConditionBool, UI("Set target to closest targetable enemy if no valid action target nearby and target not set (This works in Manual mode as well)",
+	[ConditionBool, UI("Set target to closest targetable enemy if no valid action target nearby and target not set while in combat (This works in Manual mode as well)",
 		Filter = TargetConfig, Section = 3)]
 	private static readonly bool _targetFreely = false;
 
