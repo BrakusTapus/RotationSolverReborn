@@ -609,7 +609,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
         ImGui.Text($"width: {availableWidth}");
-        using (ImRaii.IEndObject child1 = ImRaii.Child("rotationinfo", new Vector2(((availableWidth / 2)), 500), true, ImGuiWindowFlags.NoScrollbar))
+        using (var child1 = ImRaii.Child("rotationinfo", new Vector2(((availableWidth / 2)), 500), true, ImGuiWindowFlags.NoScrollbar))
         {
             if (child1.Success)
             {
@@ -689,7 +689,7 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             }
         }
         ImGui.SameLine();
-        using (ImRaii.IEndObject child2 = ImRaii.Child("actioninfo", new Vector2(((availableWidth / 2) - 20), 500), true, ImGuiWindowFlags.NoScrollbar))
+        using (var child2 = ImRaii.Child("actioninfo", new Vector2(((availableWidth / 2) - 20), 500), true, ImGuiWindowFlags.NoScrollbar))
         {
             if (child2.Success)
             {

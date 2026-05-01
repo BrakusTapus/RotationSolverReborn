@@ -1647,7 +1647,7 @@ public sealed class MchKirboBeta : MachinistRotation
             foreach (IBattleChara item in CustomRotation.AllTargets)
             {
                 //if (item.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc) continue;
-                if (item.SubKind != ((byte)Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind.Enemy)) continue;
+                if (item.SubKind != ((byte)Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind.Combatant)) continue;
                 if (item.Name.ToString() == string.Empty) continue;
                 ImGui.Text(item.Name.ToString());
                 ImGui.SameLine();

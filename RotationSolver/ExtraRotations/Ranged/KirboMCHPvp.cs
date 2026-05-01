@@ -390,7 +390,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     // Checks if an object is a player character
     private static bool IsPlayerCharacter(IBattleChara battleChara)
     {
-        return battleChara.GetObjectKind() == ObjectKind.Player;
+        return battleChara.GetObjectKind() == ObjectKind.Pc;
     }
 
     // Checks amount of enemies targeting player
@@ -800,7 +800,7 @@ public sealed class KirboMCHPvp : MachinistRotation
     public override void DisplayRotationStatus()
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
-        using (ImRaii.IEndObject child = ImRaii.Child("playerinfo", new Vector2((availableWidth / 2), 200), true))
+        using (var child = ImRaii.Child("playerinfo", new Vector2((availableWidth / 2), 200), true))
         {
             if (child.Success)
             {
@@ -877,7 +877,7 @@ public sealed class KirboMCHPvp : MachinistRotation
             }
         }
         ImGui.SameLine();
-        using (ImRaii.IEndObject child2 = ImRaii.Child("targetinfo", new Vector2(((availableWidth / 2) - 20), 200), true))
+        using (var child2 = ImRaii.Child("targetinfo", new Vector2(((availableWidth / 2) - 20), 200), true))
         {
             if (child2.Success)
             {
