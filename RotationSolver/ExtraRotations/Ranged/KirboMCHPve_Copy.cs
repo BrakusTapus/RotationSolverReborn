@@ -118,8 +118,17 @@ public sealed class KirboMchPve_Copy : MachinistRotation
             {
                 if (AirAnchorPvE.CanUse(out IAction? act))
                 {
-                    if (!OpenerInProgress)
+                    if (!OpenerInProgress && OpenerAvailable)
                     {
+                        //List<IBattleChara> partyMembers = DataCenter.PartyMembers;
+                        //if (partyMembers.Count != 0)
+                        //{
+
+                        //}
+                        if (IsFullParty)
+                        {
+                            Chat.ExecuteCommand("/action airanchor");
+                        }
                         BeginOpener();
                         return act;
                     }
