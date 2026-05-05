@@ -673,7 +673,7 @@ public partial class RotationConfigWindow : Window
 				}
 				else
 				{
-					if (ImGui.Selectable(displayName, _activeTab == item, ImGuiSelectableFlags.None, new Vector2(0, 20)))
+					if (ImGui.Selectable(displayName, _activeTab == item, ImGuiSelectableFlags.None, new Vector2(0, 20) * Scale))
 					{
 						_activeTab = item;
 						_searchResults = [];
