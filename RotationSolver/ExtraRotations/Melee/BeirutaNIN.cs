@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Melee;
 
-[Rotation("BeirutaNIN", CombatType.PvE, GameVersion = "7.45")]
+[Rotation("BeirutaNIN", CombatType.PvE, GameVersion = "7.5")]
 [SourceCode(Path = "main/ExtraRotations/Melee/BeirutaNIN.cs")]
 public sealed class BeirutaNIN : NinjaRotation
 {
@@ -27,6 +27,10 @@ public sealed class BeirutaNIN : NinjaRotation
 	"• Burst delay optimization: only do fillers and prevent mudra cap when delaying. when renable burst (Huton/Suiton - Kassatsu - Dokumori - Kunai's Bane - TCJ)\n" +
 	"• Uses explicit AoE target counting for actions around targets/self\n")]
 	public bool RotationNotes { get; set; } = true;
+
+	[Range(3f, 5f, ConfigUnitType.Seconds, 0.1f)]
+	[RotationConfig(CombatType.PvE, Name = "Countdown Suiton queue time (change this to 5 if you can trust your teamm. Or it should be 4 or 3 to prevent 5s countdown bait)")]
+	public float CountdownSuitonQueueTime { get; set; } = 4f;
 
 	[RotationConfig(CombatType.PvE, Name = "Use Raiton/Katon for uptime while disengaged (Moving one raiton/katon from 60s for uptime)")]
 	public bool UseRaitonDisengageFallback { get; set; } = true;
@@ -164,7 +168,6 @@ public sealed class BeirutaNIN : NinjaRotation
 		HasKassatsu &&
 		!InBurstPhase &&
 		!IsExecutingMudra;
-
 	#endregion
 
 	#region Tiny Helpers
@@ -224,6 +227,14 @@ public sealed class BeirutaNIN : NinjaRotation
 		 JinPvE.CanUse(out _) &&
 		 DotonPvE.IsEnabled &&
 		 JinPvE.Info.IsQuestUnlocked());
+
+	private new static bool EnoughWeaveTime =>
+	WeaponRemain > DataCenter.CalculatedActionAhead && WeaponRemain < WeaponTotal;
+
+	private new static float LateWeaveWindow => WeaponTotal * 0.4f;
+
+	private new static bool CanLateWeave =>
+	WeaponRemain <= LateWeaveWindow && EnoughWeaveTime;
 
 	#endregion
 
@@ -584,7 +595,6 @@ public sealed class BeirutaNIN : NinjaRotation
 
 		if (CombatElapsedLess(BurstBuffOpenTiming)) return false;
 
-		if (CombatElapsedLess(BurstBuffOpenTiming)) return false;
 
 		if (RequireLateWeaveForBurstBuff && !CanLateWeave) return false;
 
@@ -641,7 +651,7 @@ public sealed class BeirutaNIN : NinjaRotation
 			return act == SuitonPvE && remainTime > CountDownAhead ? null : act;
 		}
 
-		if (remainTime < 5)
+		if (remainTime < CountdownSuitonQueueTime)
 		{
 			SetNinjutsu(SuitonPvE);
 		}

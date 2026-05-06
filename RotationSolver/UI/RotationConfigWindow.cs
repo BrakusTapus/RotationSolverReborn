@@ -487,6 +487,14 @@ public partial class RotationConfigWindow : Window
 			_ = diagInfo.AppendLine($"MoveModeSetting: {moveModeText}");
 		}
 
+		string? lastFrame = ActionTracer.LastFrameSummary;
+		if (!string.IsNullOrEmpty(lastFrame))
+		{
+			_ = diagInfo.AppendLine();
+			_ = diagInfo.AppendLine("Last Action Tracer Frame:");
+			_ = diagInfo.Append(lastFrame);
+		}
+
 		// Ensure that IncompatiblePlugins is not null
 		IncompatiblePlugin[] incompatiblePlugins = DownloadHelper.IncompatiblePlugins ?? [];
 
@@ -665,7 +673,7 @@ public partial class RotationConfigWindow : Window
 				}
 				else
 				{
-					if (ImGui.Selectable(displayName, _activeTab == item, ImGuiSelectableFlags.None, new Vector2(0, 20)))
+					if (ImGui.Selectable(displayName, _activeTab == item, ImGuiSelectableFlags.None, new Vector2(0, 20) * Scale))
 					{
 						_activeTab = item;
 						_searchResults = [];
@@ -2260,12 +2268,12 @@ public partial class RotationConfigWindow : Window
 	}
 
 	/// <summary>
-/// Checks if a rotation config should be visible based on parent-child relationships.
-/// A config is visible only if all ancestors in its parent chain are visible and its direct parent condition matches.
-/// </summary>
-/// <param name="config">The configuration to check.</param>
-/// <param name="configSet">The set of all configurations.</param>
-/// <returns>True if the config should be shown, false otherwise.</returns>
+	/// Checks if a rotation config should be visible based on parent-child relationships.
+	/// A config is visible only if all ancestors in its parent chain are visible and its direct parent condition matches.
+	/// </summary>
+	/// <param name="config">The configuration to check.</param>
+	/// <param name="configSet">The set of all configurations.</param>
+	/// <returns>True if the config should be shown, false otherwise.</returns>
 	private static bool ShouldShowRotationConfig(IRotationConfig config, IRotationConfigSet configSet)
 	{
 		return ShouldShowRotationConfigInternal(config, configSet, new HashSet<string>(StringComparer.Ordinal));
@@ -2315,8 +2323,8 @@ public partial class RotationConfigWindow : Window
 					}
 
 					if (parentConfig.Value == null ||
-					    !string.Equals(parentConfig.Value.Trim(), parentValueStr?.Trim(),
-						    StringComparison.OrdinalIgnoreCase))
+						!string.Equals(parentConfig.Value.Trim(), parentValueStr?.Trim(),
+							StringComparison.OrdinalIgnoreCase))
 					{
 						visiting.Remove(config.Name);
 						return false;
@@ -3878,6 +3886,59 @@ public partial class RotationConfigWindow : Window
 	{
 		_allSearchable.DrawItems(Configs.Debug);
 
+		{
+			string? tracePath = ActionTracer.CurrentFilePath;
+			bool hasFile = !string.IsNullOrEmpty(tracePath) && File.Exists(tracePath);
+			bool hasAnyData = hasFile
+				|| !string.IsNullOrEmpty(ActionTracer.LastFrameSummary)
+				|| ActionTracer.HasAnyTraceFiles();
+
+			if (!hasFile)
+			{
+				ImGui.BeginDisabled();
+			}
+			if (ImGui.Button("Open Action Trace File"))
+			{
+				try
+				{
+					_ = Process.Start("explorer.exe", $"\"{tracePath}\"");
+				}
+				catch (Exception ex)
+				{
+					PluginLog.Warning($"Failed to open trace file: {ex.Message}");
+				}
+			}
+			if (!hasFile)
+			{
+				ImGui.EndDisabled();
+			}
+			if (ImGui.IsItemHovered())
+			{
+				ImGui.SetTooltip(hasFile
+					? tracePath
+					: "No trace file yet — enable the tracer and enter combat to create one.");
+			}
+
+			ImGui.SameLine();
+
+			if (!hasAnyData)
+			{
+				ImGui.BeginDisabled();
+			}
+			if (ImGui.Button("Clear Trace"))
+			{
+				ActionTracer.ClearTrace();
+			}
+			if (!hasAnyData)
+			{
+				ImGui.EndDisabled();
+			}
+			if (ImGui.IsItemHovered())
+			{
+				ImGui.SetTooltip("Delete every actiontrace_*.log file in the Traces folder and clear the buffered last-frame data.");
+			}
+		}
+
 		if (!Player.Available || !Service.Config.InDebug)
 		{
 			return;
@@ -4059,13 +4120,34 @@ public partial class RotationConfigWindow : Window
 
 		ImGui.Spacing();
 		ImGui.Text($"Statuses:");
-		foreach (Dalamud.Game.ClientState.Statuses.IStatus status in Player.Object.StatusList)
+		using var statusTable = ImRaii.Table("TargetStatusTable", 5,
+			ImGuiTableFlags.BordersInner | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp | ImGuiTableFlags.ScrollY,
+			new Vector2(0, 200 * Scale));
+		if (statusTable)
 		{
-			string source = status.SourceId == Player.Object.GameObjectId ? "You" : Svc.Objects.SearchById(status.SourceId) == null ? "None" : "Others";
-			byte stacks = Player.Object.StatusStack(true, (StatusID)status.StatusId);
-			string stackDisplay = stacks == byte.MaxValue ? "N/A" : stacks.ToString(); // Convert 255 to "N/A"
-			string timeDisplay = status.RemainingTime <= 0f ? "Perm" : $"{status.RemainingTime:F1}s";
-			ImGui.Text($"{status.GameData.Value.Name}: {status.StatusId} From: {source} Stacks: {stackDisplay} Time: {timeDisplay}");
+			ImGui.TableSetupScrollFreeze(0, 1);
+			ImGui.TableSetupColumn("Name");
+			ImGui.TableSetupColumn("ID");
+			ImGui.TableSetupColumn("Source");
+			ImGui.TableSetupColumn("Stacks");
+			ImGui.TableSetupColumn("Time");
+			ImGui.TableHeadersRow();
+
+			foreach (Dalamud.Game.ClientState.Statuses.IStatus status in Player.Object.StatusList)
+			{
+				if (Player.Object == null) continue;
+				string source = status.SourceId == Player.Object.GameObjectId ? "You" : Svc.Objects.SearchById(status.SourceId) == null ? "None" : "Others";
+				byte stacks = Player.Object.StatusStack(true, (StatusID)status.StatusId);
+				string stackDisplay = stacks == byte.MaxValue ? "N/A" : stacks.ToString();
+				string timeDisplay = status.RemainingTime <= 0f ? "Perm" : $"{status.RemainingTime:F1}s";
+
+				ImGui.TableNextRow();
+				_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(status.GameData.Value.Name.ToString());
+				_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(status.StatusId.ToString());
+				_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(source);
+				_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(stackDisplay);
+				_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(timeDisplay);
+			}
 		}
 	}
 
@@ -4175,7 +4257,7 @@ public partial class RotationConfigWindow : Window
 		ImGui.Text($"IsTyrantCastingSpecialIndicator2: {DataCenter.IsTyrantCastingSpecialIndicator2()}");
 	}
 
-	private static unsafe void DrawParty()
+	private static void DrawParty()
 	{
 		ImGui.Text($"Number of Party Members: {DataCenter.PartyMembers.Count}");
 		ImGui.Text($"Number of Alliance Members: {DataCenter.AllianceMembers.Count}");
@@ -4282,6 +4364,7 @@ public partial class RotationConfigWindow : Window
 			ImGui.Text($"HP: {battleChara.CurrentHp} / {battleChara.MaxHp}");
 			ImGui.Text($"HealthRatio: {battleChara.GetHealthRatio()}");
 			ImGui.Text($"HitboxRadius: {battleChara.HitboxRadius}");
+			ImGui.Text($"Distance To Player: {battleChara.DistanceToPlayer()}");
 			ImGui.Spacing();
 			ImGui.Text($"NamePlate Icon ID: {battleChara.GetNamePlateIcon()}");
 			ImGui.Text($"Event Type: {battleChara.GetEventType()}");
@@ -4301,20 +4384,24 @@ public partial class RotationConfigWindow : Window
 			ImGui.Spacing();
 			ImGui.Text($"FateID: {battleChara.FateId().ToString() ?? string.Empty}");
 			ImGui.Text($"EventType: {battleChara.GetEventType().ToString() ?? string.Empty}");
-			ImGui.Text($"IsBozjanCEFateMob: {battleChara.IsBozjanCEMob()}");
+			if (DataCenter.IsInBozja)
+			{
+				ImGui.Text($"IsBozjanCEFateMob: {battleChara.IsBozjanCEMob()}");
+			}
 			ImGui.Spacing();
-			ImGui.Text($"IsOccultCEMob: {battleChara.IsOccultCEMob()}");
-			ImGui.Text($"IsOccultFateMob: {battleChara.IsOccultFateMob()}");
-			ImGui.Text($"IsOCUndeadTarget: {battleChara.IsOCUndeadTarget()}");
-			ImGui.Text($"IsOCSlowgaImmuneTarget: {battleChara.IsOCSlowgaImmuneTarget()}");
-			ImGui.Text($"IsOCDoomImmuneTarget: {battleChara.IsOCDoomImmuneTarget()}");
-			ImGui.Text($"IsOCStunImmuneTarget: {battleChara.IsOCStunImmuneTarget()}");
-			ImGui.Text($"IsOCFreezeImmuneTarget: {battleChara.IsOCFreezeImmuneTarget()}");
-			ImGui.Text($"IsOCBlindImmuneTarget: {battleChara.IsOCBlindImmuneTarget()}");
-			ImGui.Text($"IsOCParalysisImmuneTarget: {battleChara.IsOCParalysisImmuneTarget()}");
-			ImGui.Spacing();
-			ImGui.Text($"IsM9SavageImmune: {battleChara.IsM9SavageImmune()}");
-			ImGui.Spacing();
+			if (DataCenter.IsInOccultCrescentOp)
+			{
+				ImGui.Text($"IsOccultCEMob: {battleChara.IsOccultCEMob()}");
+				ImGui.Text($"IsOccultFateMob: {battleChara.IsOccultFateMob()}");
+				ImGui.Text($"IsOCUndeadTarget: {battleChara.IsOCUndeadTarget()}");
+				ImGui.Text($"IsOCSlowgaImmuneTarget: {battleChara.IsOCSlowgaImmuneTarget()}");
+				ImGui.Text($"IsOCDoomImmuneTarget: {battleChara.IsOCDoomImmuneTarget()}");
+				ImGui.Text($"IsOCStunImmuneTarget: {battleChara.IsOCStunImmuneTarget()}");
+				ImGui.Text($"IsOCFreezeImmuneTarget: {battleChara.IsOCFreezeImmuneTarget()}");
+				ImGui.Text($"IsOCBlindImmuneTarget: {battleChara.IsOCBlindImmuneTarget()}");
+				ImGui.Text($"IsOCParalysisImmuneTarget: {battleChara.IsOCParalysisImmuneTarget()}");
+				ImGui.Spacing();
+			}
 			ImGui.Text($"Is Current Focus Target: {battleChara.IsFocusTarget()}");
 			ImGui.Text($"TTK: {battleChara.GetTTK()}");
 			ImGui.Text($"Is Boss TTK: {battleChara.IsBossFromTTK()}");
@@ -4331,7 +4418,6 @@ public partial class RotationConfigWindow : Window
 			ImGui.Text($"Is DPS: {battleChara.IsJobCategory(JobRole.AllDPS)}");
 			ImGui.Text($"Is Tank: {battleChara.IsJobCategory(JobRole.Tank)}");
 			ImGui.Text($"Is Alliance: {battleChara.IsAllianceMember()}");
-			ImGui.Text($"Distance To Player: {battleChara.DistanceToPlayer()}");
 			ImGui.Text($"CanProvoke: {battleChara.CanProvoke()}");
 			ImGui.Text($"StatusFlags: {battleChara.StatusFlags}");
 			ImGui.Text($"InView: {Svc.GameGui.WorldToScreen(battleChara.Position, out _)}");
@@ -4340,7 +4426,6 @@ public partial class RotationConfigWindow : Window
 			ImGui.Text($"BattleNPCSubKind: {battleChara.GetBattleNPCSubKind()}");
 			ImGui.Text($"Is Top Priority Hostile: {battleChara.IsTopPriorityHostile()}");
 			ImGui.Text($"Targetable: {battleChara.Struct()->Character.GameObject.TargetableStatus}");
-
 			if (DataCenter.IsInMaskedCarnivale)
 			{
 				ImGui.Spacing();
@@ -4367,12 +4452,33 @@ public partial class RotationConfigWindow : Window
 			}
 			ImGui.Spacing();
 			ImGui.Text($"Statuses:");
-			foreach (Dalamud.Game.ClientState.Statuses.IStatus status in battleChara.StatusList)
+			using var statusTable = ImRaii.Table("TargetStatusTable", 5,
+				ImGuiTableFlags.BordersInner | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp | ImGuiTableFlags.ScrollY,
+				new Vector2(0, 200 * Scale));
+			if (statusTable)
 			{
-				if (Player.Object != null)
+				ImGui.TableSetupScrollFreeze(0, 1);
+				ImGui.TableSetupColumn("Name");
+				ImGui.TableSetupColumn("ID");
+				ImGui.TableSetupColumn("Source");
+				ImGui.TableSetupColumn("Stacks");
+				ImGui.TableSetupColumn("Time");
+				ImGui.TableHeadersRow();
+
+				foreach (Dalamud.Game.ClientState.Statuses.IStatus status in battleChara.StatusList)
 				{
+					if (Player.Object == null) continue;
 					string source = status.SourceId == Player.Object.GameObjectId ? "You" : Svc.Objects.SearchById(status.SourceId) == null ? "None" : "Others";
-					ImGui.Text($"{status.GameData.Value.Name}: {status.StatusId} From: {source}");
+					byte stacks = battleChara.StatusStack(true, (StatusID)status.StatusId);
+					string stackDisplay = stacks == byte.MaxValue ? "N/A" : stacks.ToString();
+					string timeDisplay = status.RemainingTime <= 0f ? "Perm" : $"{status.RemainingTime:F1}s";
+
+					ImGui.TableNextRow();
+					_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(status.GameData.Value.Name.ToString());
+					_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(status.StatusId.ToString());
+					_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(source);
+					_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(stackDisplay);
+					_ = ImGui.TableNextColumn(); ImGui.TextUnformatted(timeDisplay);
 				}
 			}
 		}
