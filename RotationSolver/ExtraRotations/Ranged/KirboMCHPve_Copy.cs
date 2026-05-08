@@ -10,6 +10,7 @@ using ECommons.Logging;
 using RotationSolver.Basic.Configuration;
 using RotationSolver.Commands;
 using RotationSolver.Updaters;
+#pragma warning disable IDE0008 // Use explicit type
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
@@ -81,10 +82,22 @@ public sealed class KirboMchPve_Copy : MachinistRotation
         && !WildfirePvE.Cooldown.HasOneCharge
         && WildfirePvE.Cooldown.RecastTimeRemain <= 15;
 
-    private static bool IsPartyMedicated =>
-    PartyMembers?.Any(member =>
-        member?.StatusList?.Any(status => status.StatusId == (uint)StatusID.Medicated) == true
-    ) == true;
+    private static bool IsPartyMedicated
+    {
+        get
+        {
+            if (PartyMembers == null) return false;
+            foreach (var member in PartyMembers)
+            {
+                if (member?.StatusList == null) continue;
+                foreach (var status in member.StatusList)
+                {
+                    if (status.StatusId == (uint)StatusID.Medicated) return true;
+                }
+            }
+            return false;
+        }
+    }
     #endregion
 
     #region Countdown logic
