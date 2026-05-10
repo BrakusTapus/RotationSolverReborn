@@ -36,4 +36,9 @@ public sealed class KirboDummy : MachinistRotation
 
     }
 
+    public override void DisplayRotationStatus()
+    {
+        ImGui.Text($"sample text");
+    }
+
 }
