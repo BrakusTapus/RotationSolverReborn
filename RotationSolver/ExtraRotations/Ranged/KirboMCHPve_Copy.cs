@@ -109,9 +109,9 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     /// <returns></returns>
     protected override IAction? CountDownAction(float remainTime)
     {
-        if (remainTime > 3.5f && remainTime < 5f)
+        if (remainTime > 3.5f && remainTime <= 5f)
         {
-            if (!HasReassembled && ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
+            if (ReassemblePvE.CanUse(out IAction? act, usedUp: !EnhancedReassembleTrait.EnoughLevel))
             {
                 return act;
             }
@@ -133,14 +133,9 @@ public sealed class KirboMchPve_Copy : MachinistRotation
                 {
                     if (!OpenerInProgress && OpenerAvailable)
                     {
-                        //List<IBattleChara> partyMembers = DataCenter.PartyMembers;
-                        //if (partyMembers.Count != 0)
-                        //{
-
-                        //}
                         if (IsFullParty)
                         {
-                            Chat.ExecuteCommand("/action airanchor");
+                            Chat.ExecuteCommand("/action \"Air Anchor\"");
                         }
                         BeginOpener();
                         return act;
