@@ -8,7 +8,7 @@ using RotationSolver.Basic.Configuration;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
-[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.45")]
+[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.45", Disabled = true)]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
 [ExtraRotation]
 public sealed class KirboMchPve : MachinistRotation

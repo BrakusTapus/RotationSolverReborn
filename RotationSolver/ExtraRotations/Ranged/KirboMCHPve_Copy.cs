@@ -16,7 +16,7 @@ namespace RotationSolver.ExtraRotations.Ranged;
 
 [ExtraRotation]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPve.cs")]
-[Rotation("Kirbo_Copy", CombatType.PvE, GameVersion = "7.45")]
+[Rotation("Kirbo_Copy", CombatType.PvE, GameVersion = "7.45", Disabled = true)]
 public sealed class KirboMchPve_Copy : MachinistRotation
 {
     #region Config Options
