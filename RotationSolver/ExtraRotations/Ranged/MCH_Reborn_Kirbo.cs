@@ -1,6 +1,9 @@
 ﻿namespace RotationSolver.ExtraRotations.Ranged;
 
 [Rotation("Reborn Kirbo", CombatType.PvE, Description = "Lightly edited version of the default Reborn MCH rotation.", GameVersion = "7.5", Disabled = false)]
+[SourceCode(Path = "main/ExtraRotations/Ranged/MCH_Reborn_Kirbo.cs")]
+[ExtraRotation]
+
 public sealed class MCH_Reborn_Kirbo : MachinistRotation
 {
 	#region Config Options
