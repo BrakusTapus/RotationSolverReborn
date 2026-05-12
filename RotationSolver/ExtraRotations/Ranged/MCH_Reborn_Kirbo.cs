@@ -211,7 +211,7 @@ public sealed class MCH_Reborn_Kirbo : MachinistRotation
             }
         }
 
-        if (IsBurst)
+        if (IsBurst) //TODO, add "if FMF not enough level" similiar to code block below
         {
             var bmrBlockBarrel = BMRDowntimeWithin(GCDTime(2));
             if (!bmrBlockBarrel && BarrelStabilizerPvE.CanUse(out act))
@@ -228,8 +228,7 @@ public sealed class MCH_Reborn_Kirbo : MachinistRotation
             {
                 if (Heat >= 50 || HasHypercharged) //TODO need to come up with failsafe if FMF/Barrel Stabilizer is cooling down 
                 {
-                    var canlateweave = WeaponRemain <= 0.8f && CanWeave;
-                    if (canlateweave && nextGCD.IsTheSameTo(false, FullMetalFieldPvE))
+                    if (CanLateWeave && nextGCD.IsTheSameTo(false, FullMetalFieldPvE))
                     {
                         if (WildfirePvE.CanUse(out act))
                         {
