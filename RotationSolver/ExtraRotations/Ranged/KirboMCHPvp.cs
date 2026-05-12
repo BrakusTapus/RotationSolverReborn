@@ -800,7 +800,9 @@ public sealed class KirboMCHPvp : MachinistRotation
     public override void DisplayRotationStatus()
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
-        using (var child = ImRaii.Child("playerinfo", new Vector2((availableWidth / 2), 200), true))
+        float availableHeight = ImGui.GetContentRegionAvail().Y;
+        ImGui.Text($"height: {availableHeight}");
+        using (var child = ImRaii.Child("playerinfo", new Vector2((availableWidth / 2), availableHeight - 100), true, ImGuiWindowFlags.NoScrollbar))
         {
             if (child.Success)
             {
@@ -877,7 +879,7 @@ public sealed class KirboMCHPvp : MachinistRotation
             }
         }
         ImGui.SameLine();
-        using (var child2 = ImRaii.Child("targetinfo", new Vector2(((availableWidth / 2) - 20), 200), true))
+        using (var child2 = ImRaii.Child("targetinfo", new Vector2(((availableWidth / 2) - 20), availableHeight - 100), true, ImGuiWindowFlags.NoScrollbar))
         {
             if (child2.Success)
             {
