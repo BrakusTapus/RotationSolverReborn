@@ -25,7 +25,7 @@ using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
-[Rotation("KirboMCH", CombatType.PvP, GameVersion = "7.4", Description = "Kirbo's Machinist PvP Rotation!")]
+[Rotation("KirboMCH", CombatType.PvP, GameVersion = "7.5", Description = "Kirbo's Machinist PvP Rotation!")]
 [SourceCode(Path = "main/ExtraRotations/Ranged/KirboMCHPvp.cs")]
 [ExtraRotation]
 public sealed class KirboMCHPvp : MachinistRotation
@@ -51,14 +51,13 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
     }
 
-    private static bool IsPvPOverheated => Player != null && Player.HasStatus(true, StatusID.Overheated_3149);
-    private static float OverheatedStatusTime => Player?.StatusTime(true, StatusID.Overheated_3149) ?? 0f;
-    private static bool PlayerHasWildfire => Player != null && Player.HasStatus(true, StatusID.Wildfire_2018);
+    private static bool IsPvPOverheated => StatusHelper.PlayerHasStatus(true, StatusID.Overheated_3149);
+    private static float OverheatedStatusTime => StatusHelper.PlayerStatusTime(true, StatusID.Overheated_3149);
     private static bool PlayerHasBuffWildfire => StatusHelper.PlayerHasStatus(true, StatusID.Wildfire_2018);
-    private static float PlayerWildfireStatusTime => Player?.StatusTime(true, StatusID.Wildfire_2018) ?? 0f;
+    private static float PlayerWildfireStatusTime => StatusHelper.PlayerStatusTime(true, StatusID.Wildfire_2018);
     private static bool PvPTargetHasWildfire => CurrentTarget != null && CurrentTarget.HasStatus(true, StatusID.Wildfire_1323);
     private static float PvPTargetWildfireStatusTime => CurrentTarget?.StatusTime(true, StatusID.Wildfire_1323) ?? 0f;
-    private static float AnalysisStatusTime => Player?.StatusTime(true, StatusID.Analysis) ?? 0f;
+    private static float AnalysisStatusTime => StatusHelper.PlayerStatusTime(true, StatusID.Analysis);
     private enum LBMethod
     {
         [Description("Frontline")] Frontline,
@@ -853,7 +852,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                 ImGui.Text("Overheated StatusTime: " + OverheatedStatusTime.ToString("F2") + "s");
                 ImGui.NewLine();
 
-                ImGui.Text("PlayerHasWildfire: " + PlayerHasWildfire);
+                ImGui.Text("PlayerHasWildfire: " + PlayerHasBuffWildfire);
                 ImGui.Text("PlayerWildfireStatusTime: " + PlayerWildfireStatusTime.ToString("F2") + "s");
                 ImGui.NewLine();
 
