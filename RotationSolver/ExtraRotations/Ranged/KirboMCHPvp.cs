@@ -396,6 +396,22 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static bool EnemiesTargetingSelf(int numEnemies) => DataCenter.AllHostileTargets.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Svc.Objects.LocalPlayer?.GameObjectId) >= numEnemies;
 
     // check out the guard logic https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Autorotation/Utility/RolePvPUtility.cs#L60
+
+	private static int CountHostilesNear(Vector3 position, float radius)
+	{
+		var count = 0;
+		foreach (var hostile in AllHostileTargets)
+		{
+			if (hostile != null
+				&& hostile.CurrentHp > 0
+				&& Vector3.Distance(hostile.Position, position) <= radius)
+			{
+				count++;
+			}
+		}
+
+		return count;
+	}
     #endregion
 
     #region Limit Break
