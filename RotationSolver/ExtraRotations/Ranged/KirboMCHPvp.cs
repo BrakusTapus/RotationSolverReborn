@@ -467,23 +467,23 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         float battleHighMultiplier = 1.0f;
 
-        if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighV))
+        if (StatusHelper.PlayerHasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighV))
         {
             battleHighMultiplier = 1.50f;
         }
-        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIv))
+        else if (StatusHelper.PlayerHasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIv))
         {
             battleHighMultiplier = 1.40f;
         }
-        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIii))
+        else if (StatusHelper.PlayerHasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIii))
         {
             battleHighMultiplier = 1.30f;
         }
-        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIi))
+        else if (StatusHelper.PlayerHasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighIi))
         {
             battleHighMultiplier = 1.20f;
         }
-        else if (Player.HasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighI))
+        else if (StatusHelper.PlayerHasStatus(isFromSelf: true, statusIDs: StatusID.BattleHighI))
         {
             battleHighMultiplier = 1.10f;
         }
