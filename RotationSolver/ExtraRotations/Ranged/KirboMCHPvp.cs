@@ -418,21 +418,21 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     // check out the guard logic https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Autorotation/Utility/RolePvPUtility.cs#L60
 
-	private static int CountHostilesNear(Vector3 position, float radius)
-	{
-		var count = 0;
-		foreach (var hostile in AllHostileTargets)
-		{
-			if (hostile != null
-				&& hostile.CurrentHp > 0
-				&& Vector3.Distance(hostile.Position, position) <= radius)
-			{
-				count++;
-			}
-		}
+    private static int CountHostilesNear(Vector3 position, float radius)
+    {
+        var count = 0;
+        foreach (var hostile in AllHostileTargets)
+        {
+            if (hostile != null
+                && hostile.CurrentHp > 0
+                && Vector3.Distance(hostile.Position, position) <= radius)
+            {
+                count++;
+            }
+        }
 
-		return count;
-	}
+        return count;
+    }
     #endregion
 
     #region Limit Break
@@ -853,20 +853,66 @@ public sealed class KirboMCHPvp : MachinistRotation
                     {
                         ImGui.Image(image.Handle, Vector2.One * 24 * ImGuiHelpers.GlobalScale);
                     }
+                    ImGui.Text("Identity");
                     ImGui.Text($"Action ID: {_debugActionId}");
                     ImGui.Text($"Name: {action.Name}");
-                    ImGui.Text($"Cast Time: {action.Cast100ms * 0.1f}s");
-                    ImGui.Text($"Recast Time: {action.Recast100ms * 0.1f}s");
-                    ImGui.Text($"Range: {action.Range}");
-                    ImGui.Text($"Radius: {action.EffectRange}");
-                    ImGui.Text($"Max Charges: {action.MaxCharges}");
-                    ImGui.Text($"Class Job Category: {action.ClassJobCategory.Value.Name}");
                     ImGui.Text($"Action Category: {action.ActionCategory.Value.Name}");
+                    ImGui.Text($"Class Job: {action.ClassJob.Value.Name}");
+                    ImGui.Text($"Class Job Category: {action.ClassJobCategory.Value.Name}");
+                    ImGui.Text($"Class Job Level: {action.ClassJobLevel}");
                     ImGui.Text($"Is Player Action: {action.IsPlayerAction}");
-                    //ImGui.Text($"");
-                    //ImGui.Text($"");
-                    //ImGui.Text($"");
-                    //ImGui.Text($"");
+                    ImGui.Text($"Is Role Action: {action.IsRoleAction}");
+                    ImGui.Text($"Is PvP: {action.IsPvP}");
+                    ImGui.Text($"Equivalence Group: {action.EquivalenceGroup}");
+
+                    ImGui.Text("Timing");
+                    ImGui.Text($"Cast Time: {action.Cast100ms * 0.1f}s");
+                    ImGui.Text($"Extra Cast Time: {action.ExtraCastTime100ms * 0.1f}s");
+                    ImGui.Text($"Recast Time: {action.Recast100ms * 0.1f}s");
+                    ImGui.Text($"Cooldown Group: {action.CooldownGroup}");
+                    ImGui.Text($"Additional Cooldown Group: {action.AdditionalCooldownGroup}");
+                    ImGui.Text($"Max Charges: {action.MaxCharges}");
+
+                    ImGui.Text("Targeting");
+                    ImGui.Text($"Range: {action.Range}");
+                    ImGui.Text($"Effect Range (Radius): {action.EffectRange}");
+                    ImGui.Text($"X Axis Modifier: {action.XAxisModifier}");
+                    ImGui.Text($"Cast Type: {action.CastType}");
+                    ImGui.Text($"Target Area: {action.TargetArea}");
+                    ImGui.Text($"Can Target Self: {action.CanTargetSelf}");
+                    ImGui.Text($"Can Target Party: {action.CanTargetParty}");
+                    ImGui.Text($"Can Target Alliance: {action.CanTargetAlliance}");
+                    ImGui.Text($"Can Target Hostile: {action.CanTargetHostile}");
+                    ImGui.Text($"Can Target Ally: {action.CanTargetAlly}");
+                    ImGui.Text($"Can Target Own Pet: {action.CanTargetOwnPet}");
+                    ImGui.Text($"Can Target Party Pet: {action.CanTargetPartyPet}");
+                    ImGui.Text($"Dead Target Behaviour: {action.DeadTargetBehaviour}");
+                    ImGui.Text($"Requires Line of Sight: {action.RequiresLineOfSight}");
+                    ImGui.Text($"Need to Face Target: {action.NeedToFaceTarget}");
+
+                    ImGui.Text("Behaviour");
+                    ImGui.Text($"Behaviour Type: {action.BehaviourType}");
+                    ImGui.Text($"Auto Attack Behaviour: {action.AutoAttackBehaviour}");
+                    ImGui.Text($"Attack Type: {action.AttackType.Value.Name}");
+                    ImGui.Text($"Aspect: {action.Aspect}");
+                    ImGui.Text($"Affects Position: {action.AffectsPosition}");
+                    ImGui.Text($"Preserves Combo: {action.PreservesCombo}");
+                    ImGui.Text($"Can Use While Mounted: {action.CanUseWhileMounted}");
+
+                    ImGui.Text("Costs");
+                    ImGui.Text($"Primary Cost Type: {action.PrimaryCostType}");
+                    ImGui.Text($"Primary Cost Value: {action.PrimaryCostValue}");
+                    ImGui.Text($"Secondary Cost Type: {action.SecondaryCostType}");
+
+                    ImGui.Text("Refs");
+                    ImGui.Text($"Action Combo: {action.ActionCombo.RowId} ({action.ActionCombo.Value.Name})");
+                    ImGui.Text($"Status Gain Self: {action.StatusGainSelf.RowId} ({action.StatusGainSelf.Value.Name})");
+                    ImGui.Text($"Action Proc Status: {action.ActionProcStatus.RowId}");
+
+                    ImGui.Text("Logging");
+                    ImGui.Text($"Log Cast Message: {action.LogCastMessage}");
+                    ImGui.Text($"Log Miss Message: {action.LogMissMessage}");
+                    ImGui.Text($"Log Action Message: {action.LogActionMessage}");
                     //ImGui.Text($"");
                 }
                 else
