@@ -32,6 +32,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 {
     #region Properties
 
+    #region Status tracking
     /// <summary>
     ///     Gets the current Heat Stacks.
     /// </summary>
@@ -57,7 +58,9 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static float PlayerWildfireStatusTime => StatusHelper.PlayerStatusTime(true, StatusID.Wildfire_2018);
     private static bool PvPTargetHasWildfire => CurrentTarget != null && CurrentTarget.HasStatus(true, StatusID.Wildfire_1323);
     private static float PvPTargetWildfireStatusTime => CurrentTarget?.StatusTime(true, StatusID.Wildfire_1323) ?? 0f;
+    private static bool HasAnalysis => StatusHelper.PlayerHasStatus(true, StatusID.Analysis);
     private static float AnalysisStatusTime => StatusHelper.PlayerStatusTime(true, StatusID.Analysis);
+    #endregion
     private enum LBMethod
     {
         [Description("Frontline")] Frontline,
@@ -495,6 +498,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         .Where(predicate: obj =>
                 obj.DistanceToPlayer() <= 50 &&
                 (IsPlayerCharacter(battleChara: obj) || obj.IsDummy()) &&
+                obj.CurrentMp <= 3500 &&
                 obj.ShieldPercentage <= 0 &&
                 !obj.HasStatus(isFromSelf: true, StatusID.Guard) &&
                 !obj.IsJobCategory(role: JobRole.Tank) &&
@@ -813,7 +817,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
         if (Player.HasStatus(true, StatusID.DrillPrimed) && !Player.HasStatus(true, StatusID.Analysis))
         {
-            if (AnalysisPvP.CanUse(out action))
+            if (AltAnalysisPvP.CanUse(out action))
             {
                 return true;
             }
@@ -1065,4 +1069,24 @@ public sealed class KirboMCHPvp : MachinistRotation
     */
     #endregion
 
+    #region Modified action
+    public IBaseAction AltAnalysisPvP => _AltAnalysisPvP.Value;
+
+    private static void ModifyAltAnalysisPvP(ref Basic.Actions.ActionSetting setting)
+    {
+        // Add your modifications here, for example:
+        setting.ActionCheck = () => !HasAnalysis && HasHostilesInRange;
+        setting.IsFriendly = true;
+        setting.StatusProvide = [StatusID.Analysis];
+    }
+
+    private readonly Lazy<IBaseAction> _AltAnalysisPvP = new(static delegate
+    {
+        Basic.Actions.ActionSetting setting = new BaseAction(ActionID.AnalysisPvP).Setting;
+        ModifyAltAnalysisPvP(ref setting);
+        new BaseAction(ActionID.AnalysisPvP).Setting = setting;
+        return new BaseAction(ActionID.AnalysisPvP);
+    });
+
+    #endregion
 }
