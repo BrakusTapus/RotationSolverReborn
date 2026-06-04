@@ -81,6 +81,7 @@ public sealed class MCH_Reborn_Kirbo : MachinistRotation
         && !WildfirePvE.Cooldown.HasOneCharge
         && WildfirePvE.Cooldown.RecastTimeRemain <= 15;
 
+    #region oGCD Logic
     protected override bool EmergencyAbility(IAction nextGCD, out IAction? act)
     {
         if (InCombat)
@@ -131,7 +132,6 @@ public sealed class MCH_Reborn_Kirbo : MachinistRotation
         return base.EmergencyAbility(nextGCD, out act);
     }
 
-    #region oGCD Logic
     [RotationDesc(ActionID.TacticianPvE, ActionID.DismantlePvE)]
     protected override bool DefenseAreaAbility(IAction nextGCD, out IAction? act)
     {

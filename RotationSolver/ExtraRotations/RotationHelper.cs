@@ -1,8 +1,9 @@
 ﻿using ECommons.DalamudServices;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace RotationSolver.ExtraRotations;
 
-public static unsafe class RotationHelper
+internal static unsafe class RotationHelper
 {
 
     internal static void MainUpdater()
@@ -54,6 +55,14 @@ public static unsafe class RotationHelper
 
         return maxAoeCount;
     }
+
+    #region UIState
+    public static bool IsWeaponUnsheathed()
+    {
+      return UIState.Instance()->WeaponState.IsUnsheathed;
+    }
+    #endregion
+
     #endregion
 
     #region Openers
