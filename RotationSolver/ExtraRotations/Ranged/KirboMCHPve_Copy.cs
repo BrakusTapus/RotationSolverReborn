@@ -432,15 +432,15 @@ public sealed class KirboMchPve_Copy : MachinistRotation
     #endregion
 
     #region GCD Logic
-    protected override bool EmergencyGCD(out IAction? act)
-    {
-        if (OpenerInProgress)
-        {
-            return Opener(out act);
-        }
+    //protected override bool EmergencyGCD(out IAction? act)
+    //{
+    //    if (OpenerInProgress)
+    //    {
+    //        return Opener(out act);
+    //    }
 
-        return base.EmergencyGCD(out act);
-    }
+    //    return base.EmergencyGCD(out act);
+    //}
 
     protected override bool GeneralGCD(out IAction? act)
     {

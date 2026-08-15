@@ -62,31 +62,29 @@ namespace RotationSolver.SourceGenerators.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to /// &lt;summary&gt;
-        //////Actor Move
-        ////// &lt;/summary&gt;
-        ///[Description(&quot;Actor Move&quot;)]
-        ///ActorMove = 462,
-        ////// &lt;summary&gt;
-        //////Airship Status
-        ////// &lt;/summary&gt;
-        ///[Description(&quot;Airship Status&quot;)]
-        ///AirshipStatus = 657,
-        ////// &lt;summary&gt;
         //////Aoe Effect 8
         ////// &lt;/summary&gt;
         ///[Description(&quot;Aoe Effect 8&quot;)]
-        ///AoeEffect8 = 848,
+        ///AoeEffect8 = 356,
         ////// &lt;summary&gt;
-        //////Actor Control Target
+        //////Actor Control Self
         ////// &lt;/summary&gt;
-        ///[Description(&quot;Actor Control Target&quot;)]
-        ///ActorControlTarget = 721,
+        ///[Description(&quot;Actor Control Self&quot;)]
+        ///ActorControlSelf = 861,
         ////// &lt;summary&gt;
-        //////Actor Cast
+        //////Airship Exploration Result
         ////// &lt;/summary&gt;
-        ///[Description(&quot;Actor Cast&quot;)]
-        ///ActorCast = 457,
-        //// [rest of string was truncated]&quot;;.
+        ///[Description(&quot;Airship Exploration Result&quot;)]
+        ///AirshipExplorationResult = 872,
+        ////// &lt;summary&gt;
+        //////Aoe Effect 32
+        ////// &lt;/summary&gt;
+        ///[Description(&quot;Aoe Effect 32&quot;)]
+        ///AoeEffect32 = 882,
+        ////// &lt;summary&gt;
+        //////Actor Move
+        ////// &lt;/summary&gt;
+        ///[Descriptio [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Value {
             get {

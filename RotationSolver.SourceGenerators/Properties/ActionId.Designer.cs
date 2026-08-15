@@ -67,7 +67,7 @@ namespace RotationSolver.SourceGenerators.Properties {
         ////// &lt;/summary&gt;
         ///SprintPvE = 3,
         ////// &lt;summary&gt;
-        ////// &lt;see href=&quot;https://garlandtools.org/db/#action/5&quot;&gt;&lt;strong&gt;Telepo [rest of string was truncated]&quot;;.
+        ////// &lt;see href=&quot;https://garlandtools.org/db/#action/5&quot;&gt;&lt;strong&gt;Telep [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Value {
             get {

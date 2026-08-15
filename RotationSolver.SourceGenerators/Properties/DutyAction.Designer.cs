@@ -67,7 +67,7 @@ namespace RotationSolver.SourceGenerators.Properties {
         ///
         ////// &lt;summary&gt;
         ////// The Custom Rotation.
-        ////// &lt;br&gt;Number of Actions: 506&lt;/br&gt;
+        ////// &lt;br&gt;Number of Actions: 559&lt;/br&gt;
         ////// &lt;/summary&gt;
         ///public abstract partial class DutyRotation
         ///{
