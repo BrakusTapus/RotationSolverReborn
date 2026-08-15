@@ -1,6 +1,7 @@
 ﻿using ECommons.EzIpcManager;
 using ECommons.Logging;
 using RotationSolver.Commands;
+using RotationSolver.Updaters;
 
 namespace RotationSolver.IPC
 {
@@ -226,6 +227,35 @@ namespace RotationSolver.IPC
 		{
 			DataCenter.TargetFreelyOverride = false;
 			PluginLog.Debug("IPC DisableTargetFreelyOverride was called.");
+		}
+
+		/// <summary>
+		/// Gets the enemy positional that RSR currently intends to use for its next GCD action via IPC.
+		/// This allows other plugins to know ahead of time whether RSR is about to move to the rear, flank,
+		/// front, or has no positional requirement for its next action.
+		/// </summary>
+		/// <returns>
+		/// The underlying byte value of the <see cref="EnemyPositional"/> enum:
+		/// 0 = None, 1 = Rear, 2 = Flank, 3 = Front.
+		/// </returns>
+		[EzIPC]
+		public byte GetDesiredPositional()
+		{
+			return (byte)ActionUpdater.DesiredPositional;
+		}
+
+		/// <summary>
+		/// IPC method allowing other plugins to subscribe to and query whether RotationSolver's
+		/// autorotation is currently active.
+		/// </summary>
+		/// <returns>
+		/// <see langword="true"/> if <see cref="DataCenter.IsActivated"/> reports the autorotation
+		/// as active; otherwise, <see langword="false"/>.
+		/// </returns>
+		[EzIPC]
+		public bool AutorotationActive()
+		{
+			return DataCenter.IsActivatedIPC();
 		}
 	}
 }

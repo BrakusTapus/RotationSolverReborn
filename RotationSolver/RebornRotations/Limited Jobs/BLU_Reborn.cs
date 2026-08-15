@@ -1,6 +1,6 @@
 namespace RotationSolver.RebornRotations.Magical;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.5")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.55")]
 [SourceCode(Path = "main/BasicRotations/Limited Jobs/BLU_Reborn.cs")]
 
 public sealed class BLU_Reborn : BlueMageRotation
@@ -215,7 +215,7 @@ public sealed class BLU_Reborn : BlueMageRotation
 
 	#region GCD Logic
 
-	protected override bool EmergencyGCD(out IAction? act)
+	protected override bool EmergencyGCD(IAction? nextGCD, out IAction? act)
 	{
 		if (SurpanakhaPvE.Cooldown.CurrentCharges == 4 || IsLastAbility(true, SurpanakhaPvE))
 		{
@@ -251,7 +251,7 @@ public sealed class BLU_Reborn : BlueMageRotation
 			return true;
 		}
 
-		return base.EmergencyGCD(out act);
+		return base.EmergencyGCD(nextGCD, out act);
 	}
 
 	protected override bool ProvokeGCD(out IAction? act)

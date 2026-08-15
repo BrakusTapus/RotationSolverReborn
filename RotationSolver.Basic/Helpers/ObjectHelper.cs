@@ -8,13 +8,11 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using Lumina.Excel.Sheets;
 using RotationSolver.Basic.Configuration;
-using RotationSolver.Basic.Data;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -962,9 +960,20 @@ public static class ObjectHelper
 			return true;
 		}
 
-		if (battleChara.IsOccultCEMob())
+		if (DataCenter.IsInOccultCrescentOp)
 		{
-			return true;
+			if (battleChara.IsOccultCEMob() && battleChara.NameId != 14717)
+			{
+				return true;
+			}
+
+			if (DataCenter.IsInNorthHorn)
+			{
+				if (battleChara.NameId == 14719)
+				{
+					return true;
+				}
+			}
 		}
 
 		// MCH prio targeting for Wildfire
@@ -2100,7 +2109,10 @@ public static class ObjectHelper
 	/// <returns>True if the target is immune due to any special mechanic; otherwise, false.</returns>
 	public static bool IsSpecialImmune(this IBattleChara battleChara)
 	{
-		return battleChara.IsDMUBossImmune()
+		return battleChara.TreatTinyMageImmune()
+			|| battleChara.ForkedNormalHeadsImmune()
+			|| battleChara.MathCEMobImmune()
+			|| battleChara.IsDMUBossImmune()
 			|| battleChara.IsEnuoGauntletImmune()
 			|| battleChara.IsWindurstAlexanderImmune()
 			|| battleChara.IsOrbonneImmune()
@@ -2126,7 +2138,120 @@ public static class ObjectHelper
 	}
 
 	/// <summary>
-	/// Is target Jeuno Boss immune.
+	/// 
+	/// </summary>
+	/// <param name="battleChara">the object.</param>
+	/// <returns></returns>
+	public static bool ForkedNormalHeadsImmune(this IBattleChara battleChara)
+	{
+		if (DataCenter.IsInNorthHorn && Service.Config.ForkedtowerFirstBossVillianHero)
+		{
+			var Greenhead = battleChara.NameId == 14490;
+			var Bluehead = battleChara.NameId == 14491;
+
+			var FatedVillain = battleChara.HasStatus(false, StatusID.FatedVillain_5401);
+			var EpicVillain = battleChara.HasStatus(false, StatusID.EpicVillain_5400);
+
+			var FatedHero = StatusHelper.PlayerHasStatus(false, StatusID.FatedHero);
+			var EpicHero = StatusHelper.PlayerHasStatus(false, StatusID.EpicHero);
+
+			if ((Greenhead || Bluehead) && EpicVillain && FatedHero)
+			{
+				if (Service.Config.InDebug)
+				{
+					PluginLog.Information("ForkedNormalHeadsImmune: EpicVillain status found");
+				}
+				return true;
+			}
+
+			if ((Greenhead || Bluehead) && FatedVillain && EpicHero)
+			{
+				if (Service.Config.InDebug)
+				{
+					PluginLog.Information("ForkedNormalHeadsImmune: FatedVillain status found");
+				}
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="battleChara">the object.</param>
+	/// <returns></returns>
+	public static bool MathCEMobImmune(this IBattleChara battleChara)
+	{
+		if (DataCenter.IsInNorthHorn)
+		{
+			var Page64 = battleChara.NameId == 3915;
+			var Page16 = battleChara.NameId == 14521;
+			var Page8 = battleChara.NameId == 14522;
+			var Page512 = battleChara.NameId == 14528;
+
+			if (Page64 || Page16 || Page8 || Page512)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="battleChara">the object.</param>
+	/// <returns></returns>
+	public static bool TreatTinyMageImmune(this IBattleChara battleChara)
+	{
+		if (Service.Config.NorthHornTinyMage && DataCenter.IsInNorthHorn)
+		{
+			const uint MeteorCastID = 48327;
+
+			if (battleChara.CastActionId == MeteorCastID)
+			{
+				var hostileTargets = DataCenter.AllHostileTargets;
+				if (hostileTargets != null)
+				{
+					IBattleChara? lowestRemainingCastTimeTarget = null;
+					var lowestRemainingCastTime = float.MaxValue;
+
+					foreach (var hostile in hostileTargets)
+					{
+						if (hostile == null || hostile.CastActionId != MeteorCastID)
+						{
+							continue;
+						}
+
+						if (hostile.RemainingCastTime < lowestRemainingCastTime)
+						{
+							lowestRemainingCastTime = hostile.RemainingCastTime;
+							lowestRemainingCastTimeTarget = hostile;
+						}
+					}
+
+					if (lowestRemainingCastTimeTarget != null
+						&& !battleChara.Equals(lowestRemainingCastTimeTarget)
+						&& battleChara.DistanceToPlayer() > 5)
+					{
+						if (Service.Config.InDebug)
+						{
+							PluginLog.Information("TreatTinyMageImmune: Not the lowest remaining cast time Meteor caster and more than 5 yalms away, treating as immune.");
+						}
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	///
 	/// </summary>
 	/// <param name="battleChara">the object.</param>
 	/// <returns></returns>
@@ -2898,7 +3023,7 @@ public static class ObjectHelper
 	/// <returns></returns>
 	public static bool IsDeadStarImmune(this IBattleChara battleChara)
 	{
-		if (Service.Config.ForkedtowerDeadStar && DataCenter.IsInForkedTower)
+		if (Service.Config.ForkedtowerDeadStar && DataCenter.IsInForkedTowerBlood)
 		{
 			var PhobosicGravity = StatusHelper.PlayerHasStatus(false, StatusID.PhobosicGravity);
 			var TritonicGravity = StatusHelper.PlayerHasStatus(false, StatusID.TritonicGravity);
@@ -3660,17 +3785,37 @@ public static class ObjectHelper
 			return 0; // This may need to be changed to 100
 		}
 
+		if (!battleChara.IsValid())
+		{
+			return 0; // This may need to be changed to 100
+		}
+
+		if (battleChara.IsParty())
+		{
+			if (battleChara.DoomNeedHealing())
+			{
+				return 0.01f;
+			}
+		}
+
 		if (DataCenter.RefinedHP.TryGetValue(battleChara.GameObjectId, out var hp))
 		{
 			return hp;
 		}
 
-		if (battleChara.MaxHp == 0)
+		try
 		{
-			return 0; // Avoid division by zero
-		}
+			if (battleChara.MaxHp == 0)
+			{
+				return 0; // Avoid division by zero
+			}
 
-		return (float)battleChara.CurrentHp / battleChara.MaxHp;
+			return (float)battleChara.CurrentHp / battleChara.MaxHp;
+		}
+		catch (Exception)
+		{
+			return 0;
+		}
 	}
 
 	/// <summary>

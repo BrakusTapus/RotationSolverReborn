@@ -18,6 +18,42 @@ public sealed class PhantomDefault : PhantomRotation
 	[RotationConfig(CombatType.PvE, Name = "Player HP percent needed to use Occult Resuscitation", PhantomJob = PhantomJob.Freelancer)]
 	public float OccultResuscitationThreshold { get; set; } = 0.7f;
 
+	[RotationConfig(CombatType.PvE, Name = "Use Occult Toad for AOE mitigation", PhantomJob = PhantomJob.BlackMage)]
+	public bool OccultToadUsage { get; set; } = false;
+
+	[RotationConfig(CombatType.PvE, Name = "Use Drain Touch for DPS", PhantomJob = PhantomJob.Necromancer)]
+	public bool DrainTouchDPS { get; set; } = true;
+
+	[RotationConfig(CombatType.PvE, Name = "Use Drain Touch for Heal", PhantomJob = PhantomJob.Necromancer)]
+	public bool DrainTouchHeal { get; set; } = false;
+
+	[Range(0, 1, ConfigUnitType.Percent)]
+	[RotationConfig(CombatType.PvE, Name = "HP threshold for using Drain Touch for Heal only", PhantomJob = PhantomJob.Necromancer)]
+	public float DrainTouchHealyOnlyThreshold { get; set; } = 0.5f;
+
+
+	[RotationConfig(CombatType.PvE, Name = "Use Drain Touch only in when low HP", PhantomJob = PhantomJob.Necromancer)]
+	public bool DrainTouchEmergencyOnly { get; set; } = false;
+
+	[Range(0, 1, ConfigUnitType.Percent)]
+	[RotationConfig(CombatType.PvE, Name = "HP threshold for using Drain Touch in emergency", PhantomJob = PhantomJob.Necromancer)]
+	public float DrainTouchEmergencyOnlyThreshold { get; set; } = 0.25f;
+
+	[RotationConfig(CombatType.PvE, Name = "How to handle Necromancer spells", PhantomJob = PhantomJob.Necromancer)]
+	public DrainTouchStatusStrategy DrainTouchStatusStrategyUsage { get; set; } = DrainTouchStatusStrategy.NoDrainTouch;
+
+	public enum DrainTouchStatusStrategy : byte
+	{
+		[Description("Only use while Drain Touch is active")]
+		DrainTouchOnly,
+
+		[Description("Do not use while Drain Touch is active ")]
+		NoDrainTouch,
+
+		[Description("Use spells regardless of Drain Touch status")]
+		EitherDrainTouch,
+	}
+
 	[RotationConfig(CombatType.PvE, Name = "Use Pray as a Heal", PhantomJob = PhantomJob.Knight)]
 	public bool PrayHeal { get; set; } = false;
 
@@ -35,6 +71,9 @@ public sealed class PhantomDefault : PhantomRotation
 
 	[RotationConfig(CombatType.PvE, Name = "Use Starfall", PhantomJob = PhantomJob.Oracle)]
 	public bool StarfallUseage { get; set; } = true;
+
+	[RotationConfig(CombatType.PvE, Name = "Keep Defend on cooldown if you are at full stacks of Finishing Fervor", PhantomJob = PhantomJob.Gladiator)]
+	public bool KeepDefendOnCooldown { get; set; } = false;
 
 	[RotationConfig(CombatType.PvE, Name = "Use Invulnerability for Starfall", PhantomJob = PhantomJob.Oracle)]
 	public bool SaveInvulnForStarfall { get; set; } = true;
@@ -136,6 +175,16 @@ public sealed class PhantomDefault : PhantomRotation
 		return base.EmergencyAbility(nextGCD, out act);
 	}
 
+	public override bool EmergencyGCD(IAction? nextGCD, out IAction? act)
+	{
+		if (HandleOraclePrediction(nextGCD, out act))
+		{
+			return true;
+		}
+
+		return base.EmergencyGCD(nextGCD, out act);
+	}
+
 	public override bool InterruptAbility(IAction nextGCD, out IAction? act)
 	{
 		if (HasLockoutStatus)
@@ -183,7 +232,17 @@ public sealed class PhantomDefault : PhantomRotation
 			return base.GeneralAbility(nextGCD, out act);
 		}
 
+		if (InCombat && SmokePvE.CanUse(out act))
+		{
+			return true;
+		}
+
 		if (InCombat && MagicShellPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (InCombat && KeepDefendOnCooldown && StatusHelper.PlayerHasStatus(true, StatusID.FinishingFervor) && StatusHelper.PlayerStatusStack(true, StatusID.FinishingFervor) == 4 && DefendPvE.CanUse(out act))
 		{
 			return true;
 		}
@@ -288,6 +347,65 @@ public sealed class PhantomDefault : PhantomRotation
 			return base.AttackAbility(nextGCD, out act);
 		}
 
+		if (DrainTouchDPS && DrainTouchPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (DrainTouchEmergencyOnly && DrainTouchPvE.CanUse(out act))
+		{
+			if (Player?.GetEffectiveHpPercent() <= DrainTouchEmergencyOnlyThreshold)
+			{
+				return true;
+			}
+		}
+
+		if (DrainTouchHeal && DrainTouchPvE.CanUse(out act))
+		{
+			if (Player?.GetEffectiveHpPercent() <= DrainTouchHealyOnlyThreshold)
+			{
+				return true;
+			}
+		}
+
+		if (OccultLibraPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (LancePvE.CanUse(out act, skipStatusProvideCheck: true))
+		{
+			return true;
+		}
+
+		if (NinjaLevel > 0)
+		{
+			if (FumaShurikenPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (LightningScrollPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (FlameScrollPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (FlameScrollPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+
+			if (LightningScrollPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+		}
+
 		if (PhantomKickPvE.CanUse(out act))
 		{
 			if (PhantomKickPvE.Target.Target.DistanceToPlayer() <= PhantomKickDistance)
@@ -323,6 +441,11 @@ public sealed class PhantomDefault : PhantomRotation
 		}
 
 		if (InCombat && StatusHelper.PlayerHasStatus(true, StatusHelper.TankStanceStatus) && DefendPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (OccultBlinkPvE.CanUse(out act))
 		{
 			return true;
 		}
@@ -368,6 +491,11 @@ public sealed class PhantomDefault : PhantomRotation
 		if (HasLockoutStatus)
 		{
 			return base.DefenseAreaAbility(nextGCD, out act);
+		}
+
+		if (ImagePvE.CanUse(out act))
+		{
+			return true;
 		}
 
 		if (QuickstepPvE.CanUse(out act))
@@ -514,6 +642,36 @@ public sealed class PhantomDefault : PhantomRotation
 			return true;
 		}
 
+		//if (StepForthPvE.CanUse(out act))
+		//{
+		//	return true;
+		//}
+
+		//if (StepForthPvE_50473.CanUse(out act))
+		//{
+		//	return true;
+		//}
+
+		//if (StepForthPvE_50474.CanUse(out act))
+		//{
+		//	return true;
+		//}
+
+		//if (StepForthPvE_50475.CanUse(out act))
+		//{
+		//	return true;
+		//}
+
+		//if (StepForthPvE_50476.CanUse(out act))
+		//{
+		//	return true;
+		//}
+
+		if (OccultFeatherfootPvE.CanUse(out act))
+		{
+			return true;
+		}
+
 		return base.MoveForwardAbility(nextGCD, out act);
 	}
 
@@ -539,6 +697,11 @@ public sealed class PhantomDefault : PhantomRotation
 			return base.RaiseGCD(out act);
 		}
 
+		if (OccultRaisePvE.CanUse(out act))
+		{
+			return true;
+		}
+
 		if (RevivePvE.CanUse(out act))
 		{
 			return true;
@@ -562,6 +725,16 @@ public sealed class PhantomDefault : PhantomRotation
 			}
 		}
 
+		if (OccultCureIiPvE_49093.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (OccultCureIiPvE.CanUse(out act))
+		{
+			return true;
+		}
+
 		if (PrayPvE.CanUse(out act))
 		{
 			return true;
@@ -575,6 +748,16 @@ public sealed class PhantomDefault : PhantomRotation
 		if (HasLockoutStatus || (ViperTime && NeedsViperBuffs))
 		{
 			return base.HealAreaGCD(out act);
+		}
+
+		if (OccultWhiteWindPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (OccultCureIiiPvE.CanUse(out act))
+		{
+			return true;
 		}
 
 		if (SunbathPvE.CanUse(out act))
@@ -612,6 +795,21 @@ public sealed class PhantomDefault : PhantomRotation
 			return base.DefenseAreaGCD(out act);
 		}
 
+		if (OccultMightyGuardPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (OccultToadUsage && OccultToadPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (EarthenWallPvE.CanUse(out act))
+		{
+			return true;
+		}
+
 		if (CloudyCaressPvE.CanUse(out act))
 		{
 			return true;
@@ -632,6 +830,11 @@ public sealed class PhantomDefault : PhantomRotation
 			return base.GeneralGCD(out act);
 		}
 
+		if (ShouldHoldBurst())
+		{
+			return base.GeneralGCD(out act);
+		}
+
 		if (InCombat && AetherialGainPvE.CanUse(out act))
 		{
 			return true;
@@ -643,6 +846,229 @@ public sealed class PhantomDefault : PhantomRotation
 		}
 
 		if (InCombat && OccultDispelPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (NecromancerLevel > 0)
+		{
+			if ((DrainTouchStatusStrategyUsage == DrainTouchStatusStrategy.EitherDrainTouch) || (DrainTouchStatusStrategyUsage == DrainTouchStatusStrategy.DrainTouchOnly && HasDrainTouch) || (DrainTouchStatusStrategyUsage == DrainTouchStatusStrategy.NoDrainTouch && !HasDrainTouch))
+			{
+				if (ChaosDrivePvE.CanUse(out act))
+				{
+					return true;
+				}
+
+				if (HellWindPvE.CanUse(out act))
+				{
+					return true;
+				}
+
+				if (DeepFreezePvE.CanUse(out act))
+				{
+					return true;
+				}
+
+				if (DoomsdayPvE.CanUse(out act))
+				{
+					return true;
+				}
+
+				if (NecromancerLevel < 3)
+				{
+					if (DeepFreezePvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+					{
+						return true;
+					}
+				}
+
+				if (NecromancerLevel < 4)
+				{
+					if (DeepFreezePvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+					{
+						if (StatusHelper.HasStatus(DeepFreezePvE.Target.Target, false, StatusID.LightningWeakness))
+						{
+							return true;
+						}
+					}
+				}
+
+				if (DeepFreezePvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+				{
+					if (StatusHelper.HasStatus(DeepFreezePvE.Target.Target, false, StatusID.FireWeakness))
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		if (RedMageLevel > 0)
+		{
+			if (OccultBlizzardIiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultThunderIiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultFireIiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (RedMageLevel <= 3)
+			{
+				if (OccultFireIiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+				{
+					return true;
+				}
+			}
+
+			if (RedMageLevel < 4)
+			{
+				if (OccultFireIiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+				{
+					if (StatusHelper.HasStatus(OccultFireIiPvE.Target.Target, false, StatusID.IceWeakness))
+					{
+						return true;
+					}
+				}
+			}
+
+			if (RedMageLevel < 5)
+			{
+				if (OccultFireIiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+				{
+					if (StatusHelper.HasStatus(OccultFireIiPvE.Target.Target, false, StatusID.LightningWeakness))
+					{
+						return true;
+					}
+				}
+			}
+
+			if (OccultFireIiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				if (StatusHelper.HasStatus(OccultFireIiPvE.Target.Target, false, StatusID.WindWeakness))
+				{
+					return true;
+				}
+			}
+		}
+
+		if (BlueMageLevel > 0)
+		{
+			if (OccultMissilePvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultAquaBreathPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultAeroIiiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultAeroIiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultAeroPvE.CanUse(out act))
+			{
+				return true;
+			}
+		}
+
+		if (SummonerLevel > 0)
+		{
+			if (MegaflarePvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (ThunderstormPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (JudgmentBoltPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (HellfirePvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (ThunderstormPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+
+			if (JudgmentBoltPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+
+			if (HellfirePvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+		}
+
+		if (BlackMageLevel > 0)
+		{
+			if (OccultFlarePvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultFireIiiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultBlizzardIiiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultThunderIiiPvE.CanUse(out act))
+			{
+				return true;
+			}
+
+			if (OccultThunderIiiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+
+			if (OccultBlizzardIiiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+
+			if (OccultFireIiiPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				return true;
+			}
+		}
+
+		if (OccultJumpPvE.CanUse(out act))
+		{
+			return true;
+		}
+
+		if (OccultHolyPvE.CanUse(out act, skipAoeCheck: true))
 		{
 			return true;
 		}
@@ -662,11 +1088,6 @@ public sealed class PhantomDefault : PhantomRotation
 		if (InCombat && OccultQuickPvE.CanUse(out act) && !StatusHelper.PlayerHasStatus(true, StatusID.Manafication) && !StatusHelper.PlayerHasStatus(true, StatusID.Embolden) && !StatusHelper.PlayerHasStatus(true, StatusID.MagickedSwordplay) && !StatusHelper.PlayerHasStatus(true, StatusID.GrandImpactReady))
 		{
 			return true;
-		}
-
-		if (ShouldHoldBurst())
-		{
-			return base.GeneralGCD(out act);
 		}
 
 		if (BlazingSpellbladePvE.CanUse(out act))
@@ -729,15 +1150,9 @@ public sealed class PhantomDefault : PhantomRotation
 			return true;
 		}
 
-		if (SilverCannonPvE.CanUse(out act, skipStatusProvideCheck: true))
+		if (SilverCannonPvE.CanUse(out act))
 		{
-			if (SilverCannonPvE.Target.Target?.WillStatusEnd(15, true, SilverCannonPvE.Setting.TargetStatusProvide ?? []) ?? false)
-			{
-				if (SilverCannonPvE.Target.Target?.WillStatusEnd(15, false, SilverCannonPvE.Setting.TargetStatusProvide ?? []) ?? false)
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 
 		if (HolyCannonPvE.CanUse(out act))
@@ -830,7 +1245,7 @@ public sealed class PhantomDefault : PhantomRotation
 		return base.GeneralGCD(out act);
 	}
 
-	private bool HandleOraclePrediction(IAction nextGCD, out IAction? act)
+	private bool HandleOraclePrediction(IAction? nextGCD, out IAction? act)
 	{
 		act = null;
 

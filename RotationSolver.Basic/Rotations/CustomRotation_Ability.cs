@@ -557,7 +557,7 @@ public partial class CustomRotation
 
 			case JobRole.Healer:
 			case JobRole.RangedMagical:
-				if (Job == ECommons.ExcelServices.Job.BLM)
+				if (Job == Job.BLM)
 				{
 					break;
 				}
@@ -596,7 +596,7 @@ public partial class CustomRotation
 		#region PvP
 		if (DataCenter.IsPvP)
 		{
-			if (DataCenter.Job != Job.BRD && DataCenter.Job !=Job.WHM &&PurifyPvP.CanUse(out act))
+			if (DataCenter.Job != Job.BRD && DataCenter.Job != Job.WHM && PurifyPvP.CanUse(out act))
 			{
 				if (Service.Config.PvpPurifyStun && StatusHelper.PlayerHasStatus(false, StatusID.Stun_1343))
 				{
@@ -648,10 +648,12 @@ public partial class CustomRotation
 
 		if (nextGCD is BaseAction action)
 		{
-			if (Role is JobRole.RangedMagical &&
-				action.Info.CastTime >= 5 && IActionHelper.IsLastActionGCD() && SwiftcastPvE.CanUse(out act))
+			if (Role is JobRole.RangedMagical && action.Info.CastTime >= 5 && IActionHelper.IsLastActionGCD() && SwiftcastPvE.CanUse(out act))
 			{
-				return true;
+				if (!nextGCD.IsTheSameTo(false, ActionID.MegaflarePvE, ActionID.ThunderstormPvE, ActionID.JudgmentBoltPvE, ActionID.HellfirePvE, ActionID.EarthenWallPvE))
+				{
+					return true;
+				}
 			}
 		}
 
@@ -666,6 +668,22 @@ public partial class CustomRotation
 		if (Service.Config.RaisePlayerBySwift && DataCenter.CanRaise() && IActionHelper.IsLastActionGCD() && nextGCD.IsTheSameTo(true, ActionID.RaisePvE, ActionID.EgeiroPvE, ActionID.ResurrectionPvE, ActionID.AscendPvE))
 		{
 			if (SwiftcastPvE.CanUse(out act))
+			{
+				return true;
+			}
+		}
+
+		if (Role is JobRole.Melee && StatusHelper.PlayerHasStatus(false, StatusHelper.DoomHealStatus))
+		{
+			if (SecondWindPvE.CanUse(out act))
+			{
+				return true;
+			}
+		}
+
+		if (Role is JobRole.RangedPhysical && StatusHelper.PlayerHasStatus(false, StatusHelper.DoomHealStatus))
+		{
+			if (SecondWindPvE.CanUse(out act))
 			{
 				return true;
 			}

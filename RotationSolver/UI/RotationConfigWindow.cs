@@ -67,13 +67,11 @@ public partial class RotationConfigWindow : Window
 	"Akurosuki",
 	"Alkeid",
 	"catfourteen",
-	"Chaewon",
 	"Chaos_co",
 	"Chris",
 	"DeadCode",
 	"Drama",
 	"Eddar",
-	"Elena",
 	"Endings",
 	"Enyo",
 	"ExiledxSnake",
@@ -86,17 +84,13 @@ public partial class RotationConfigWindow : Window
 	"kuromiromi",
 	"Lemon",
 	"LouBird",
-	"memoryloops",
 	"Miracle Ace",
 	"Mirai",
 	"Miri",
 	"No",
-	"Papaya",
 	"Plogons",
 	"Preset",
 	"prismagreen",
-	"Reek",
-	"Robsie",
 	"smf26",
 	"Utterly Hopeless!",
 	"Vaex_Darastrix",
@@ -3087,12 +3081,12 @@ public partial class RotationConfigWindow : Window
 
 					if (shouldStatus)
 					{
-						int statusGcdCount = config.StatusGcdCount;
+						int StatusRefreshGcdCount = config.StatusRefreshGcdCount;
 						ImGui.SetNextItemWidth(Scale * 150);
 						if (ImGui.DragInt($"{UiString.ConfigWindow_Actions_GcdCount.GetDescription()}##{a}",
-							ref statusGcdCount, 0.05f, 1, 10))
+							ref StatusRefreshGcdCount, 0.05f, 1, 10))
 						{
-							config.StatusGcdCount = (byte)statusGcdCount;
+							config.StatusRefreshGcdCount = (byte)StatusRefreshGcdCount;
 						}
 					}
 				}
@@ -3133,6 +3127,7 @@ public partial class RotationConfigWindow : Window
 				{
 					var target = action.Target.Target;
 					ImGui.Text("Can Use: " + action.CanUse(out _));
+					ImGui.Spacing();
 					ImGui.Spacing();
 					ImGui.Text("ID: " + action.Info.ID);
 					ImGui.Text("Cast Type: " + action.Info.CastType);
@@ -3396,7 +3391,7 @@ public partial class RotationConfigWindow : Window
 					return new MovementSafetyResult { Status = MovementSafetyStatus.NotSafe, Reason = "Unknown movement type" };
 			}
 		}
-			catch (Exception ex)
+		catch (Exception ex)
 		{
 			return new MovementSafetyResult { Status = MovementSafetyStatus.NotSafe, Reason = $"Error: {ex.Message}" };
 		}
@@ -4336,6 +4331,9 @@ public partial class RotationConfigWindow : Window
 		{() => "Next Action", DrawNextAction },
 		{() => "Last Action", DrawLastAction },
 		{() => "IPC Testing", DrawIPC },
+		{() => "BMR Data", DrawBMRData },
+		{() => "Occult Crescent Weaknesses", DrawOccultWeaknesses },
+
 		{() => "Effect", () =>
 			{
 				ImGui.Text(Watcher.ShowStrSelf);
@@ -4347,6 +4345,150 @@ public partial class RotationConfigWindow : Window
 	private static void DrawDebugRotationStatus()
 	{
 		DataCenter.CurrentRotation?.DisplayRotationStatus();
+	}
+
+	private static void DrawOccultWeaknesses()
+	{
+		ImGui.TextWrapped("Records the elemental weaknesses (Lightning, Fire, Ice, Wind) observed on hostiles " +
+			"encountered in Occult Crescent, keyed by their NameId. This is populated automatically while in " +
+			"Occult Crescent.");
+
+		if (ImGui.Button("Open Weakness Data Folder"))
+		{
+			try
+			{
+				var path = Svc.PluginInterface.ConfigDirectory.FullName;
+				_ = Process.Start("explorer.exe", $"\"{path}\"");
+			}
+			catch (Exception ex)
+			{
+				PluginLog.Warning($"Failed to open weakness data folder: {ex.Message}");
+			}
+		}
+		ImGui.SameLine();
+		if (ImGui.Button("Clear Weakness Data"))
+		{
+			OtherConfiguration.ResetOccultWeaknessRecords();
+		}
+		ImGui.SameLine();
+		if (ImGui.Button("Copy as Curated List Entries"))
+		{
+			var sb = new StringBuilder();
+			void AppendEntries(Dictionary<uint, List<string>> records)
+			{
+				foreach (var kvp in records)
+				{
+					var statusesSb = new StringBuilder();
+					for (var i = 0; i < kvp.Value.Count; i++)
+					{
+						if (i > 0)
+						{
+							_ = statusesSb.Append(", ");
+						}
+						_ = statusesSb.Append("StatusID.").Append(kvp.Value[i]);
+					}
+					_ = sb.AppendLine($"\t\t{{ {kvp.Key}, [{statusesSb}] }},");
+				}
+			}
+			sb.AppendLine("// North Horn");
+			AppendEntries(OtherConfiguration.NorthHornWeaknessRecords);
+			sb.AppendLine("// South Horn");
+			AppendEntries(OtherConfiguration.SouthHornWeaknessRecords);
+			ImGui.SetClipboardText(sb.ToString());
+		}
+		if (ImGui.IsItemHovered())
+		{
+			ImGui.SetTooltip("Copies each recorded NameId/weakness.");
+		}
+
+		using var table = ImRaii.Table("OccultWeaknessTable", 4,
+			ImGuiTableFlags.BordersInner | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp,
+			new Vector2(0, 200 * Scale));
+		if (table)
+		{
+			ImGui.TableSetupScrollFreeze(0, 1);
+			ImGui.TableSetupColumn("Zone");
+			ImGui.TableSetupColumn("NameId");
+			ImGui.TableSetupColumn("Name");
+			ImGui.TableSetupColumn("Weaknesses");
+			ImGui.TableHeadersRow();
+
+			void DrawRows(string zoneName, Dictionary<uint, List<string>> records)
+			{
+				foreach (var kvp in records)
+				{
+					ImGui.TableNextRow();
+					_ = ImGui.TableNextColumn();
+					ImGui.TextUnformatted(zoneName);
+					_ = ImGui.TableNextColumn();
+					ImGui.TextUnformatted(kvp.Key.ToString());
+					_ = ImGui.TableNextColumn();
+					var npcName = string.Empty;
+					try
+					{
+						npcName = Service.GetSheet<Lumina.Excel.Sheets.BNpcName>().GetRow(kvp.Key).Singular.ToString();
+					}
+					catch { /* best-effort name lookup */ }
+					ImGui.TextUnformatted(npcName);
+					_ = ImGui.TableNextColumn();
+					ImGui.TextUnformatted(string.Join(", ", kvp.Value));
+				}
+			}
+
+			DrawRows("North Horn", OtherConfiguration.NorthHornWeaknessRecords);
+			DrawRows("South Horn", OtherConfiguration.SouthHornWeaknessRecords);
+		}
+
+		ImGui.Spacing();
+		ImGui.Separator();
+		ImGui.TextWrapped("Hostiles in Range Without Weakness Data");
+
+		var unknownNames = new List<string>();
+		var seenNameIds = new HashSet<uint>();
+		var hostiles = DataCenter.AllHostileTargets;
+		if (hostiles != null)
+		{
+			for (var i = 0; i < hostiles.Count; i++)
+			{
+				var hostile = hostiles[i];
+				if (hostile == null || hostile.NameId == 0)
+				{
+					continue;
+				}
+
+				if (!seenNameIds.Add(hostile.NameId))
+				{
+					continue;
+				}
+
+				var alreadyRecorded = DataCenter.IsInNorthHorn
+					? OtherConfiguration.NorthHornWeaknessRecords.ContainsKey(hostile.NameId)
+					: DataCenter.IsInSouthHorn && OtherConfiguration.SouthHornWeaknessRecords.ContainsKey(hostile.NameId);
+
+				if (StatusHelper.HasKnownOccultWeakness(hostile.NameId) || alreadyRecorded)
+				{
+					continue;
+				}
+
+				var npcName = string.Empty;
+				try
+				{
+					npcName = Service.GetSheet<Lumina.Excel.Sheets.BNpcName>().GetRow(hostile.NameId).Singular.ToString();
+				}
+				catch { /* best-effort name lookup */ }
+
+				unknownNames.Add(string.IsNullOrEmpty(npcName) ? $"NameId {hostile.NameId}" : npcName);
+			}
+		}
+
+		if (unknownNames.Count == 0)
+		{
+			ImGui.TextUnformatted("None.");
+		}
+		else
+		{
+			ImGui.TextUnformatted(string.Join(", ", unknownNames));
+		}
 	}
 
 	private static void DrawDebugBaseStatus()
@@ -4595,28 +4737,43 @@ public partial class RotationConfigWindow : Window
 		ImGui.Text($"In Field Operations: {DataCenter.IsInFieldOperations}");
 		ImGui.Text($"In Field Raid: {DataCenter.IsInFieldRaid}");
 		ImGui.Spacing();
-		ImGui.Text($"IsInBozjanFieldOp: {DataCenter.IsInBozjanFieldOp}");
-		ImGui.Text($"IsInBozjanFieldOpCE: {DataCenter.IsInBozjanFieldOpCE}");
-		ImGui.Text($"IsInDelubrumNormal: {DataCenter.IsInDelubrumNormal}");
-		ImGui.Text($"IsInDelubrumSavage: {DataCenter.IsInDelubrumSavage}");
-		ImGui.Text($"IsInBozja: {DataCenter.IsInBozja}");
-		ImGui.Spacing();
-		ImGui.Text($"In Occult Crescent: {DataCenter.IsInOccultCrescentOp}");
-		ImGui.Text($"Is In ForkedTower: {DataCenter.IsInForkedTower}");
-		ImGui.Text($"FreelancerLevel: {DutyRotation.FreelancerLevel}");
-		ImGui.Text($"KnightLevel: {DutyRotation.KnightLevel}");
-		ImGui.Text($"MonkLevel: {DutyRotation.MonkLevel}");
-		ImGui.Text($"BardLevel: {DutyRotation.BardLevel}");
-		ImGui.Text($"ChemistLevel: {DutyRotation.ChemistLevel}");
-		ImGui.Text($"TimeMageLevel: {DutyRotation.TimeMageLevel}");
-		ImGui.Text($"CannoneerLevel: {DutyRotation.CannoneerLevel}");
-		ImGui.Text($"OracleLevel: {DutyRotation.OracleLevel}");
-		ImGui.Text($"BerserkerLevel: {DutyRotation.BerserkerLevel}");
-		ImGui.Text($"RangerLevel: {DutyRotation.RangerLevel}");
-		ImGui.Text($"ThiefLevel: {DutyRotation.ThiefLevel}");
-		ImGui.Text($"SamuraiLevel: {DutyRotation.SamuraiLevel}");
-		ImGui.Text($"GeomancerLevel: {DutyRotation.GeomancerLevel}");
-		ImGui.Spacing();
+		if (DataCenter.IsInBozjanFieldOp)
+		{
+			ImGui.Text($"IsInBozjanFieldOp: {DataCenter.IsInBozjanFieldOp}");
+			ImGui.Text($"IsInBozjanFieldOpCE: {DataCenter.IsInBozjanFieldOpCE}");
+			ImGui.Text($"IsInDelubrumNormal: {DataCenter.IsInDelubrumNormal}");
+			ImGui.Text($"IsInDelubrumSavage: {DataCenter.IsInDelubrumSavage}");
+			ImGui.Text($"IsInBozja: {DataCenter.IsInBozja}");
+		}
+		if (DataCenter.IsInOccultCrescentOp)
+		{
+			ImGui.Text($"In North Horn: {DataCenter.IsInNorthHorn}");
+			ImGui.Text($"In South Horn: {DataCenter.IsInSouthHorn}");
+			ImGui.Text($"Is In Forked Tower Blood: {DataCenter.IsInForkedTowerBlood}");
+			ImGui.Text($"FreelancerLevel: {DutyRotation.FreelancerLevel}");
+			ImGui.Text($"KnightLevel: {DutyRotation.KnightLevel}");
+			ImGui.Text($"MonkLevel: {DutyRotation.MonkLevel}");
+			ImGui.Text($"BardLevel: {DutyRotation.BardLevel}");
+			ImGui.Text($"ChemistLevel: {DutyRotation.ChemistLevel}");
+			ImGui.Text($"TimeMageLevel: {DutyRotation.TimeMageLevel}");
+			ImGui.Text($"CannoneerLevel: {DutyRotation.CannoneerLevel}");
+			ImGui.Text($"OracleLevel: {DutyRotation.OracleLevel}");
+			ImGui.Text($"BerserkerLevel: {DutyRotation.BerserkerLevel}");
+			ImGui.Text($"RangerLevel: {DutyRotation.RangerLevel}");
+			ImGui.Text($"ThiefLevel: {DutyRotation.ThiefLevel}");
+			ImGui.Text($"SamuraiLevel: {DutyRotation.SamuraiLevel}");
+			ImGui.Text($"GeomancerLevel: {DutyRotation.GeomancerLevel}");
+			ImGui.Text($"MysticKnightLevel: {DutyRotation.MysticKnightLevel}");
+			ImGui.Text($"DancerLevel: {DutyRotation.DancerLevel}");
+			ImGui.Text($"NinjaLevel: {DutyRotation.NinjaLevel}");
+			ImGui.Text($"WhiteMageLevel: {DutyRotation.WhiteMageLevel}");
+			ImGui.Text($"BlackMageLevel: {DutyRotation.BlackMageLevel}");
+			ImGui.Text($"DragoonLevel: {DutyRotation.DragoonLevel}");
+			ImGui.Text($"SummonerLevel: {DutyRotation.SummonerLevel}");
+			ImGui.Text($"BlueMageLevel: {DutyRotation.BlueMageLevel}");
+			ImGui.Text($"RedMageLevel: {DutyRotation.RedMageLevel}");
+			ImGui.Text($"NecromancerLevel: {DutyRotation.NecromancerLevel}");
+		}
 		ImGui.Text($"InVariantDungeon: {DataCenter.InVariantDungeon}");
 		ImGui.Text($"The Merchant's Tale Advanced: {DataCenter.TheMerchantsTaleAdvanced}");
 		ImGui.Text($"The Merchant's Tale: {DataCenter.TheMerchantsTale}");
@@ -4636,6 +4793,7 @@ public partial class RotationConfigWindow : Window
 		ImGui.Spacing();
 		ImGui.Text($"IsInM11S: {DataCenter.IsInM11S}");
 		ImGui.Text($"IsTyrantCastingSpecialIndicator2: {DataCenter.IsTyrantCastingSpecialIndicator2()}");
+		ImGui.Text($"IsLichCastingSpecialIndicator: {DataCenter.IsLichCastingSpecialIndicator()}");
 	}
 
 	private static void DrawParty()
@@ -4742,6 +4900,8 @@ public partial class RotationConfigWindow : Window
 
 		if (target is IBattleChara battleChara)
 		{
+			ImGui.Text($"IsCasting: {battleChara.IsCasting}");
+			ImGui.Text($"CastID: {battleChara.CastInfo.ActionId}");
 			ImGui.Text($"Is Status Capped: {StatusHelper.IsStatusCapped(battleChara)}");
 			ImGui.Text($"CanSee: {battleChara.CanSee()}");
 			ImGui.Text($"CanBeRaised: {battleChara.CanBeRaised()}");
@@ -4984,6 +5144,15 @@ public partial class RotationConfigWindow : Window
 			IPCProvider ipcProvider = new();
 			ipcProvider.ChangeOperatingMode(StateCommandType.Henched);
 		}
+	}
+
+	private static void DrawBMRData()
+	{
+		ImGui.Text($"Cooldown Planner IPC Enabled: {BMRPlan_IPCSubscriber.IsEnabled}");
+		ImGui.Text($"BMRPlannedActionsCount: {DataCenter.BMRPlannedActions.Count}");
+		ImGui.Text($"BMRForceCancelCast: {DataCenter.BMRForceCancelCast}");
+		ImGui.Text($"BMRForceCancelCastAI: {DataCenter.BMRForceCancelCastAI}");
+		ImGui.Text($"BMRIsMoving: {DataCenter.BMRIsMoving}");
 	}
 
 	private static void DrawAction(ActionID id, string type)

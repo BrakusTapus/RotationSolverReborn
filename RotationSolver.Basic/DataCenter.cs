@@ -8,6 +8,7 @@ using ECommons.GameHelpers;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
@@ -15,7 +16,6 @@ using RotationSolver.Basic.Configuration;
 using RotationSolver.Basic.Rotations.Duties;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Drawing;
 using Action = Lumina.Excel.Sheets.Action;
 using CharacterManager = FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterManager;
 using CombatRole = RotationSolver.Basic.Data.CombatRole;
@@ -89,6 +89,11 @@ internal static class DataCenter
 	public static bool IsActivated()
 	{
 		return Player.Available && (State || IsManual || Service.Config.TeachingMode);
+	}
+
+	public static bool IsActivatedIPC()
+	{
+		return Player.Available && (State || IsManual);
 	}
 
 	public static bool PlayerAvailable()
@@ -186,7 +191,9 @@ internal static class DataCenter
 									  || Svc.KeyState[Service.Config.PoslockModifier.ToVirtual()]
 									  //Gamepad cancel.
 									  || Svc.GamepadState.Raw(Dalamud.Game.ClientState.GamePad.GamepadButtons.R1) >=
-									  0.5f;
+									  0.5f
+									  //Mouse cancel: holding left and right mouse buttons at the same time.
+									  || (Service.Config.PosLockMouse && InputManager.IsLeftMouseDown() && InputManager.IsRightMouseDown());
 
 	internal static DateTime EffectTime { private get; set; } = DateTime.Now;
 	internal static DateTime EffectEndTime { private get; set; } = DateTime.Now;
@@ -280,11 +287,34 @@ internal static class DataCenter
 
 	public static TinctureUseType CurrentTinctureUseType => Service.Config.TinctureType;
 
-	public static unsafe ActionID LastComboAction => (ActionID)ActionManager.Instance()->Combo.Action;
+	// Combo.Timer <= 0 means the game itself considers the combo expired/inactive.
+	// In that state Combo.Action can hold a stale/unreliable value (e.g. left over from
+	// unrelated action usage such as mounting), so it must not be reported as the last combo action.
+	// Additionally, only Weaponskill/Spell actions can actually be part of a combo chain; other
+	// categories (e.g. general/system actions like Sprint/Return, action ID 4) can end up in
+	// Combo.Action without representing a real combo step, so they must be filtered out as well.
+	public static unsafe ActionID LastComboAction
+	{
+		get
+		{
+			var manager = ActionManager.Instance();
+			if (manager->Combo.Timer <= 0)
+			{
+				return ActionID.None;
+			}
+
+			var id = manager->Combo.Action;
+			var action = Svc.Data.GetExcelSheet<Action>()?.GetRowOrDefault(id);
+			var cate = action?.GetActionCate() ?? ActionCate.None;
+			return cate is ActionCate.Weaponskill or ActionCate.Spell
+				? (ActionID)id
+				: ActionID.None;
+		}
+	}
 
 	public static unsafe float ComboTime => ActionManager.Instance()->Combo.Timer;
 
-	public static bool IsMoving => Player.IsMoving;
+	public static bool IsMoving => Player.IsMoving || BMRIsMoving;
 
 	internal static float StopMovingRaw { get; set; }
 
@@ -466,6 +496,14 @@ internal static class DataCenter
 	public static bool IsInMaskedCarnivale => Territory?.ContentType == TerritoryContentType.TheMaskedCarnivale;
 
 	public static bool IsInDuty => Svc.Condition[ConditionFlag.BoundByDuty] || Svc.Condition[ConditionFlag.BoundByDuty56];
+
+	/// <summary>
+	/// True when playing a Quest Battle, where the player's normal character/actions are replaced
+	/// by an NPC with its own action set (e.g. Hardboiled). These duties set <see cref="ConditionFlag.RolePlaying"/>
+	/// instead of <see cref="ConditionFlag.BoundByDuty"/>, and their duty actions replace the normal
+	/// hotbars rather than occupying the dedicated duty action slots.
+	/// </summary>
+	public static bool IsInQuestBattle => Territory?.ContentType == TerritoryContentType.QuestBattles;
 
 	public static bool IsInAllianceRaid
 	{
@@ -663,9 +701,19 @@ internal static class DataCenter
 	public static bool IsInOccultCrescentOp => Territory?.ContentType == TerritoryContentType.OccultCrescent;
 
 	/// <summary>
+	///
+	/// </summary>
+	public static bool IsInNorthHorn => IsInOccultCrescentOp && TerritoryID == 1346;
+
+	/// <summary>
+	///
+	/// </summary>
+	public static bool IsInSouthHorn => IsInOccultCrescentOp && TerritoryID == 1252;
+
+	/// <summary>
 	/// Determines if the current content is Forked Tower.
 	/// </summary>
-	public static bool IsInForkedTower => IsInOccultCrescentOp && StatusHelper.PlayerHasStatus(false, StatusID.DutiesAsAssigned_4228);
+	public static bool IsInForkedTowerBlood => IsInOccultCrescentOp && StatusHelper.PlayerHasStatus(false, StatusID.DutiesAsAssigned_4228);
 	#endregion
 
 	#region Variant Dungeon
@@ -810,6 +858,11 @@ internal static class DataCenter
 		}
 
 		if (DutyRotation.ChemistLevel >= 3)
+		{
+			return true;
+		}
+
+		if (DutyRotation.WhiteMageLevel >= 4)
 		{
 			return true;
 		}
@@ -1773,6 +1826,65 @@ internal static class DataCenter
 	/// <summary>
 	/// 
 	/// </summary>
+	public static bool IsLichCastingSpecialIndicator()
+	{
+		if (!IsInQuestBattle)
+		{
+			return false;
+		}
+
+		var hostileEnum = AllHostileTargets;
+		if (hostileEnum == null)
+		{
+			return false;
+		}
+
+		for (int i = 0, n = hostileEnum.Count; i < n; i++)
+		{
+			var hostile = hostileEnum[i];
+			if (hostile == null)
+			{
+				continue;
+			}
+
+			try
+			{
+				// Ensure the hostile is actually casting
+				if (!hostile.IsCasting)
+				{
+					continue;
+				}
+
+				// Alexandrian Quake - 46419
+				var castId = hostile.CastActionId;
+
+				// Remaining cast time is exposed as CurrentCastTime (units consistent with other checks)
+				var remaining = hostile.TotalCastTime - hostile.CurrentCastTime;
+
+				if (castId == 46419 || castId == 46427)
+				{
+					if (remaining <= 3f)
+					{
+						if (Service.Config.InDebug)
+						{
+							PluginLog.Debug($"Lich Cast Detected");
+						}
+						return true;
+					}
+				}
+			}
+			catch (AccessViolationException ex)
+			{
+				PluginLog.Warning($"AccessViolation in IsHostileCastingSpecialIndicator for obj {hostile?.GameObjectId}: {ex.Message}");
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
 	public static bool IsLakshmiCastingSpecialIndicator()
 	{
 		if (!EmanationEX && !Emanation)
@@ -2367,7 +2479,7 @@ internal static class DataCenter
 
 	#region BossModReborn Timeline Integration
 
-	public static bool BMREndabled
+	public static bool BMREnabled
 	{
 		get
 		{
@@ -2397,6 +2509,21 @@ internal static class DataCenter
 	public static PredictedDamageType BMRNextDamageType { get; set; } = PredictedDamageType.None;
 	public static float BMRSpecialModeIn { get; set; } = float.MaxValue;
 	public static SpecialMode BMRSpecialModeType { get; set; } = SpecialMode.Normal;
+
+	/// <summary>
+	/// True if BossMod's boss module AI hints are requesting the current cast be cancelled.
+	/// </summary>
+	public static bool BMRForceCancelCast { get; set; }
+
+	/// <summary>
+	/// True if BossMod's AI controller is requesting the current cast be cancelled.
+	/// </summary>
+	public static bool BMRForceCancelCastAI { get; set; }
+
+	/// <summary>
+	/// True if BossMod is moving.
+	/// </summary>
+	public static bool BMRIsMoving { get; set; }
 
 	// Debug diagnostics
 	public static float BMRDebugTimelineRaidwide { get; set; } = float.MaxValue;
@@ -2428,6 +2555,33 @@ internal static class DataCenter
 	/// When null, BossModReborn is not available and all fixed dashes are considered safe.
 	/// </summary>
 	public static Func<Vector3, Vector3, bool>? BMRIsFixedDashSafe { get; set; }
+
+	/// <summary>
+	/// The most recently polled set of upcoming planned actions from BossMod's Cooldown Planner,
+	/// wired up by BMRPlanUpdater. Empty when no plan is active or BossModReborn is unavailable.
+	/// </summary>
+	public static List<BMRPlannedAction> BMRPlannedActions { get; set; } = [];
+
+	/// <summary>
+	/// Returns the currently active planned action (if any) matching the given adjusted action id,
+	/// i.e. one whose activation window has started (ActivationIn &lt;= 0) and not yet ended
+	/// (WindowEndIn &gt; 0). Only entries resolved to a concrete game action (ActionType == 1) are considered.
+	/// </summary>
+	public static BMRPlannedAction? GetActivePlannedAction(uint actionId)
+	{
+		var actions = BMRPlannedActions;
+		for (var i = 0; i < actions.Count; i++)
+		{
+			var action = actions[i];
+			if (action.ActionId == actionId && action.ActivationIn <= 0f && action.WindowEndIn > 0f)
+			{
+				PluginLog.Information($"GetActivePlannedAction: Found active planned action {action.ActionId} with ActivationIn {action.ActivationIn} and WindowEndIn {action.WindowEndIn}");
+				return action;
+			}
+		}
+
+		return null;
+	}
 
 	/// <summary>
 	/// Returns true if the destination is safe to move to, or if BossModReborn IPC is unavailable.
@@ -2491,6 +2645,9 @@ internal static class DataCenter
 		BMRNextDamageType = 0;
 		BMRSpecialModeIn = float.MaxValue;
 		BMRSpecialModeType = 0;
+		BMRForceCancelCast = false;
+		BMRForceCancelCastAI = false;
+		BMRIsMoving = false;
 		BMRDebugTimelineRaidwide = float.MaxValue;
 		BMRDebugTimelineTankbuster = float.MaxValue;
 		BMRDebugHintsRaidwide = float.MaxValue;
@@ -2505,6 +2662,14 @@ internal static class DataCenter
 		BMRIsPositionSafe = null;
 		BMRIsDashSafe = null;
 		BMRIsFixedDashSafe = null;
+	}
+
+	/// <summary>
+	/// Clears any cached Cooldown Planner data (called when the feature is disabled or BMR becomes unavailable).
+	/// </summary>
+	public static void ResetBmrPlanData()
+	{
+		BMRPlannedActions = [];
 	}
 	#endregion
 }

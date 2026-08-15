@@ -36,22 +36,22 @@ public partial class CustomRotation
 			return null;
 		}
 
-		if (Service.Config.PldlockCasting && DataCenter.Job == ECommons.ExcelServices.Job.PLD && IsLastAction(ActionID.PassageOfArmsPvE) && StatusHelper.PlayerHasStatus(true, StatusID.PassageOfArms))
+		if (Service.Config.PldlockCasting && DataCenter.Job == Job.PLD && IsLastAction(ActionID.PassageOfArmsPvE) && StatusHelper.PlayerHasStatus(true, StatusID.PassageOfArms))
 		{
 			return null;
 		}
 
-		if (Service.Config.AstlockCasting && DataCenter.Job == ECommons.ExcelServices.Job.AST && IsLastAction(ActionID.CollectiveUnconsciousPvE) && StatusHelper.PlayerHasStatus(true, StatusID.CollectiveUnconscious_848))
+		if (Service.Config.AstlockCasting && DataCenter.Job == Job.AST && IsLastAction(ActionID.CollectiveUnconsciousPvE) && StatusHelper.PlayerHasStatus(true, StatusID.CollectiveUnconscious_848))
 		{
 			return null;
 		}
 
-		if (Service.Config.BlulockCasting && DataCenter.Job == ECommons.ExcelServices.Job.BLU && IsLastAction(ActionID.PhantomFlurryPvE) && StatusHelper.PlayerHasStatus(true, StatusID.PhantomFlurry))
+		if (Service.Config.BlulockCasting && DataCenter.Job == Job.BLU && IsLastAction(ActionID.PhantomFlurryPvE) && StatusHelper.PlayerHasStatus(true, StatusID.PhantomFlurry))
 		{
 			return null;
 		}
 
-		if (DataCenter.Job == ECommons.ExcelServices.Job.NIN && StatusHelper.PlayerHasStatus(true, StatusID.Mudra) && DataCenter.DefaultGCDRemain >= 0.625f)
+		if (DataCenter.Job == Job.NIN && StatusHelper.PlayerHasStatus(true, StatusID.Mudra) && DataCenter.DefaultGCDRemain > 0.6f)
 		{
 			return null;
 		}
@@ -69,11 +69,11 @@ public partial class CustomRotation
 		try
 		{
 			IBaseAction.ShouldEndSpecial = false;
-			if (DataCenter.CurrentDutyRotation?.EmergencyGCD(out act) == true)
+			if (DataCenter.CurrentDutyRotation?.EmergencyGCD(act, out act) == true)
 			{
 				return act;
 			}
-			if (EmergencyGCD(out act))
+			if (EmergencyGCD(act, out act))
 			{
 				return act;
 			}
@@ -660,9 +660,10 @@ public partial class CustomRotation
 	/// <summary>
 	/// Attempts to use the Emergency GCD action.
 	/// </summary>
+	/// <param name="nextGCD">The next GCD action.</param>
 	/// <param name="act">The action to be performed.</param>
 	/// <returns>True if the action can be used; otherwise, false.</returns>
-	protected virtual bool EmergencyGCD(out IAction? act)
+	protected virtual bool EmergencyGCD(IAction? nextGCD, out IAction? act)
 	{
 		act = null;
 		if (DataCenter.IsPvP)

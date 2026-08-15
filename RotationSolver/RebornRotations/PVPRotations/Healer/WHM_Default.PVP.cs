@@ -1,6 +1,6 @@
 namespace RotationSolver.RebornRotations.PVPRotations.Healer;
 
-[Rotation("Default PVP", CombatType.PvP, GameVersion = "7.5")]
+[Rotation("Default PVP", CombatType.PvP, GameVersion = "7.55")]
 [SourceCode(Path = "main/RebornRotations/PVPRotations/Healer/WHM_Default.PVP.cs")]
 
 public class WHM_DefaultPVP : WhiteMageRotation
@@ -74,7 +74,7 @@ public class WHM_DefaultPVP : WhiteMageRotation
 	#endregion
 
 	#region GCDs
-	protected override bool EmergencyGCD(out IAction? action)
+	protected override bool EmergencyGCD(IAction? nextGCD, out IAction? action)
 	{
 		if (AquaveilEsuna && AquaveilPvP.CanUse(out action))
 		{

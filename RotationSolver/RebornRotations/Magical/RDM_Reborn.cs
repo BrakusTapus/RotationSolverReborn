@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.Magical;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.5")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.55")]
 [SourceCode(Path = "main/RebornRotations/Magical/RDM_Reborn.cs")]
 
 public sealed class RDM_Reborn : RedMageRotation
@@ -359,15 +359,15 @@ public sealed class RDM_Reborn : RedMageRotation
 
 		if (CanInstantCast || HasAccelerate)
 		{
-			if (!ImpactPvE.EnoughLevel)
+			if (EnhancedAccelerationIiTrait.EnoughLevel)
 			{
-				if (ScatterPvE.CanUse(out act))
+				if (GrandImpactPvE.CanUse(out act, skipStatusProvideCheck: CanGrandImpact, skipCastingCheck: true))
 				{
 					return true;
 				}
 			}
 
-			if (!GrandImpactPvE.EnoughLevel && ImpactPvE.EnoughLevel)
+			if (!ImpactPvE.EnoughLevel && ImpactPvE.EnoughLevel)
 			{
 				if (ImpactPvE.CanUse(out act))
 				{
@@ -375,9 +375,9 @@ public sealed class RDM_Reborn : RedMageRotation
 				}
 			}
 
-			if (EnhancedAccelerationIiTrait.EnoughLevel)
+			if (!ImpactPvE.EnoughLevel)
 			{
-				if (GrandImpactPvE.CanUse(out act, skipStatusProvideCheck: CanGrandImpact, skipCastingCheck: true))
+				if (ScatterPvE.CanUse(out act))
 				{
 					return true;
 				}
@@ -522,6 +522,21 @@ public sealed class RDM_Reborn : RedMageRotation
 			 EnchantedReprisePvE.CanUse(out act))
 		{
 			return true;
+		}
+
+		if (WhiteMana < BlackMana)
+		{
+			if (VeraeroIiPvE.CanUse(out act))
+			{
+				return true;
+			}
+		}
+		if (WhiteMana >= BlackMana)
+		{
+			if (VerthunderIiPvE.CanUse(out act))
+			{
+				return true;
+			}
 		}
 
 		// Single Target

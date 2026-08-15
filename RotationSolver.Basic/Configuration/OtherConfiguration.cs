@@ -57,6 +57,16 @@ internal class OtherConfiguration
 	public static Dictionary<uint, string[]> NoHostileNames = [];
 	public static Dictionary<uint, string[]> NoProvokeNames = [];
 
+	/// <summary>
+	/// Auto-recorded elemental weaknesses observed while in North Horn, keyed by NameId.
+	/// </summary>
+	public static Dictionary<uint, List<string>> NorthHornWeaknessRecords = [];
+
+	/// <summary>
+	/// Auto-recorded elemental weaknesses observed while in South Horn, keyed by NameId.
+	/// </summary>
+	public static Dictionary<uint, List<string>> SouthHornWeaknessRecords = [];
+
 	/// <markdown file="List" name="Beneficial Positions" section="Map-Specific Settings">
 	/// Adds a preferred location used for ground **healing** AoE abilities (example: Earthly Star).
 	///
@@ -123,6 +133,8 @@ internal class OtherConfiguration
 		_ = Task.Run(() => InitOne(ref NoCastingStatus, nameof(NoCastingStatus)));
 		_ = Task.Run(() => InitOne(ref HostileCastingKnockback, nameof(HostileCastingKnockback)));
 		_ = Task.Run(() => InitOne(ref HostileCastingStop, nameof(HostileCastingStop)));
+		_ = Task.Run(() => InitOne(ref NorthHornWeaknessRecords, nameof(NorthHornWeaknessRecords), false));
+		_ = Task.Run(() => InitOne(ref SouthHornWeaknessRecords, nameof(SouthHornWeaknessRecords), false));
 	}
 
 	public static async Task InitAsync(CancellationToken cancellationToken = default)
@@ -148,7 +160,9 @@ internal class OtherConfiguration
 			Task.Run(() => InitOne(ref RotationSolverRecord, nameof(RotationSolverRecord), false), cancellationToken),
 			Task.Run(() => InitOne(ref NoCastingStatus, nameof(NoCastingStatus)), cancellationToken),
 			Task.Run(() => InitOne(ref HostileCastingKnockback, nameof(HostileCastingKnockback)), cancellationToken),
-			Task.Run(() => InitOne(ref HostileCastingStop, nameof(HostileCastingStop)), cancellationToken)
+			Task.Run(() => InitOne(ref HostileCastingStop, nameof(HostileCastingStop)), cancellationToken),
+			Task.Run(() => InitOne(ref NorthHornWeaknessRecords, nameof(NorthHornWeaknessRecords), false), cancellationToken),
+			Task.Run(() => InitOne(ref SouthHornWeaknessRecords, nameof(SouthHornWeaknessRecords), false), cancellationToken)
 		);
 	}
 
@@ -172,6 +186,8 @@ internal class OtherConfiguration
 			await SaveNoCastingStatus();
 			await SaveHostileCastingKnockback();
 			await SaveHostileCastingStop();
+			await SaveNorthHornWeaknessRecords();
+			await SaveSouthHornWeaknessRecords();
 		});
 	}
 	#region Action Tab
@@ -330,6 +346,73 @@ internal class OtherConfiguration
 	{
 		return Task.Run(() => Save(NoHostileNames, nameof(NoHostileNames)));
 	}
+
+	#region Occult Crescent Weakness Tracking
+
+	public static Task SaveNorthHornWeaknessRecords()
+	{
+		return Task.Run(() => Save(NorthHornWeaknessRecords, nameof(NorthHornWeaknessRecords)));
+	}
+
+	public static Task SaveSouthHornWeaknessRecords()
+	{
+		return Task.Run(() => Save(SouthHornWeaknessRecords, nameof(SouthHornWeaknessRecords)));
+	}
+
+	public static void ResetOccultWeaknessRecords()
+	{
+		NorthHornWeaknessRecords.Clear();
+		SouthHornWeaknessRecords.Clear();
+		SaveNorthHornWeaknessRecords().Wait();
+		SaveSouthHornWeaknessRecords().Wait();
+	}
+
+	/// <summary>
+	///
+	/// </summary>
+	public static bool RecordOccultWeakness(uint nameId, StatusID weakness)
+	{
+		if (nameId == 0)
+		{
+			return false;
+		}
+
+		// Skip checking/recording entirely if this NameId is already manually curated.
+		if (StatusHelper.HasKnownOccultWeakness(nameId))
+		{
+			return false;
+		}
+
+		var records = DataCenter.IsInNorthHorn
+			? NorthHornWeaknessRecords
+			: DataCenter.IsInSouthHorn
+				? SouthHornWeaknessRecords
+				: null;
+
+		if (records == null)
+		{
+			return false;
+		}
+
+		if (!records.TryGetValue(nameId, out var list))
+		{
+			list = [];
+			records[nameId] = list;
+		}
+
+		var weaknessName = weakness.ToString();
+		if (list.Contains(weaknessName))
+		{
+			return false;
+		}
+
+		list.Add(weaknessName);
+
+		return true;
+	}
+
+	#endregion
+
 
 	private static string GetFilePath(string name)
 	{

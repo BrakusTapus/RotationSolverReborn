@@ -334,7 +334,18 @@ public struct ActionTargetInfo(IBaseAction action)
 
 		if (action.Setting.TargetStatusNeed != null && !skipTargetStatusNeedCheck)
 		{
-			if (battleChara.WillStatusEndGCD(action.Config.StatusGcdCount, 0, action.Setting.StatusFromSelf, action.Setting.TargetStatusNeed))
+			if (DataCenter.IsInOccultCrescentOp && battleChara.NameId != 0)
+			{
+				foreach (var id in action.Setting.TargetStatusNeed)
+				{
+					if (StatusHelper.IsOccultWeaknessStatus(id) && StatusHelper.HasKnownOccultWeakness(battleChara.NameId, id))
+					{
+						return true;
+					}
+				}
+			}
+
+			if (battleChara.WillStatusEndGCD(action.Config.StatusRefreshGcdCount, 0, action.Setting.StatusFromSelf, action.Setting.TargetStatusNeed))
 			{
 				return false;
 			}
@@ -342,7 +353,7 @@ public struct ActionTargetInfo(IBaseAction action)
 
 		if (action.Setting.TargetStatusProvide != null && !skipStatusProvideCheck)
 		{
-			if (!battleChara.WillStatusEndGCD(action.Config.StatusGcdCount, 0, action.Setting.StatusFromSelf, action.Setting.TargetStatusProvide) || (Service.Config.Statuscap2 && StatusHelper.IsStatusCapped(battleChara)))
+			if (!battleChara.WillStatusEndGCD(action.Config.StatusRefreshGcdCount, 0, action.Setting.StatusFromSelf, action.Setting.TargetStatusProvide) || (Service.Config.Statuscap2 && StatusHelper.IsStatusCapped(battleChara)))
 			{
 				return false;
 			}
@@ -1902,7 +1913,7 @@ public struct ActionTargetInfo(IBaseAction action)
 					}
 				}
 				break;
-				
+
 			// Movement-attack: the character moves as part of dealing damage to a hostile target.
 			// Use the full standard hostile targeting pipeline — all normal filters apply
 			// (stop marks, priority, TTK, resistance, CanTarget predicate).

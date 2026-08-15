@@ -181,10 +181,25 @@ internal partial class Configs : IPluginConfiguration
 	Filter = DutySpecificDungeon)]
 	private static readonly bool _jailerImmune = true;
 
-	[ConditionBool, UI("Forked Tower - Dead Star logic.",
+	[ConditionBool, UI("Forked Tower Blood - Dead Star logic.",
 	Description = "Treat Triton/Nereid/Phobos as immune if you don't have the corresponding status for it.",
 	Filter = DutySpecificFieldOps)]
 	private static readonly bool _forkedtowerDeadStar = true;
+
+	[ConditionBool, UI("Forked Tower Magic - First Boss Villian/Hero.",
+	Description = "Treat the first boss of Forked Tower as immune if you don't have the corresponding status for it.",
+	Filter = DutySpecificFieldOps)]
+	private static readonly bool _forkedtowerFirstBossVillianHero = true;
+
+	[ConditionBool, UI("North Horn CE - Tiny Mage targetting logic.",
+	Description = "Treat Tiny Mage CE mobs as immune if you're more than 5 yalms away and they are not the farthest along their cast.",
+	Filter = DutySpecificFieldOps)]
+	private static readonly bool _northHornTinyMage = true;
+
+	[ConditionBool, UI("Elemental Weakness Tracking.",
+	Description = "Enable tracking of elemental weaknesses for debug. This enables you to track weaknesses to report to dev. See Debug > Occult Crescent Weaknesses.",
+	Filter = DutySpecificFieldOps)]
+	private static readonly bool _elementalWeaknessTracking = false;
 
 	[ConditionBool, UI("Pilgrim's Traverse - Eminent Grief logic.",
 	Description = "Treat Eminent Grief as immune if you don't have Light Vengeance buff, and treat Devoured Eater as immune if you don't have Dark Vengeance buff.",
@@ -359,6 +374,16 @@ internal partial class Configs : IPluginConfiguration
 	[Range(1, 10, ConfigUnitType.Seconds)]
 	public float InterceptActionTime { get; set; } = 5;
 
+	[ConditionBool, UI("Use BossModReborn's Cooldown Planner actions with the interception system (Experimental)",
+		Description = "When enabled and BossModReborn is loaded, RSR will allow actions planned in BMR's Cooldown Planner to pass through the intercept system when their window is active.",
+		Filter = AutoActionUsage, Section = 5, Parent = nameof(InterceptAction3))]
+	private static readonly bool _useBMRPlan = false;
+
+	[UI("How far ahead (in seconds) to look up upcoming Cooldown Planner actions", Parent = nameof(UseBmrPlan),
+		Filter = AutoActionUsage, Section = 5)]
+	[Range(1, 60, ConfigUnitType.Seconds, 1f)]
+	public float BMRPlanLookAheadSeconds { get; set; } = 5f;
+
 	/// <markdown file="Auto" name="What kind of AoE moves to use" section="Action Usage and Control">
 	/// - Full: Use all available AoE actions.
 	/// - Cleave: Use only single-target AoE actions.
@@ -433,6 +458,9 @@ internal partial class Configs : IPluginConfiguration
 
 	[UI("", Action = ActionID.ImprovisationPvE, Parent = nameof(PoslockCasting))]
 	public bool PosImprovisation { get; set; } = false;
+
+	[UI("Unlock movement when pressing both left and right mouse buttons.", Parent = nameof(PoslockCasting))]
+	public bool PosLockMouse { get; set; } = false;
 
 	[ConditionBool, UI("Lock actions when casting Passage Of Arms during AOE mitigations.",
 	Filter = Extra)]
@@ -749,6 +777,9 @@ internal partial class Configs : IPluginConfiguration
 
 	[ConditionBool, UI("Use movement speed increase abilities when out of combat and out of duty.", Parent = nameof(UseAbility))]
 	private static readonly bool _autoSpeedOutOfCombatNoDuty = false;
+
+	[ConditionBool, UI("Use Sprint when a party tank is sprinting (non-tanks only).", Parent = nameof(UseAbility))]
+	private static readonly bool _autoSprintWithTank = false;
 
 	[ConditionBool, UI("Use beneficial ground-targeted actions", Description = "1.    Self-Target Fallback:\r\nIf range is zero, always targets the player and returns all affectable targets at the player's position.\r\n2.    Preferred Positions (OnLocations):\r\n•    Tries to get predefined beneficial positions for the current territory.\r\n•    If none are found and the content is a trial or raid, uses fallback points (e.g., 0,0 or 100,100 point as those are the center of arenas most of the time).\r\n•    Picks the closest point to the player, applies a small random offset, and checks if it’s within effect range.\r\n•    If so, returns that as the target area.\r\n3.    Boss Positional Fallback:\r\n•    If the current target is a boss with positional requirements and within range, uses the boss’s position (or a point within range) as the target area.\r\n4.    Party Member Fallback:\r\n•    Gathers party members within range + effect range.\r\n•    Attempts to find a party member who is being attacked (tank or focus target).\r\n•    If found, calculates whether to stay at the player’s position or move closer to the tank, based on distances and effect range.\r\n•    If not found or not needed, defaults to the player’s position.", Filter = HealingActionCondition, Section = 3)]
 	private static readonly bool _useGroundBeneficialAbility = true;
@@ -1253,7 +1284,7 @@ internal partial class Configs : IPluginConfiguration
 
 	public int ActionSequencerIndex { get; set; }
 
-	[UI("The modifier key to unlock the movement temporarily", Description = "RB is for gamepad player", Parent = nameof(PoslockCasting))]
+	[UI("The modifier key to unlock the movement temporarily", Description = "RB is for gamepad player.", Parent = nameof(PoslockCasting))]
 	public ConsoleModifiers PoslockModifier { get; set; }
 
 	[Range(0, 5, ConfigUnitType.None, 1)]

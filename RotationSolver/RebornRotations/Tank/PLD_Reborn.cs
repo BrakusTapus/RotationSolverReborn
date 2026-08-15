@@ -1,6 +1,6 @@
 ﻿namespace RotationSolver.RebornRotations.Tank;
 
-[Rotation("Reborn", CombatType.PvE, GameVersion = "7.5")]
+[Rotation("Reborn", CombatType.PvE, GameVersion = "7.55")]
 [SourceCode(Path = "main/RebornRotations/Tank/PLD_Reborn.cs")]
 
 public sealed class PLD_Reborn : PaladinRotation
@@ -100,11 +100,15 @@ public sealed class PLD_Reborn : PaladinRotation
 			return true;
 		}
 
-		if ((StatusHelper.PlayerHasStatus(true, StatusID.Rampart) || StatusHelper.PlayerHasStatus(true, StatusID.Sentinel)) &&
-			InterventionPvE.CanUse(out act, skipTargetStatusNeedCheck: true) &&
-			InterventionPvE.Target.Target?.GetHealthRatio() < InterventionClutch)
+		if (StatusHelper.PlayerHasStatus(true, StatusID.Rampart) || StatusHelper.PlayerHasStatus(true, StatusID.Sentinel))
 		{
-			return true;
+			if (InterventionPvE.CanUse(out act, skipTargetStatusNeedCheck: true))
+			{
+				if (InterventionPvE.Target.Target?.GetHealthRatio() < InterventionClutch)
+				{
+					return true;
+				}
+			}
 		}
 
 		if (CoverPvE.CanUse(out act) && CoverPvE.Target.Target?.DistanceToPlayer() < 10 &&
@@ -463,9 +467,12 @@ public sealed class PLD_Reborn : PaladinRotation
 
 	private bool UseOath(out IAction? act)
 	{
-		if ((InterventionPvE.Target.Target?.GetHealthRatio() <= InterventionRatio) && InterventionPvE.CanUse(out act))
+		if (InterventionPvE.CanUse(out act))
 		{
-			return true;
+			if ((InterventionPvE.Target.Target?.GetHealthRatio() <= InterventionRatio))
+			{
+				return true;
+			}
 		}
 
 		if (HolySheltronPvE.CanUse(out act) && HolySheltronPvE.EnoughLevel)

@@ -1,6 +1,5 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.GameHelpers;
-using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
@@ -328,6 +327,14 @@ public readonly struct ActionBasicInfo
 				return false;
 			}
 
+			// Quest Battle actions (e.g. Hardboiled) are an entirely separate system from standard
+			// duty actions: they replace the player's normal hotbars rather than occupying the
+			// dedicated duty action slots, so they must never fall through to the duty action check below.
+			if (_action.Setting.IsQuestBattleAction)
+			{
+				return DataCenter.IsInQuestBattle;
+			}
+
 			if (IsDutyAction)
 			{
 				foreach (var actionId in DataCenter.DutyActions)
@@ -472,12 +479,22 @@ public readonly struct ActionBasicInfo
 			return false;
 		}
 
-		if (!IsActionEnabled() || !IsOnSlot)
+		if (!IsActionEnabled())
 		{
 			return false;
 		}
 
-		if (IsActionDisabled() || !HasEnoughMP())
+		if (IsActionDisabled())
+		{
+			return false;
+		}
+
+		if (!IsOnSlot)
+		{
+			return false;
+		}
+
+		if (!HasEnoughMP())
 		{
 			return false;
 		}
@@ -584,7 +601,7 @@ public readonly struct ActionBasicInfo
 		// Must be in a state where casting is not possible
 		if (DataCenter.SpecialType == SpecialCommandType.NoCasting ||
 			(DateTime.Now > DataCenter.KnockbackStart && DateTime.Now < DataCenter.KnockbackFinished) ||
-			(DataCenter.NoPoslock && DataCenter.IsMoving && !skipCastingCheck))
+			(DataCenter.NoPoslock && DataCenter.IsMoving && !skipCastingCheck) || DataCenter.BMRForceCancelCast || DataCenter.BMRIsMoving)
 		{
 			return true;
 		}
@@ -642,7 +659,7 @@ public readonly struct ActionBasicInfo
 			return false;
 		}
 
-		return Player.Object.StatusList != null && !skipStatusNeed && _action.Setting.StatusNeed != null && Player.Object.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusNeed);
+		return Player.Object.StatusList != null && !skipStatusNeed && _action.Setting.StatusNeed != null && Player.Object.WillStatusEndGCD(_action.Config.StatusRefreshGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusNeed);
 	}
 
 	private bool IsStatusProvided(bool skipStatusProvideCheck)
@@ -652,7 +669,7 @@ public readonly struct ActionBasicInfo
 			return false;
 		}
 
-		return Player.Object.StatusList != null && !skipStatusProvideCheck && _action.Setting.StatusProvide != null && !Player.Object.WillStatusEndGCD(_action.Config.StatusGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusProvide);
+		return Player.Object.StatusList != null && !skipStatusProvideCheck && _action.Setting.StatusProvide != null && !Player.Object.WillStatusEndGCD(_action.Config.StatusRefreshGcdCount, 0, _action.Setting.StatusFromSelf, _action.Setting.StatusProvide);
 	}
 
 	private bool IsComboValid(bool skipComboCheck)

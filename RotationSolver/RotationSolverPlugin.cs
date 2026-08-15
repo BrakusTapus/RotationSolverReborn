@@ -103,8 +103,10 @@ public sealed class RotationSolverPlugin : IAsyncDalamudPlugin
 
 	public async Task LoadAsync(CancellationToken cancellationToken)
 	{
-		// Warm up texture cache on framework thread
-		await Svc.Framework.Run(() =>
+		// Warm up texture cache on framework thread. This is not critical to plugin
+		// functionality, so it should not be allowed to block/consume the load-timeout
+		// budget that Dalamud provides for LoadAsync via cancellationToken.
+		var textureWarmupTask = Svc.Framework.Run(() =>
 		{
 			_ = ThreadLoadImageHandler.TryGetIconTextureWrap(0, true, out _);
 		}, cancellationToken);
@@ -138,7 +140,19 @@ public sealed class RotationSolverPlugin : IAsyncDalamudPlugin
 		// Load OtherConfiguration files
 		await OtherConfiguration.InitAsync(cancellationToken);
 
-		// The following must run on the main/framework thread
+		try
+		{
+			await textureWarmupTask;
+		}
+		catch (OperationCanceledException)
+		{
+			PluginLog.Warning("Texture warmup was canceled; continuing plugin load.");
+		}
+
+		// The following registers hooks/events required for the plugin to function and
+		// must complete even if Dalamud's load-timeout token fires (e.g. due to slow
+		// disk I/O or the framework being busy during a loading screen), otherwise the
+		// plugin ends up in a partially-initialized state with hooks leaking.
 		await Svc.Framework.Run(() =>
 		{
 			//HotbarHighlightDrawerManager.Init();
@@ -147,6 +161,7 @@ public sealed class RotationSolverPlugin : IAsyncDalamudPlugin
 			AutoAttackUpdater.Enable();
 			Watcher.Enable();
 			ActionQueueManager.Enable();
+			BMRPlanUpdater.Enable();
 			ActionContextMenu.Init();
 			HotbarHighlightManager.Init();
 
@@ -173,7 +188,7 @@ public sealed class RotationSolverPlugin : IAsyncDalamudPlugin
 					Svc.Chat.Print("Warning has been hidden.");
 				}
 			});
-		}, cancellationToken);
+		}, CancellationToken.None);
 	}
 
 	private static void DutyState_DutyCompleted(IDutyStateEventArgs e)
@@ -368,8 +383,19 @@ public sealed class RotationSolverPlugin : IAsyncDalamudPlugin
 		RSCommands.Disable();
 		Watcher.Disable();
 		ActionQueueManager.Disable();
+		BMRPlanUpdater.Disable();
+		ActionContextMenu.Dispose();
 		Svc.PluginInterface.UiBuilder.OpenConfigUi -= OnOpenConfigUi;
 		Svc.PluginInterface.UiBuilder.Draw -= OnDraw;
+
+		Svc.DutyState.DutyStarted -= DutyState_DutyStarted;
+		Svc.DutyState.DutyWiped -= DutyState_DutyWiped;
+		Svc.DutyState.DutyCompleted -= DutyState_DutyCompleted;
+		Svc.ClientState.TerritoryChanged -= ClientState_TerritoryChanged;
+
+		Svc.Chat.RemoveChatLinkHandler();
+		OpenLinkPayload = null!;
+		HideWarningLinkPayload = null;
 
 		foreach (var item in _dis)
 		{
@@ -383,6 +409,10 @@ public sealed class RotationSolverPlugin : IAsyncDalamudPlugin
 		MiscUpdater.Dispose();
 		HotbarHighlightManager.Dispose();
 		ActionTimelineManager.Instance.Dispose();
+
+		BMRInfo_IPCSubscriber.Dispose();
+		BMRTimeline_IPCSubscriber.Dispose();
+		BMRPlan_IPCSubscriber.Dispose();
 
 		ECommonsMain.Dispose();
 	}
