@@ -1,6 +1,6 @@
 namespace RotationSolver.ExtraRotations.Melee;
 
-[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.56")]
+[Rotation("Kirbo", CombatType.PvE, GameVersion = "7.56", Disabled = true)]
 [SourceCode(Path = "main/ExtraRotations/Melee/KirboBST.cs")]
 public sealed class KirboBST : BeastmasterRotation
 {
