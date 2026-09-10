@@ -835,8 +835,8 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     #region Status Display
     public override bool ShowStatus => true;
-    private int _debugActionId = 29415;
     // ECommons.Automation.Chat.SendMessage("/lockon on"); test if this method can be used to send chat commands
+    private int _debugActionId = 29415;
     public override void DisplayRotationStatus()
     {
         float availableWidth = ImGui.GetContentRegionAvail().X;
@@ -848,7 +848,10 @@ public sealed class KirboMCHPvp : MachinistRotation
             {
                 var actionSheet = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>();
                 ImGui.InputInt("Action ID", ref _debugActionId);
-                if (_debugActionId < 0) _debugActionId = 0;
+                if (_debugActionId < 0)
+                {
+                    _debugActionId = 0;
+                }
 
                 if (actionSheet != null)
                 {
@@ -897,7 +900,7 @@ public sealed class KirboMCHPvp : MachinistRotation
                     ImGui.Text("Behaviour");
                     ImGui.Text($"Behaviour Type: {action.BehaviourType}");
                     ImGui.Text($"Auto Attack Behaviour: {action.AutoAttackBehaviour}");
-                    ImGui.Text($"Attack Type: {action.AttackType.Value.Name}");
+                    ImGui.Text($"Attack Type: {action.AttackType.Value.Name}"); // something here is throwing warning logs
                     ImGui.Text($"Aspect: {action.Aspect}");
                     ImGui.Text($"Affects Position: {action.AffectsPosition}");
                     ImGui.Text($"Preserves Combo: {action.PreservesCombo}");
@@ -993,7 +996,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
         foreach (IBattleChara enemy in CustomRotation.AllHostileTargets)
         {
-            if (enemy == null || enemy.Name.ToString() == string.Empty)
+            if (enemy == null || string.IsNullOrWhiteSpace(enemy.Name?.ToString()))
             {
                 continue;
             }
