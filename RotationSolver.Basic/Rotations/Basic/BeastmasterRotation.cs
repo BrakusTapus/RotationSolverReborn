@@ -1010,6 +1010,36 @@ public partial class BeastmasterRotation
 	/// 
 	/// </summary>
 	public static bool HasInterestCaptured => StatusHelper.PlayerHasStatus(true, StatusID.InterestCaptured);
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsInCrucible =>  DataCenter.IsInCrucible;
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsinFirstBoard => DataCenter.IsinFirstBoard;
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsinSecondBoard => DataCenter.IsinSecondBoard;
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsinThirdBoard => DataCenter.IsinThirdBoard;
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsinFirstMasterBoard => DataCenter.IsinFirstMasterBoard;
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public static bool IsinSecondMasterBoard => DataCenter.IsinSecondMasterBoard;
 	#endregion
 
 	#region Draw Debug
@@ -1047,15 +1077,18 @@ public partial class BeastmasterRotation
 
 	static partial void ModifySnarlPvE(ref ActionSetting setting)
 	{
+		setting.ActionCheck = () => IsInCrucible && IsinFirstBoard;
 		//shirk
 		setting.IsFriendly = false;
 		//setting.TargetType = TargetType.Provoke;
 		setting.TargetStatusNeed = [StatusID.UnnamedStatus_2552];
 		setting.StatusFromSelf = false;
+		setting.StatusProvide = [StatusID.Covered_2413];
 	}
 
 	static partial void ModifyChallengePvE(ref ActionSetting setting)
 	{
+		setting.ActionCheck = () => IsInCrucible;
 		setting.IsFriendly = false;
 		setting.TargetType = TargetType.Provoke;
 	}
@@ -1246,7 +1279,7 @@ public partial class BeastmasterRotation
 	{
 		setting.StatusNeed = [StatusID.OneWithNature];
 		setting.MPOverride = () => 0;
-		setting.ActionCheck = () => InCombat && Service.GetAdjustedActionId(ActionID.TemperedReleasePvE) == ActionID.TemperedReleasePvE_47092;
+		setting.ActionCheck = () => InCombat && Service.GetAdjustedActionId(ActionID.TemperedReleasePvE) == ActionID.TemperedReleasePvE_47092 && TemperedReleaseReady;
 
 	}
 
@@ -1387,7 +1420,7 @@ public partial class BeastmasterRotation
 	{
 		setting.ActionCheck = () => KinshipBattlehorn > 0 && KinshipKinType == BeastmasterKinType.Wavekin;
 		setting.StatusNeed = [StatusID.WaveKinship, StatusID.WaveKinship_4648];
-		setting.TargetStatusNeed = [StatusID.PopotoSkin, StatusID.DamageUp_2550, StatusID.PhysicalDamageUp_2074, StatusID.DamageUp_1225];
+		setting.TargetStatusNeed = [StatusID.PopotoSkin, StatusID.DamageUp_2550, StatusID.PhysicalDamageUp_2074, StatusID.DamageUp_1225, StatusID.MagicDamageUp_5020, StatusID.BlazeSpikes_5465];
 		setting.StatusFromSelf = false;
 		setting.IsFriendly = false;
 		setting.CreateConfig = () => new ActionConfig()
