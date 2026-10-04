@@ -1503,7 +1503,7 @@ public sealed class MchKirboBeta : MachinistRotation
         BeginPaddedChild("The CustomRotation's status window", true, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar);
         string text = "Rotation: " + Name;
         float textSize = ImGui.CalcTextSize(text).X;
-        UI.ImGuiHelper.DrawItemMiddle(() =>
+        RotationHelper.DrawItemMiddle(() =>
         {
             ImGui.TextColored(ImGuiColors.HealerGreen, text);
             UI.ImguiTooltips.HoveredTooltip(Description);

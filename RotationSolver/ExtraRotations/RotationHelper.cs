@@ -15,6 +15,25 @@ internal static unsafe class RotationHelper
         //PauseRotation();
     }
 
+    #region UI
+	internal static void DrawItemMiddle(Action drawAction, float wholeWidth, float width, bool leftAlign = true)
+	{
+		if (drawAction == null)
+		{
+			return;
+		}
+
+		var distance = (wholeWidth - width) / 2;
+		if (leftAlign)
+		{
+			distance = MathF.Max(distance, 0);
+		}
+
+		ImGui.SetCursorPosX(distance);
+		drawAction();
+	}
+    #endregion
+
     #region Extra Methods
     private static IEnumerable<IBattleChara> AllHostileTargets => DataCenter.AllHostileTargets;
     public static int GetAoeCount(IBaseAction action)
