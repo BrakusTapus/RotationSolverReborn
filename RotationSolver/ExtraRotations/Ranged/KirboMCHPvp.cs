@@ -1,27 +1,11 @@
-﻿// TODO: add logic to prevent player speed going over 7.80, ideally dynamicly
-
-using Dalamud.Game;
-using Dalamud.Game.ClientState.Conditions;
+﻿using System.ComponentModel;
 using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ECommons.Automation;
-using ECommons.ChatMethods;
 using ECommons.DalamudServices;
-using ECommons.DalamudServices.Legacy;
-using ECommons.ExcelServices;
 using ECommons.GameFunctions;
-using ECommons.GameHelpers;
-using ECommons.GameHelpers.LegacyPlayer;
-using ECommons.Hooks;
-using ECommons.Hooks.ActionEffectTypes;
-using ECommons.Logging;
-using RotationSolver.Basic.Configuration;
 using RotationSolver.UI;
-using System.Collections.Frozen;
-using System.ComponentModel;
 
 namespace RotationSolver.ExtraRotations.Ranged;
 
@@ -111,16 +95,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     {
         act = null;
 
-        if (ShouldGuardAgainstLB(out act))
-        {
-            return true;
-        }
-
-        //if (DoPurify(out act))
-        //{
-        //    return true;
-        //}
-
         if (EmergencyHealing && EmergencyLowHP(out act))
         {
             return true;
@@ -189,10 +163,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     [RotationDesc(ActionID.RecuperatePvP)]
     protected override bool HealSingleAbility(IAction nextGCD, out IAction? act)
     {
-        if (ShouldGuardAgainstLB(out act))
-        {
-            return true;
-        }
         if (EmergencyHealing && EmergencyLowHP(out act))
         {
             return true;
@@ -205,32 +175,11 @@ public sealed class KirboMCHPvp : MachinistRotation
     protected override bool GeneralGCD(out IAction? act)
     {
         act = null;
-        // Should prevent any actions if the option 'guardCancel' is enabled and Player has the Guard buff up
-        //if (GuardCancel && HasActiveGuard)
-        //{
-        //    return false;
-        //}
-
-        if (ShouldGuardAgainstLB(out act))
-        {
-            return true;
-        }
 
         if (EmergencyHealing && EmergencyLowHP(out act))
         {
             return true;
         }
-
-        //if (DoPurify(out act))
-        //{
-        //    return true;
-        //}
-
-        // Eagle Eye Shot
-        //if (UseEagleEyeShot(out act))
-        //{
-        //    return true;
-        //}
 
         // early analysis
         if (UseEarlyAnalysis(out act))
@@ -244,12 +193,6 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        // FullMetalField
-        if (!IsPvPOverheated && FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
-        {
-            return true;
-        }
-
         // Drill
         if (!IsPvPOverheated && DrillPvP.CanUse(out act, usedUp: true) && Player.HasStatus(true, StatusID.DrillPrimed))
         {
@@ -257,7 +200,7 @@ public sealed class KirboMCHPvp : MachinistRotation
         }
 
         // FullMetalField
-        if (FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
+        if (!IsPvPOverheated && FullMetalFieldPvP.CanUse(out act, skipAoeCheck: true))
         {
             return true;
         }
@@ -295,24 +238,9 @@ public sealed class KirboMCHPvp : MachinistRotation
             return true;
         }
 
-        //// Drill old
-        //if (!IsPvPOverheated && DrillPvP.CanUse(out act, usedUp: true) && Player.HasStatus(true, StatusID.DrillPrimed))
-        //{
-        //    return true;
-        //}
-
-        // Blast Charge is used if available
-        // Note: Stop Using Blast Charge if Player's HP is low + moving + not overheated (since our movement slows down a lot we do this to be able retreat)
-        if (BlastChargePvP.CanUse(out act/*, skipCastingCheck: true*/) /*&& CurrentTarget != null && CurrentTarget.DistanceToPlayer() < 20*/)
+        // Blast Charge
+        if (BlastChargePvP.CanUse(out act))
         {
-            //if (Player.CurrentHp <= LowHPNoBlastChargeThreshold && NumberOfAllHostilesInRange > 0 && LowHPNoBlastCharge && IsMoving) // Maybe add InCombat as well
-            //{
-            //    return false;
-            //}
-            //else
-            //{
-            //    return true;
-            //}
             return true;
         }
 
@@ -324,26 +252,7 @@ public sealed class KirboMCHPvp : MachinistRotation
 
     protected override void UpdateInfo()
     {
-        //PlayerHasMCHLBVfx();
-        //IsCastingMCHLBVfx();
     }
-
-    //private void MoveSpeedHandler()
-    //{
-    //    if (ECommons.GameHelpers.Player.Mounted)
-    //    {
-    //        return;
-    //    }
-    //    // Svc.Condition[ConditionFlag.Mounted]
-    //    if (!MoveSpeed)
-    //    {
-    //        ECommons.GameHelpers.Player.Speed = 1;
-    //    }
-    //    else
-    //    {
-    //        ECommons.GameHelpers.Player.Speed = MoveSpeedMultiplier;
-    //    }
-    //}
 
     #region Common
     // TODO can prolly be removed
@@ -393,48 +302,6 @@ public sealed class KirboMCHPvp : MachinistRotation
     private static bool IsPlayerCharacter(IBattleChara battleChara)
     {
         return battleChara.GetObjectKind() == ObjectKind.Pc;
-    }
-
-    // Checks amount of enemies targeting player
-
-    private static bool EnemiesTargetingSelf(int numEnemies)
-
-    {
-
-        ulong? localPlayerId = Svc.Objects.LocalPlayer?.GameObjectId;
-
-        int count = 0;
-
-        foreach (var o in DataCenter.AllHostileTargets)
-
-        {
-
-            if (o.IsTargetable && !o.IsDead && o.TargetObjectId == localPlayerId)
-
-                count++;
-
-        }
-
-        return count >= numEnemies;
-
-    }
-
-    // check out the guard logic https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Autorotation/Utility/RolePvPUtility.cs#L60
-
-    private static int CountHostilesNear(Vector3 position, float radius)
-    {
-        var count = 0;
-        foreach (var hostile in AllHostileTargets)
-        {
-            if (hostile != null
-                && hostile.CurrentHp > 0
-                && Vector3.Distance(hostile.Position, position) <= radius)
-            {
-                count++;
-            }
-        }
-
-        return count;
     }
     #endregion
 
@@ -623,183 +490,6 @@ public sealed class KirboMCHPvp : MachinistRotation
         EagleEyeShotPvP.Target = new TargetResult(target, [target], target.Position);
         return true;
     }
-
-    // Should check for the Marksman's spite VFX, mainly if a hostile target uses it on the player, this method should then use guardpvp. 
-    public bool ShouldGuardAgainstLB(out IAction? action)
-    {
-        action = null;
-
-        //if (!GuardPvP.CanUse(out _) || GuardPvP.Cooldown.IsCoolingDown || (Player != null && Player.HasStatus(true, StatusID.Guard)) || Svc.Condition[ConditionFlag.Mounted])
-        //{
-        //    return false;
-        //}
-
-        if (PlayerHasMCHLBVfx() || IsCastingMCHLBVfx() || HasIncomingMarksmanSpiteEffect())
-        {
-            if (GuardPvP.CanUse(out action))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c.avfx (this is the lock on vfx)
-    private static readonly FrozenSet<string> MCHLBPaths = FrozenSet.ToFrozenSet(["vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c"], StringComparer.OrdinalIgnoreCase);
-    private static readonly StringComparison PathCmp = StringComparison.OrdinalIgnoreCase;
-    public static bool PlayerHasMCHLBVfx()
-    {
-        TimeSpan lbDuration = TimeSpan.FromSeconds( 2);
-        return DataCenter.IsCastingVfx(vfxData: DataCenter.VfxDataQueue, isVfx: s =>
-        {
-            if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
-            {
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(s.Path))
-            {
-                return false;
-            }
-
-            // Only consider VFX still active
-            if (s.TimeDuration > lbDuration)
-            {
-                return false;
-            }
-
-            foreach (string p in MCHLBPaths)
-            {
-                if (s.Path.StartsWith(p, PathCmp))
-                {
-                    if (Service.Config.InDebug)
-                    {
-                        ECommons.Logging.PluginLog.Warning($"test MCH LB VFX test. objectID={Svc.Objects.SearchById(s.ObjectId)?.Name}-{s.ObjectId}, {s.ToString()}");
-                    }
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-    }
-
-
-
-
-    public static bool IsCastingMCHLBVfx()
-    {
-        TimeSpan lbDuration = TimeSpan.FromSeconds( 2);
-        return DataCenter.IsCastingVfx(DataCenter.VfxDataQueue, s =>
-        {
-            // Make sure player exists
-            if (!ECommons.GameHelpers.Player.Available || ECommons.GameHelpers.Player.Object == null)
-            {
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(s.Path))
-            {
-                return false;
-            }
-
-            // Only consider VFX still active
-            if (s.TimeDuration > lbDuration)
-            {
-                return false;
-            }
-
-            ulong playerId = ECommons.GameHelpers.Player.Object.GameObjectId;
-
-            // Get all hostile MCH targeting the player
-            HashSet<ulong> mchTargets = DataCenter.AllHostileTargets
-            .Where(obj => obj != null && obj.IsJobs(Job.MCH) && obj.TargetObjectId == playerId)
-            .Select(obj => obj.GameObjectId)
-            .ToHashSet();
-
-            if (mchTargets.Count == 0)
-            {
-                return false;
-            }
-
-            // Check if the VFX path matches any LB paths
-            foreach (string path in MCHLBPaths)
-            {
-                if (!s.Path.StartsWith(path, PathCmp))
-                {
-                    continue;
-                }
-
-                // This is the missing piece: check if the VFX comes from a hostile MCH targeting player
-                if (mchTargets.Contains(s.ObjectId))
-                {
-                    if (Service.Config.InDebug)
-                    {
-                        SeString casterName = Svc.Objects.SearchById(s.ObjectId)?.Name ?? "Unknown";
-                        ECommons.Logging.PluginLog.Warning(
-                            $"Detected MCH LB VFX from hostile MCH targeting player. " +
-                            $"objectID={s.ObjectId}, Caster={casterName}, Path={s.Path}"
-                        );
-                    }
-                    return true;
-                }
-            }
-
-            return false;
-        });
-    }
-
-
-
-
-    private const StringComparison Lower = StringComparison.OrdinalIgnoreCase;
-
-    private static readonly StringComparer Lowerer =
-        StringComparer.FromComparison(Lower);
-    private static bool CheckPath(
-        FrozenDictionary<string, uint[]> paths, string vfxPath)
-    {
-        foreach (KeyValuePair<string, uint[]> entry in paths)
-        {
-            if (!vfxPath.StartsWith(entry.Key, Lower))
-            {
-                continue;
-            }
-
-            if (entry.Value.Length == 0)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    public static bool IsMarksmanSpiteEffectPath(VfxInfo vfx) =>
-        CheckPath(MarksmanSpitePaths, vfx.Path);
-    private static readonly FrozenDictionary<string, uint[]> MarksmanSpitePaths =
-        new Dictionary<string, uint[]>
-        {
-            { "vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c", []} // vfx/mks/abl_pvp_common_032/eff/abl_pvpcom032t1c.avfx
-        }.ToFrozenDictionary(Lowerer);
-    public static bool HasIncomingMarksmanSpiteEffect(
-        IGameObject? targetObject = null)
-    {
-        // Default to local player if none provided
-        targetObject ??= Player;
-
-        if (targetObject == null)
-        {
-            return false;
-        }
-
-        ulong targetId = targetObject.GameObjectId;
-
-        return VfxManager.TrackedEffects
-            .FilterToTarget(targetId)
-            .Any(IsMarksmanSpiteEffectPath);
-    }
-
 
     // Early Analysis use
     private bool UseEarlyAnalysis(out IAction? action)
