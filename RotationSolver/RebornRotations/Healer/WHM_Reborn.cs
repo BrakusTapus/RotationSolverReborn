@@ -119,7 +119,7 @@ public sealed class WHM_Reborn : WhiteMageRotation
 			return true;
 		}
 
-		if (UseMedicine && !PresenceOfMindPvE.Cooldown.IsCoolingDown && UseBurstMedicine(out act))
+		if (UseMedicine && InCombat && !PresenceOfMindPvE.Cooldown.IsCoolingDown && UseBurstMedicine(out act))
 		{
 			return true;
 		}
@@ -376,11 +376,6 @@ public sealed class WHM_Reborn : WhiteMageRotation
 
 	protected override bool GeneralGCD(out IAction? act)
 	{
-		if (HasThinAir && MergedStatus.HasFlag(AutoStatus.Raise))
-		{
-			return RaiseGCD(out act);
-		}
-
 		if ((HasSwift || IsLastAction(ActionID.SwiftcastPvE)) && SwiftLogic && MergedStatus.HasFlag(AutoStatus.Raise))
 		{
 			return base.GeneralGCD(out act);

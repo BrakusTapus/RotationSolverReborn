@@ -64,7 +64,6 @@ internal class StateControlWindow : Window
 	private float _tabShown;
 	private float _band;
 
-	// Last frame's window position and tab height. The window grows upward as the tab rises, so the switch stays still.
 	private Vector2 _windowPos;
 	private float _drawnBand;
 	private bool _placed;
@@ -119,7 +118,6 @@ internal class StateControlWindow : Window
 
 	public override void OnOpen()
 	{
-		// Clear any pin or click-through left over from when the window had a title bar.
 		IsPinned = false;
 		IsClickthrough = false;
 
@@ -148,11 +146,11 @@ internal class StateControlWindow : Window
 		var target = CurrentIndex() == ManualIndex ? 1f : 0f;
 		if (_tabTime != target)
 		{
-			var step = ImGui.GetIO().DeltaTime / M3Motion.EmphasisedDuration;
+			var duration = M3Motion.Scaled(M3Motion.EmphasisedDuration);
+			var step = duration <= 0f ? 1f : ImGui.GetIO().DeltaTime / duration;
 			_tabTime = target > _tabTime ? MathF.Min(target, _tabTime + step) : MathF.Max(target, _tabTime - step);
 		}
 
-		// ImGui rounds window positions to whole pixels, so keep this whole too or the switch slowly creeps up.
 		_tabShown = Ease(_tabTime);
 		_band = MathF.Round(TabHeight * _tabShown);
 
@@ -200,12 +198,10 @@ internal class StateControlWindow : Window
 		_drawnBand = _band;
 		_placed = true;
 
-		var folded = _fold.Amount;
-		if (folded < 1f)
+		if (_fold.Amount < 1f)
 		{
-			using var alpha = ImRaii.PushStyle(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * (1f - MathF.Min(1f, folded * 1.4f)));
-			var (openPos, openSize) = _fold.OpenRect();
-			DrawContent(openPos, openSize);
+			using var alpha = ImRaii.PushStyle(ImGuiStyleVar.Alpha, _fold.ContentAlpha);
+			DrawContent();
 		}
 
 		var pressed = _fold.DrawBar("##state_actions", Actions, Brand, out var closed, M3.Scheme.SurfaceContainerHigh);
@@ -220,17 +216,15 @@ internal class StateControlWindow : Window
 		}
 	}
 
-	private void DrawContent(Vector2 openPos, Vector2 openSize)
+	private void DrawContent()
 	{
-		var padding = _fold.OpenPadding;
-		ImGui.SetCursorScreenPos(openPos + padding);
-		using var content = ImRaii.Child("##state_content", Vector2.Max(Vector2.One, openSize - (padding * 2f)), false,
-			ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground);
+		using var content = _fold.BeginContent("##state_content");
 		if (!content)
 		{
 			return;
 		}
 
+		var padding = _fold.OpenPadding;
 		var scale = M3.Scale;
 		var width = ImGui.GetContentRegionAvail().X;
 		var current = CurrentIndex();
@@ -257,7 +251,6 @@ internal class StateControlWindow : Window
 		return t < 0.5f ? 4f * t * t * t : 1f - (MathF.Pow((-2f * t) + 2f, 3f) * 0.5f);
 	}
 
-	// The AoE type only changes if the state did. Duty replays refuse every state but Off.
 	private static void SetState(int index, int previous)
 	{
 		RSCommands.SetStateCommandType(Segments[index].State);
@@ -337,7 +330,6 @@ internal class StateControlWindow : Window
 		drawList.AddText(new Vector2(textX, textY + titleSize.Y + lineGap), M3.U32(Segments[current].Accent(s)),
 			M3Navigation.Truncate(status, textWidth));
 
-		// Draw draws the pill here, after the content, so it can stay on screen while the window minimizes.
 		_fold.BarTop = (height - pillSize.Y) * 0.5f;
 
 		ImGui.SetCursorScreenPos(origin);
@@ -446,9 +438,8 @@ internal class StateControlWindow : Window
 		}
 		else
 		{
-			var t = Math.Clamp(1f - MathF.Exp(-ImGui.GetIO().DeltaTime * 18f), 0f, 1f);
-			_indicatorPos += (target - _indicatorPos) * t;
-			_indicatorWidth += (segWidth - _indicatorWidth) * t;
+			_indicatorPos = M3Motion.Step(_indicatorPos, target, M3Motion.FastDuration);
+			_indicatorWidth = M3Motion.Step(_indicatorWidth, segWidth, M3Motion.FastDuration);
 		}
 
 		var pillMin = origin + new Vector2(_indicatorPos, pad);
@@ -525,7 +516,6 @@ internal class StateControlWindow : Window
 		draw.AddRectFilled(min, max, fill, corner, ImDrawFlags.RoundCornersTop);
 		draw.AddRectFilled(new Vector2(min.X - fillet, trackTop), new Vector2(max.X + fillet, trackTop + scale + 1.5f), fill);
 
-		// Both fillets wind clockwise, which ImGui's anti-aliased fill needs.
 		draw.PathLineTo(new Vector2(min.X, trackTop));
 		draw.PathArcTo(new Vector2(min.X - fillet, trackTop - fillet), fillet, MathF.PI * 0.5f, 0f, 0);
 		draw.PathFillConvex(fill);
@@ -559,8 +549,7 @@ internal class StateControlWindow : Window
 		}
 		else
 		{
-			var t = Math.Clamp(1f - MathF.Exp(-ImGui.GetIO().DeltaTime * 18f), 0f, 1f);
-			_aoeIndicatorPos += (target - _aoeIndicatorPos) * t;
+			_aoeIndicatorPos = M3Motion.Step(_aoeIndicatorPos, target, M3Motion.FastDuration);
 		}
 
 		using var alpha = ImRaii.PushStyle(ImGuiStyleVar.Alpha,

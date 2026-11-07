@@ -216,7 +216,7 @@ public partial class MainWindow
 						config.ShouldCheckStatus = shouldStatus;
 					}
 
-					if (shouldStatus)
+					if (shouldStatus && !(Service.Config.UseDotTickTiming && a.Setting.Dot != null))
 					{
 						int StatusRefreshGcdCount = config.StatusRefreshGcdCount;
 						if (M3Widgets.RowDragInt($"{UiString.ConfigWindow_Actions_GcdCount.GetDescription()}##{a}",

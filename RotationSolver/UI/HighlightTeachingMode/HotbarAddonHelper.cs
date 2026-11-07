@@ -8,9 +8,6 @@ using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 
 namespace RotationSolver.UI.HighlightTeachingMode;
 
-/// <summary>
-/// Shared lookups for the hotbar addons, in RaptureHotbarModule order: the ten standard bars, then the cross hotbars.
-/// </summary>
 internal static class HotbarAddonHelper
 {
 	internal const int StandardHotbarCount = 10;
@@ -38,11 +35,6 @@ internal static class HotbarAddonHelper
 		}
 	}
 
-	/// <summary>
-	/// Fills <paramref name="addons"/> with the currently loaded hotbar addons.
-	/// Each caller passes its own buffer: a shared one would be cleared by one thread while another
-	/// iterates it, since hotbar work runs from both framework updates and UI drawing.
-	/// </summary>
 	internal static void GetHotbarAddons(List<nint> addons)
 	{
 		addons.Clear();
@@ -74,8 +66,19 @@ internal static class HotbarAddonHelper
 		return raptureIndex >= 0 && raptureIndex < raptureModule->Hotbars.Length;
 	}
 
+	internal static bool TryMatchPvPCombo(in HotbarSlot hot, uint adjustedActionId, out bool isMatch)
+	{
+		isMatch = hot.ApparentSlotType == HotbarSlotType.Action && hot.ApparentActionId == adjustedActionId;
+		return hot.CommandType == HotbarSlotType.PvPCombo;
+	}
+
 	internal static bool IsSlotMatch(uint adjustedActionId, in HotbarSlot hot, HotbarID hotbarId)
 	{
+		if (TryMatchPvPCombo(hot, hotbarId.Id, out var comboMatch))
+		{
+			return comboMatch && hotbarId.SlotType == HotbarSlotType.Action;
+		}
+
 		return hot.OriginalApparentSlotType == hotbarId.SlotType
 			&& hot.ApparentSlotType == hotbarId.SlotType
 			&& adjustedActionId == hotbarId.Id;

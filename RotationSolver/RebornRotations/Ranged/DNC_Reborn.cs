@@ -66,6 +66,11 @@ public sealed class DNC_Reborn : DancerRotation
 			return true;
 		}
 
+		if (ImprovisedFinishPvEReady && ImprovisedFinishPvE.CanUse(out act))
+		{
+			return true;
+		}
+
 		if (IsBurst && DevilmentPvE.CanUse(out act))
 		{
 			if (HasTechnicalFinish)
@@ -87,7 +92,7 @@ public sealed class DNC_Reborn : DancerRotation
 		}
 
 		// Use burst medicine if cooldown for Technical Step has elapsed sufficiently
-		if (TechnicalStepPvE.Cooldown.ElapsedAfter(115)
+		if (InCombat && TechnicalStepPvE.Cooldown.ElapsedAfter(115)
 			&& UseBurstMedicine(out act))
 		{
 			return true;

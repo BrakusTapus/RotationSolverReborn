@@ -24,8 +24,6 @@ public partial class MainWindow
 	private ICustomRotation? _currentRotation;
 
 	private const string LogoResource = "RotationSolver.Images.Logo.png";
-
-	// Easter egg: holding the RSR icon opens tic-tac-toe.
 	private double _rsrIconPressStart = -1;
 	private bool _rsrIconTriggered = false;
 	private const double RsrIconHoldSeconds = 1.2;
@@ -419,7 +417,6 @@ public partial class MainWindow
 		}
 	}
 
-	// Fetched every frame on purpose; Dalamud caches the texture.
 	internal static IDalamudTextureWrap? GetLogoTexture()
 	{
 		return Svc.Texture.GetFromManifestResource(typeof(MainWindow).Assembly, LogoResource)
@@ -458,7 +455,7 @@ public partial class MainWindow
 		Vector4 accent;
 		if (_diagInfoAnyCrash)
 		{
-			var pulse = (MathF.Sin((float)ImGui.GetTime() * 4f) + 1f) * 0.5f;
+			var pulse = M3.ReducedMotion ? 0f : (MathF.Sin((float)ImGui.GetTime() * 4f) + 1f) * 0.5f;
 			accent = M3ColorMath.Mix(scheme.Error, scheme.OnErrorContainer, pulse * 0.5f);
 		}
 		else
